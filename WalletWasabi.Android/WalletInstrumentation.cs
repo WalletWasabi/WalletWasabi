@@ -227,7 +227,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri("http://127.0.0.1:18443"), Network.RegTest);
 		byte[] backup = [];
 		BitcoinAddress? recoveryDestination = null;
-		await using (var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!))
+		await using (var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			await session.InitializeAsync(timeout.Token);
 			var wallet = await session.CreateAsync("Android test", password, new Mnemonic(words), false);
@@ -299,7 +299,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			Check(wallet.Password.Length == 0 && wallet.KeyChain is null && !wallet.IsLoggedIn, "Lock releases signing credentials");
 		}
 		var freshDirectory = Path.Combine(context.FilesDir!.AbsolutePath, "fresh-recovery-" + Guid.NewGuid().ToString("N"));
-		await using (var fresh = new WalletSession(freshDirectory, settings, context.ApplicationInfo!.NativeLibraryDir!))
+		await using (var fresh = new WalletSession(freshDirectory, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			await fresh.InitializeAsync(timeout.Token);
 			var imported = await fresh.ImportAsync("Fresh installation recovery", System.Text.Encoding.UTF8.GetString(backup));
@@ -309,7 +309,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			var restoredReceipt = await fresh.ConfirmAsync(spend.Id, password, timeout.Token);
 			Check((await rpc.GetRawTransactionAsync(uint256.Parse(restoredReceipt.TransactionId))).Outputs.Any(o => o.Value == Money.Coins(0.01m) && o.ScriptPubKey == recoveryDestination!.ScriptPubKey), "Fresh installation recovers funds and signing without previous databases or device keys");
 		}
-		await using (var reopened = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!))
+		await using (var reopened = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			Check(reopened.Global.WalletManager.GetWallets().Count() == 1, "Persisted wallet reload");
 			await reopened.InitializeAsync(timeout.Token);
@@ -337,7 +337,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		// with independent randomized privacy delays on each participant.
 		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(_coinJoinScenario == "restart-output" ? 16 : 8));
 		var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri("http://127.0.0.1:18443"), Network.RegTest);
-		await using var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!);
+		await using var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode());
 		await session.InitializeAsync(timeout.Token);
 		var password = "public test " + Guid.NewGuid().ToString("N");
 		var wallet = await session.CreateAsync("CoinJoin test", password, new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"), false);
@@ -465,9 +465,9 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		var context = TargetContext!;
 		var directory = Path.Combine(context.FilesDir!.AbsolutePath, "vault-instrumentation-" + Guid.NewGuid().ToString("N"));
 		var vault = new CredentialVault(context, directory);
-		var secret = "synthetic-rpc-secret-" + Guid.NewGuid().ToString("N");
-		vault.StoreRpcCredentials(secret);
-		Check(new CredentialVault(context, directory).RetrieveRpcCredentials() == secret, "Keystore RPC encryption survives vault reopening");
+		var secret = "synthetic-keystore-secret-" + Guid.NewGuid().ToString("N");
+		vault.StoreFixtureSecret(secret);
+		Check(new CredentialVault(context, directory).RetrieveFixtureSecret() == secret, "Keystore authenticated encryption survives vault reopening");
 		var path = Directory.GetFiles(Path.Combine(directory, "vault")).Single();
 		var text = File.ReadAllText(path);
 		Check(!text.Contains(secret, StringComparison.Ordinal), "Vault files contain no plaintext fixture credential");
@@ -478,7 +478,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		changed["Ciphertext"] = Convert.ToBase64String(ciphertext);
 		File.WriteAllText(path, changed.ToJsonString());
 		var rejected = false;
-		try { _ = vault.RetrieveRpcCredentials(); } catch (InvalidOperationException) { rejected = true; }
+		try { _ = vault.RetrieveFixtureSecret(); } catch (InvalidOperationException) { rejected = true; }
 		Check(rejected, "Authenticated encryption rejects a modified tag");
 		File.WriteAllText(path, text);
 		using (var store = Java.Security.KeyStore.GetInstance("AndroidKeyStore")!)
@@ -487,18 +487,20 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			store.DeleteEntry(document.RootElement.GetProperty("Alias").GetString()!);
 		}
 		rejected = false;
-		try { _ = vault.RetrieveRpcCredentials(); } catch (InvalidOperationException) { rejected = true; }
-		Check(rejected, "Device-key loss requests new RPC credentials");
-		vault.StoreRpcCredentials("");
-		Check(vault.RetrieveRpcCredentials() == "", "Vault credential removal");
+		try { _ = vault.RetrieveFixtureSecret(); } catch (InvalidOperationException) { rejected = true; }
+		Check(rejected, "Device-key loss cannot decrypt the fixture secret");
+		vault.RemoveFixtureSecret();
+		Check(vault.RetrieveFixtureSecret() == "", "Vault credential removal");
+		vault.StoreFixtureSecret(secret);
+		vault.StoreFixtureSecret(secret, "rpc");
+		vault.RemoveRetiredNodeCredentials();
+		Check(Directory.GetFiles(Path.Combine(directory, "vault")).Length == 1 && vault.RetrieveFixtureSecret() == secret,
+			"Retired personal-node credentials are removed without touching other Keystore secrets");
+		vault.RemoveFixtureSecret();
 	}
 
-	private static MobileSettings RegtestSettings() => new()
-	{
-		Network = "regtest",
-		BitcoinRpcUri = "http://127.0.0.1:18443/",
-		BitcoinRpcCredentials = "wasabiandroid:wasabi-android-regtest"
-	};
+	private static MobileSettings RegtestSettings() => new() { Network = "regtest" };
+	private static RegtestNodeOptions RegtestNode() => new("http://127.0.0.1:18443/", "wasabiandroid:wasabi-android-regtest");
 
 	private static void VerifyCredentials()
 	{

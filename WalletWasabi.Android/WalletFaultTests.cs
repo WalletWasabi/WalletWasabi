@@ -29,7 +29,7 @@ public sealed partial class WalletInstrumentation
 		var destination = await rpc.GetNewAddressAsync();
 		BroadcastReceipt uncertain;
 		string approvedHex;
-		await using (var session = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!))
+		await using (var session = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			await session.InitializeAsync(timeout.Token);
 			var wallet = await session.CreateAsync("Failure qualification", password, new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"), false);
@@ -76,7 +76,7 @@ public sealed partial class WalletInstrumentation
 			await RejectAsync(() => session.PrepareAsync(request, Money.Coins(0.1m), new FeeRate(2m), proposal.Inputs.Select(i => new OutPoint(uint256.Parse(i.TransactionId), i.Index)).ToArray(), cancellationToken: timeout.Token), "Uncertain inputs cannot fund a different payment");
 			Check((await session.ConfirmAsync(proposal.Id, password, timeout.Token)).TransactionId == uncertain.TransactionId, "Duplicate tap after a lost reply keeps the same transaction");
 		}
-		await using var reopened = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!);
+		await using var reopened = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode());
 		await reopened.InitializeAsync(timeout.Token);
 		var restored = reopened.Global.WalletManager.GetWallets().Single();
 		reopened.Unlock(restored, password);

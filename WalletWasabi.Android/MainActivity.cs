@@ -35,6 +35,9 @@ public sealed class MainActivity : Activity
 	private LinearLayout _root = null!;
 	private LinearLayout _body = null!;
 	private TextView _status = null!;
+	private TextView _syncDetails = null!;
+	private ProgressBar _syncProgress = null!;
+	private readonly SynchronizationProgressTracker _synchronization = new();
 	private Action? _back;
 	private System.Threading.Timer? _refresh;
 	private Action? _updateScreen;
@@ -67,9 +70,6 @@ public sealed class MainActivity : Activity
 	protected override void OnCreate(Bundle? savedInstanceState)
 	{
 		base.OnCreate(savedInstanceState);
-#if !WASABI_UI_TEST
-		Window!.AddFlags(WindowManagerFlags.Secure);
-#endif
 		Window!.SetSoftInputMode(SoftInput.AdjustResize);
 		_payment = Intent?.Data?.Scheme == "bitcoin" ? Intent.DataString : null;
 		StartWalletService();
@@ -155,13 +155,8 @@ public sealed class MainActivity : Activity
 		if (IsFinishing || IsDestroyed || !_foreground) { return; }
 		if ((!_uiLocked || _screen is "create" or "backup" or "unlock") && Stopwatch.GetElapsedTime(_lastInteraction) > TimeSpan.FromMinutes(2)) { LockUi(); }
 		var session = Session;
-		if (_observedSession != session) { _observedSession = session; LockUi(); }
-		_status.Text = WalletRuntime.Error is { } error ? error
-			: session?.SynchronizationError is { } syncError ? syncError
-			: session is null || !session.IsReady ? $"●  Tor {WalletRuntime.Bootstrap}%"
-			: session.Global.GetPeerCount() == 0 ? "●  Connecting to Bitcoin peers"
-			: session.IsSynchronized ? $"●  Connected · {session.Global.Network.Name}"
-			: $"●  Synchronizing · {session.Global.FilterHeaders.TipHeight} blocks · {session.Global.GetPeerCount()} peers";
+		if (_observedSession != session) { _observedSession = session; _synchronization.Reset(); LockUi(); }
+		ShowSynchronization();
 		if (_screen == "wallets" && _body.Tag?.ToString() != WalletListSignature()) { ShowWallets(); }
 		_updateScreen?.Invoke();
 	}
@@ -191,9 +186,17 @@ public sealed class MainActivity : Activity
 		_body.SetPadding(0, Dp(8), 0, Dp(24));
 		scroll.AddView(_body);
 		_root.AddView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
-		_status = Text("●  Connecting privately", 12, Muted);
-		_status.SetPadding(0, Dp(12), 0, Dp(12));
+		_status = Text("Connecting through Tor", 14, Muted);
+		_status.SetPadding(0, Dp(10), 0, Dp(4));
 		_root.AddView(_status);
+		_syncProgress = new ProgressBar(this, null, global::Android.Resource.Attribute.ProgressBarStyleHorizontal) { Max = 1000, Indeterminate = true };
+		_syncProgress.ProgressTintList = global::Android.Content.Res.ColorStateList.ValueOf(Accent);
+		_syncProgress.ProgressBackgroundTintList = global::Android.Content.Res.ColorStateList.ValueOf(Surface);
+		_syncProgress.IndeterminateTintList = global::Android.Content.Res.ColorStateList.ValueOf(Accent);
+		_root.AddView(_syncProgress, new LinearLayout.LayoutParams(-1, Dp(6)) { TopMargin = Dp(2), BottomMargin = Dp(6) });
+		_syncDetails = Text("", 12, Muted);
+		_syncDetails.SetPadding(0, 0, 0, Dp(8));
+		_root.AddView(_syncDetails);
 		// Android's inset handling replaces the padding on the view that consumes
 		// system windows. Keep content spacing on a separate inner container.
 		var safeArea = new FrameLayout(this);
@@ -201,16 +204,55 @@ public sealed class MainActivity : Activity
 		safeArea.SetBackgroundColor(Background);
 		safeArea.AddView(_root, new FrameLayout.LayoutParams(-1, -1));
 		SetContentView(safeArea);
+		ShowSynchronization();
 	}
+
+	private void ShowSynchronization()
+	{
+		var snapshot = WalletRuntime.Synchronization;
+		snapshot = snapshot with { Error = WalletRuntime.Error ?? snapshot.Error };
+		var progress = _synchronization.Update(snapshot);
+		_status.Text = progress.Stage switch
+		{
+			SynchronizationStage.Tor => "Connecting through Tor",
+			SynchronizationStage.Starting => "Opening Bitcoin connection",
+			SynchronizationStage.Peers => "Finding Bitcoin peers",
+			SynchronizationStage.Headers => "Synchronizing · Verifying Bitcoin history",
+			SynchronizationStage.Filters => "Synchronizing · Downloading wallet data",
+			SynchronizationStage.Wallet => "Synchronizing · Scanning wallet",
+			SynchronizationStage.Ready => "●  Connected · " + snapshot.Network,
+			_ => progress.Error ?? "Connection interrupted"
+		};
+		_status.SetTextColor(progress.Stage == SynchronizationStage.Ready ? Accent : Muted);
+		_syncProgress.Visibility = progress.Stage is SynchronizationStage.Ready or SynchronizationStage.Failed ? ViewStates.Gone : ViewStates.Visible;
+		_syncProgress.Indeterminate = progress.Fraction is null;
+		_syncProgress.Progress = (int)Math.Round((progress.Fraction ?? 0) * 1000);
+		var details = new List<string>();
+		if (progress.Fraction is { } fraction) { details.Add(fraction.ToString("P0", CultureInfo.InvariantCulture)); }
+		if (progress.Stage is SynchronizationStage.Headers or SynchronizationStage.Filters or SynchronizationStage.Wallet)
+		{
+			details.Add(progress.Target is { } target ? $"{progress.Position:N0} / {target:N0} blocks" : $"{progress.Position:N0} blocks verified");
+		}
+		if (progress.WaitingForData) { details.Add("Waiting for data"); }
+		else if (progress.EstimatedRemaining is { } remaining) { details.Add("About " + SyncDuration(remaining) + " left in this stage"); }
+		else if (progress.Stage is not (SynchronizationStage.Ready or SynchronizationStage.Failed)) { details.Add(SyncDuration(progress.Elapsed) + " elapsed"); }
+		if (snapshot.Peers > 0) { details.Add(snapshot.Peers + " peers"); }
+		_syncDetails.Text = string.Join(" · ", details);
+		_syncDetails.Visibility = details.Count == 0 ? ViewStates.Gone : ViewStates.Visible;
+		_syncProgress.ContentDescription = _status.Text + ". " + _syncDetails.Text;
+	}
+
+	private static string SyncDuration(TimeSpan duration) => duration.TotalHours >= 1 ? $"{Math.Ceiling(duration.TotalHours):0} hr"
+		: duration.TotalMinutes >= 1 ? $"{Math.Ceiling(duration.TotalMinutes):0} min" : $"{Math.Max(0, Math.Ceiling(duration.TotalSeconds)):0} sec";
 
 	private void ShowWallets()
 	{
 		Screen("wasabi", "wallets");
 		_body.Tag = WalletListSignature();
-		var brand = new ImageView(this);
-		brand.SetImageResource(Resource.Drawable.wasabi_icon);
+		var brand = new ImageView(this) { ContentDescription = "Wasabi Wallet logo" };
+		brand.SetImageResource(Resource.Drawable.wasabi_logo);
 		_body.AddView(brand, new LinearLayout.LayoutParams(Dp(88), Dp(88)) { Gravity = GravityFlags.CenterHorizontal, BottomMargin = Dp(20) });
-		AddText("Bitcoin.\nPrivately yours.", 36, Color.White, true);
+		AddText("Bitcoin.\nUnfairly private.", 36, Color.White, true);
 		Gap(24);
 		if (Session is { } session)
 		{
@@ -765,14 +807,6 @@ public sealed class MainActivity : Activity
 		var identifier = Field("Coordinator identifier");
 		identifier.Text = settings.CoordinatorIdentifier;
 		AddText("Coordinator details must come from its operator. The network has separate wallets and history.", 14, Muted);
-		Gap(16);
-		AddText("PERSONAL BITCOIN NODE", 12, Muted);
-		var node = Field("RPC URL (optional onion or localhost)");
-		node.Text = settings.BitcoinRpcUri;
-		var credentials = Field("RPC user:password", true);
-		var clearCredentials = new CheckBox(this) { Text = "Remove saved RPC credentials", TextSize = 14 };
-		clearCredentials.SetTextColor(Muted);
-		_body.AddView(clearCredentials);
 		AddButton("Save and reconnect", () => Work(async () =>
 		{
 			if (Session?.IsMixing is true) { throw new InvalidOperationException("Stop CoinJoin before changing settings."); }
@@ -780,15 +814,10 @@ public sealed class MainActivity : Activity
 			{
 				Network = names[network.SelectedItemPosition],
 				Coordinator = coordinator.Text?.Trim() ?? "",
-				CoordinatorIdentifier = identifier.Text?.Trim() ?? "",
-				BitcoinRpcUri = node.Text?.Trim() ?? "",
-				BitcoinRpcCredentials = credentials.Text ?? ""
+				CoordinatorIdentifier = identifier.Text?.Trim() ?? ""
 			};
 			updated.Validate();
-			if (clearCredentials.Checked || updated.BitcoinRpcUri.Length == 0) { Vault.StoreRpcCredentials(""); }
-			else if (updated.BitcoinRpcCredentials.Length > 0) { Vault.StoreRpcCredentials(updated.BitcoinRpcCredentials); }
 			updated.Save(WalletRuntime.DataDir(this));
-			credentials.Text = "";
 			await WalletRuntime.StopAsync();
 			_uiLocked = true;
 			StartWalletService();

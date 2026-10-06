@@ -55,7 +55,7 @@ public sealed partial class WalletInstrumentation
 		var directory = Path.Combine(TargetContext!.FilesDir!.AbsolutePath, metadata.Directory);
 		var settings = RegtestSettings() with { Coordinator = "http://127.0.0.1:18545/", CoordinatorIdentifier = "WasabiAndroidRegtest" };
 		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
-		await using var session = new WalletSession(directory, settings, TargetContext.ApplicationInfo!.NativeLibraryDir!);
+		await using var session = new WalletSession(directory, settings, TargetContext.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode());
 		await session.InitializeAsync(timeout.Token);
 		var wallet = session.Global.WalletManager.GetWallets().Single();
 		Check(wallet.KeyChain is null && wallet.Password.Length == 0 && !wallet.IsLoggedIn, "A new process must not retain CoinJoin signing credentials");
@@ -66,7 +66,7 @@ public sealed partial class WalletInstrumentation
 		Check(session.PendingCoinJoins == 1 && session.CoinJoinStatus == "Awaiting CoinJoin reconciliation", "A possibly signed round stays reserved after restart");
 		await session.ReconcilePendingAsync(timeout.Token);
 		Check(session.PendingCoinJoins == 1, "An unavailable signed outcome must not release inputs");
-		var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri(settings.BitcoinRpcUri), Network.RegTest);
+		var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri(RegtestNode().Uri), Network.RegTest);
 		Check((await rpc.GetRawMempoolAsync()).All(id => id.ToString() != metadata.TransactionId), "No witness was submitted after the signing checkpoint");
 		var destination = await rpc.GetNewAddressAsync();
 		var input = new OutPoint(uint256.Parse(metadata.InputId), metadata.InputIndex);
@@ -79,7 +79,7 @@ public sealed partial class WalletInstrumentation
 		var backup = await session.ExportEncryptedBackupAsync(metadata.Password, timeout.Token);
 		session.Lock();
 		await session.DisposeAsync(); // The engine's named workers have one owner per process.
-		await using (var recovered = new WalletSession(Path.Combine(TargetContext.FilesDir.AbsolutePath, "interrupted-recovery-" + Guid.NewGuid().ToString("N")), settings, TargetContext.ApplicationInfo.NativeLibraryDir!))
+		await using (var recovered = new WalletSession(Path.Combine(TargetContext.FilesDir.AbsolutePath, "interrupted-recovery-" + Guid.NewGuid().ToString("N")), settings, TargetContext.ApplicationInfo.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			await recovered.InitializeAsync(timeout.Token);
 			var imported = await recovered.ImportAsync("Interrupted fixture recovery", Encoding.UTF8.GetString(backup));
@@ -90,7 +90,7 @@ public sealed partial class WalletInstrumentation
 			Check(receipt.TransactionId != metadata.TransactionId && (await rpc.GetRawTransactionAsync(uint256.Parse(receipt.TransactionId))).Inputs.Any(i => i.PrevOut == input), "Fresh recovery signs the fixture input without lost device keys");
 			await rpc.GenerateToAddressAsync(1, await rpc.GetNewAddressAsync());
 		}
-		await using var reopened = new WalletSession(directory, settings, TargetContext.ApplicationInfo.NativeLibraryDir!);
+		await using var reopened = new WalletSession(directory, settings, TargetContext.ApplicationInfo.NativeLibraryDir!, regtestNode: RegtestNode());
 		await reopened.InitializeAsync(timeout.Token);
 		wallet = reopened.Global.WalletManager.GetWallets().Single();
 		reopened.Unlock(wallet, metadata.Password);

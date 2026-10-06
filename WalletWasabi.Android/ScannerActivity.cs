@@ -41,7 +41,6 @@ public sealed class ScannerActivity : Activity, TextureView.ISurfaceTextureListe
 	protected override void OnCreate(Bundle? savedInstanceState)
 	{
 		base.OnCreate(savedInstanceState);
-		Window!.AddFlags(WindowManagerFlags.Secure);
 		var root = new FrameLayout(this);
 		root.SetFitsSystemWindows(true);
 		root.SetBackgroundColor(Color.Rgb(17, 21, 18));

@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.6 / version code 11** produces a personally signed APK. This is a
+Version **0.3.7 / version code 12** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -15,7 +15,7 @@ The supported runtime selection is .NET 10 **Mono JIT**, with no trimming,
 interpreter, assembly store, ReadyToRun or AOT. The minimal reproduction is in
 `Contrib/Android/RuntimeProbe`. Published Bitcoin vectors and funded Bitcoin Core
 acceptance pass on x86_64 emulators. The isolated Release crypto probe also
-passed on the connected ARM64 Android 16 phone; full handset qualification is
+passed with the corrected source-native libraries on the connected ARM64 Android 16 phone; full handset qualification is
 still outstanding. Android 7/API 24 source Release funded-wallet and public Tor
 stop/restart checks pass after a scoped native handshake guard and a verified
 public CA supplement. Verified native source builds retain all ELF protections
@@ -41,8 +41,8 @@ dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -m:1 -p:WasabiSkip
 
 Development packages use `io.wasabiwallet.android.dev`, default to Testnet4, and
 reject mainnet below the UI, including an attempted policy-object override. Debug
-instrumentation is confined to this package. `WasabiUiTest=true` is rejected in
-Release. Keep existing development installations and their data intact.
+instrumentation is confined to this package. Keep existing development
+installations and their data intact.
 
 A personal build uses `io.wasabiwallet.android.personal`, Release configuration,
 the dedicated external key and a bootstrap JSON containing **only** `Coordinator`
@@ -134,7 +134,7 @@ only synthetic localhost credentials and removes its generated private key.
   CoinJoin retains signing credentials while locked; stopping releases them.
   Device-key invalidation requests the original password and preserves the wallet.
 - Public peers, filters, fees, coordinator requests and external broadcast use Tor.
-  RPC accepts only loopback or onion addresses; remote onion RPC uses Tor. Tor loss
+  Personal-node settings and stored RPC credentials have been retired. Tor loss
   never enables direct public networking. Foreground work and wake locks remain
   subject to Android's background limits.
 
@@ -144,10 +144,19 @@ Compact-filter sends use bounded asynchronous waits, and timeout/disconnect clea
 releases ranges for another peer. Partial P2P downloads preserve the reported network
 target instead of presenting the downloaded height as current.
 
-Backups and device-transfer backup are disabled. Release windows retain screenshot
-protection; secret fields disable autofill and personalized keyboard learning.
+Backups and device-transfer backup are disabled. Screenshots are enabled throughout
+the app at the user's request; secret fields disable autofill and personalized keyboard learning.
 This cannot guarantee removal of every immutable managed string from process memory.
 Hardware-wallet integration and Play Store publication are excluded.
+
+The launcher and welcome screen use the original desktop Wasabi logo. The welcome
+line is "Bitcoin. Unfairly private." Synchronization shows Tor, peer discovery,
+history, filter download and wallet scanning, with a visible progress bar and
+elapsed time. Remaining time is estimated only for the current download/scan stage
+after measured progress; target changes, reorganizations and stalls invalidate it.
+Funded regtest qualification injects its localhost node separately from settings;
+that node cannot serve public-network wallets and the Android path rejects physical
+devices. No node configuration or RPC credential entry is part of the mobile UI.
 
 ## Verification tools
 

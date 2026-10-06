@@ -114,19 +114,30 @@ public class WalletSessionTests
 	public void RejectInsecureCoordinatorConfiguration(string coordinator) => Assert.Throws<FormatException>(() => new MobileSettings { Coordinator = coordinator }.Validate());
 
 	[Theory]
-	[InlineData("http://example.com")]
-	[InlineData("https://example.com")]
-	[InlineData("http://user:password@localhost")]
-	[InlineData("file:///wallet")]
-	public void PersonalNodeCannotExposeRpcCredentialsOutsideTor(string uri) => Assert.Throws<FormatException>(() => new MobileSettings { BitcoinRpcUri = uri }.Validate());
-
-	[Fact]
-	public void PersonalNodeSettingsRoundTrip()
+	[InlineData("main")]
+	[InlineData("testnet")]
+	[InlineData("signet")]
+	public void QualificationNodeCannotOperatePublicWallets(string network)
 	{
 		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
-		var settings = new MobileSettings { BitcoinRpcUri = "http://127.0.0.1:18443", BitcoinRpcCredentials = "public:test" };
+		Assert.Throws<InvalidOperationException>(() => new WalletSession(path, new MobileSettings { Network = network }, path, WalletPolicy.Personal,
+			regtestNode: new("http://127.0.0.1:18443", "public:test")));
+		Assert.False(Directory.Exists(path));
+	}
+
+	[Fact]
+	public async Task RetiredNodeSettingsCannotRestoreAConnectionOrCredentials()
+	{
+		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
+		Directory.CreateDirectory(path);
+		File.WriteAllText(Path.Combine(path, "mobile-settings.json"), "{\"Network\":\"main\",\"BitcoinRpcUri\":\"http://127.0.0.1:18443\",\"BitcoinRpcCredentials\":\"public:test\"}");
+		var settings = MobileSettings.Load(path);
+		Assert.Equal(Network.Main, settings.GetNetwork());
+		await using var session = new WalletSession(path, settings, path, WalletPolicy.Personal);
+		Assert.Equal("", session.Global.Config.BitcoinRpcCredentialString);
 		settings.Save(path);
-		Assert.Equal(settings with { BitcoinRpcCredentials = "" }, MobileSettings.Load(path));
+		Assert.Equal(settings, MobileSettings.Load(path));
+		Assert.DoesNotContain("BitcoinRpc", File.ReadAllText(Path.Combine(path, "mobile-settings.json")));
 		Assert.DoesNotContain("public:test", File.ReadAllText(Path.Combine(path, "mobile-settings.json")));
 		Assert.Throws<FormatException>(() => (settings with { Network = null! }).Validate());
 	}

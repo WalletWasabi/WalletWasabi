@@ -23,7 +23,7 @@ Release acceptance is blocked by the findings and missing device evidence below.
 | Settings publication | The Windows CI sharing failure was reproduced. Configuration instances share a normalized path lock; saves publish complete files atomically, initial creation completes before returning, and read failures propagate without overwriting usable settings. Corrupt UI decoding starts reactive persistence only after validation. Six settings and two safe-file regressions pass. |
 | Blame qualification | The failing desktop fixture had registration and phase windows incompatible with Arena/client rules, unintended single-coin isolation, and a factory discarding the blame input minimum. Corrected fixture conditions retain production privacy and participation protections. Removed exception-to-success shortcut; three real blame rounds and all 325 WabiSabi checks pass locally. |
 | Credential graph / allocation | A retained seed-23 production decomposition reproduces a zero-credential cycle. Routing excludes descendants across both credential types; the scheduler rejects incomplete/cyclic graphs before requests. Missing or reordered credentials cannot silently leave dependency promises unresolved. Literal, seeded-decomposition and generated-graph regressions are retained; the real blame fixture exercises seed 23. The original Mac trace did not retain exact graph values; current-source CI and Android rounds have separate evidence. |
-| Android / package | Secure windows, disabled backups/debugging, separate instrumentation, sensitive inputs/clipboard, generation-aware Camera2 teardown, bounded decoding and foreground/wake-lock limits. Pure-Java testing exercises the actual signed APK without security exemptions. |
+| Android / package | Screenshots enabled by user request, disabled backups/debugging, separate instrumentation, sensitive inputs/clipboard, generation-aware Camera2 teardown, bounded decoding and foreground/wake-lock limits. Pure-Java testing exercises the actual signed APK's recorded capture policy. |
 | Native metadata | Added documented common-page-size flag to the pinned SDK's generated app-library linker invocation, retaining RELRO/NOW/non-executable stack. Prebuilt binaries are not patched. |
 
 ## Open release findings
@@ -62,8 +62,10 @@ Release acceptance is blocked by the findings and missing device evidence below.
    now queries the existing seeds' service-filtered answers through the same
    resolver, while retaining general answers, service handshakes and netgroup
    limits. Three regressions pass, with their pre-correction failures retained.
-4. **Remaining handset evidence:** the isolated stock-runtime Release crypto probe
-   passed on the ARM64 Android 16 phone. Hardware-backed per-use authentication and
+4. **Remaining handset evidence:** the corrected source-native crypto, SQLite and
+   TLS probe passed at clean `76ab3fa9` on the ARM64 Android 16 phone. Version 11
+   was installed with the personal certificate and a new disposable wallet opened.
+   Hardware-backed per-use authentication and
    cancellation, real camera scanning/rotation, wallet recovery, accessibility and
    updates still require qualification. No funded user seed or real-bitcoin
    transaction was used.

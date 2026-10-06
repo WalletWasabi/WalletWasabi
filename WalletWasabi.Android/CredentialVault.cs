@@ -17,7 +17,7 @@ using CipherMode = Javax.Crypto.CipherMode;
 
 namespace WalletWasabi.Android;
 
-internal sealed class CredentialVault(Context context, string dataDirectory) : ICredentialVault
+internal sealed partial class CredentialVault(Context context, string dataDirectory) : ICredentialVault
 {
 	private sealed record Envelope(string Alias, string Iv, string Ciphertext);
 	private string DirectoryPath => Path.Combine(dataDirectory, "vault");
@@ -35,23 +35,18 @@ internal sealed class CredentialVault(Context context, string dataDirectory) : I
 		using var store = OpenStore();
 		try
 		{
-			using var key = CreateKey(alias, authenticated: true);
+			using var key = CreateKey(alias);
 			RequireHardware(key);
 			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
 			cipher.Init(CipherMode.EncryptMode, key);
 			cipher.UpdateAAD(AssociatedData(reference));
 			await AuthenticateAsync(activity, cipher, "Enable device unlocking", cancellationToken).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
-			var bytes = Encoding.UTF8.GetBytes(originalPassword);
-			try
-			{
-				var encrypted = cipher.DoFinal(bytes)!;
-				var old = Load(reference);
-				Save(reference, new(alias, Convert.ToBase64String(cipher.GetIV()!), Convert.ToBase64String(encrypted)));
-				committed = true;
-				if (old is not null) { store.DeleteEntry(old.Alias); }
-			}
-			finally { CryptographicOperations.ZeroMemory(bytes); }
+			var encrypted = SealSecret(cipher, originalPassword);
+			var old = Load(reference);
+			Save(reference, new(alias, Convert.ToBase64String(cipher.GetIV()!), Convert.ToBase64String(encrypted)));
+			committed = true;
+			if (old is not null) { store.DeleteEntry(old.Alias); }
 		}
 		catch { if (!committed) { store.DeleteEntry(alias); } throw; }
 	}
@@ -72,9 +67,7 @@ internal sealed class CredentialVault(Context context, string dataDirectory) : I
 			cipher.UpdateAAD(AssociatedData(reference));
 			await AuthenticateAsync(activity, cipher, purpose, cancellationToken).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
-			var bytes = cipher.DoFinal(Convert.FromBase64String(envelope.Ciphertext))!;
-			try { return Encoding.UTF8.GetString(bytes); }
-			finally { CryptographicOperations.ZeroMemory(bytes); }
+			return OpenSecret(cipher, envelope);
 		}
 		catch (Java.Security.GeneralSecurityException)
 		{
@@ -83,68 +76,54 @@ internal sealed class CredentialVault(Context context, string dataDirectory) : I
 	}
 
 	public void RemoveWalletPassword(string walletReference) => Remove("wallet:" + walletReference);
-	public string RetrieveRpcCredentials()
+	public void RemoveRetiredNodeCredentials()
 	{
 		const string reference = "rpc";
-		if (Load(reference) is not { } envelope) { return ""; }
-		try
-		{
-			using var store = OpenStore();
-			using var key = store.GetKey(envelope.Alias, null)?.JavaCast<ISecretKey>() ?? throw new InvalidOperationException("Re-enter your Bitcoin node credentials in Settings.");
-			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
-			using var parameters = new GCMParameterSpec(128, Convert.FromBase64String(envelope.Iv));
-			cipher.Init(CipherMode.DecryptMode, key, parameters);
-			cipher.UpdateAAD(AssociatedData(reference));
-			var bytes = cipher.DoFinal(Convert.FromBase64String(envelope.Ciphertext))!;
-			try { return Encoding.UTF8.GetString(bytes); }
-			finally { CryptographicOperations.ZeroMemory(bytes); }
-		}
-		catch (Java.Security.GeneralSecurityException) { throw new InvalidOperationException("The device key was invalidated. Re-enter Bitcoin node credentials in Settings."); }
-	}
-
-	public void StoreRpcCredentials(string credentials)
-	{
-		const string reference = "rpc";
-		if (credentials.Length == 0) { Remove(reference); return; }
-		var alias = "wasabi-rpc-" + Guid.NewGuid().ToString("N");
-		var committed = false;
+		if (!Exists(reference)) { return; }
 		using var store = OpenStore();
-		try
+		var retired = new List<string>();
+		using var aliases = store.Aliases()!;
+		while (aliases.HasMoreElements)
 		{
-			using var key = CreateKey(alias, authenticated: false);
-			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
-			cipher.Init(CipherMode.EncryptMode, key);
-			cipher.UpdateAAD(AssociatedData(reference));
-			var bytes = Encoding.UTF8.GetBytes(credentials);
-			try
-			{
-				var old = Load(reference);
-				Save(reference, new(alias, Convert.ToBase64String(cipher.GetIV()!), Convert.ToBase64String(cipher.DoFinal(bytes)!)));
-				committed = true;
-				if (old is not null) { store.DeleteEntry(old.Alias); }
-			}
-			finally { CryptographicOperations.ZeroMemory(bytes); }
+			using var item = aliases.NextElement();
+			if (item?.ToString() is { } alias && alias.StartsWith("wasabi-rpc-", StringComparison.Ordinal)) { retired.Add(alias); }
 		}
-		catch { if (!committed) { store.DeleteEntry(alias); } throw; }
+		foreach (var alias in retired) { store.DeleteEntry(alias); }
+		File.Delete(FilePath(reference));
+		File.Delete(FilePath(reference) + ".old");
 	}
 
-	private static ISecretKey CreateKey(string alias, bool authenticated)
+	private static byte[] SealSecret(Cipher cipher, string secret)
+	{
+		var bytes = Encoding.UTF8.GetBytes(secret);
+		try { return cipher.DoFinal(bytes)!; }
+		finally { CryptographicOperations.ZeroMemory(bytes); }
+	}
+
+	private static string OpenSecret(Cipher cipher, Envelope envelope)
+	{
+		var bytes = cipher.DoFinal(Convert.FromBase64String(envelope.Ciphertext))!;
+		try { return Encoding.UTF8.GetString(bytes); }
+		finally { CryptographicOperations.ZeroMemory(bytes); }
+	}
+
+	private static ISecretKey CreateKey(string alias)
 	{
 		if (OperatingSystem.IsAndroidVersionAtLeast(28))
 		{
-			try { return Generate(alias, authenticated, strongBox: true); }
+			try { return Generate(alias, strongBox: true); }
 			catch (Java.Security.GeneralSecurityException) { }
 			catch (Java.Security.ProviderException) { }
 		}
-		return Generate(alias, authenticated, strongBox: false);
+		return Generate(alias, strongBox: false);
 	}
 
-	private static ISecretKey Generate(string alias, bool authenticated, bool strongBox)
+	private static ISecretKey Generate(string alias, bool strongBox)
 	{
 		using var builder = new KeyGenParameterSpec.Builder(alias, KeyStorePurpose.Encrypt | KeyStorePurpose.Decrypt);
-		builder.SetKeySize(256)!.SetBlockModes(KeyProperties.BlockModeGcm!)!.SetEncryptionPaddings(KeyProperties.EncryptionPaddingNone!)!.SetRandomizedEncryptionRequired(true)!.SetUserAuthenticationRequired(authenticated);
+		builder.SetKeySize(256)!.SetBlockModes(KeyProperties.BlockModeGcm!)!.SetEncryptionPaddings(KeyProperties.EncryptionPaddingNone!)!.SetRandomizedEncryptionRequired(true)!.SetUserAuthenticationRequired(true);
 		if (OperatingSystem.IsAndroidVersionAtLeast(28)) { builder.SetIsStrongBoxBacked(strongBox); }
-		if (authenticated && OperatingSystem.IsAndroidVersionAtLeast(30))
+		if (OperatingSystem.IsAndroidVersionAtLeast(30))
 		{
 			builder.SetUserAuthenticationParameters(0, (int)(KeyPropertiesAuthType.BiometricStrong | KeyPropertiesAuthType.DeviceCredential));
 			builder.SetInvalidatedByBiometricEnrollment(false);

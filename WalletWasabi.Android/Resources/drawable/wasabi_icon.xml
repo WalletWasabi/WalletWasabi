@@ -1,4 +1,6 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-  <path android:fillColor="#111512" android:pathData="M0,0H108V108H0Z" />
-  <path android:fillColor="#84CC16" android:pathData="M22,30L34,30L43,64L49,44L59,44L65,64L74,30L86,30L73,78L60,78L54,60L48,78L35,78Z" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="1080" android:viewportHeight="1080">
+  <!-- Original Wasabi glyph from WalletWasabi.Fluent/Icons/Icons.axaml,
+       rendered monochrome for Android's notification icon. -->
+  <path android:fillColor="#FFFFFF" android:pathData="M765.26 565.26C665 414 628.21 266.74 613.31 183.85L433.08 293.55Q437.695 312.891 442.942 332.071Q448.188 351.251 454.059 370.249Q459.931 389.247 466.421 408.042Q472.911 426.838 480.013 445.411Q487.116 463.983 494.822 482.314Q502.529 500.644 510.831 518.712Q519.134 536.781 528.023 554.567Q536.913 572.354 546.38 589.84L359.27 589.84C353.59 581.84 347.93 573.69 342.34 565.26C242.08 414 205.29 266.74 190.4 183.85L10.17 293.55C32.35 386.55 79.85 537.74 186.79 693.55C292.67 847.77 411.35 940.21 486.79 990.11L635.32 848.11Q617.46 837.315 600.12 825.704Q582.78 814.093 565.997 801.69Q549.213 789.288 533.023 776.121Q516.833 762.953 501.27 749.05L650.36 749.05C744.9 870.4 843.8 946.47 909.7 990.06L1058.24 848.11Q1040.38 837.316 1023.04 825.706Q1005.69 814.095 988.91 801.693Q972.125 789.29 955.934 776.122Q939.743 762.955 924.18 749.05L1058.24 749.05L1058.24 589.84L782.18 589.84C776.5 581.82 770.84 573.69 765.26 565.26Z" />
+  <path android:fillColor="#FFFFFF" android:pathData="M857.83 183.85L1062.09 183.85L1062.09 388.11L857.83 388.11L857.83 183.85Z" />
 </vector>

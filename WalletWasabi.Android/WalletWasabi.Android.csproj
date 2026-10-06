@@ -9,8 +9,8 @@
 		<ApplicationId Condition="'$(WasabiPackageChannel)' == 'Personal'">io.wasabiwallet.android.personal</ApplicationId>
 		<ApplicationTitle>Wasabi Wallet Test</ApplicationTitle>
 		<ApplicationTitle Condition="'$(WasabiPackageChannel)' == 'Personal'">Wasabi Wallet</ApplicationTitle>
-		<ApplicationVersion>11</ApplicationVersion>
-		<ApplicationDisplayVersion>0.3.6</ApplicationDisplayVersion>
+		<ApplicationVersion>12</ApplicationVersion>
+		<ApplicationDisplayVersion>0.3.7</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
 		<NuGetLockFilePath Condition="'$(WasabiEmulatorOnly)' == 'true'">packages.emulator.lock.json</NuGetLockFilePath>
@@ -35,7 +35,6 @@
 		<UseNativeHttpHandler>false</UseNativeHttpHandler>
 		<DefineConstants Condition="'$(WasabiPackageChannel)' == 'Personal'">$(DefineConstants);WASABI_PERSONAL</DefineConstants>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-		<DefineConstants Condition="'$(WasabiUiTest)' == 'true'">$(DefineConstants);WASABI_UI_TEST</DefineConstants>
 	</PropertyGroup>
 	<Import Project="../Contrib/Android/MonoRuntime.props" />
 	<ItemGroup>
@@ -48,6 +47,7 @@
 		<AndroidAsset Include="..\WalletWasabi\Tor\Geoip\geoip" Link="Tor\geoip" />
 		<AndroidAsset Include="..\WalletWasabi\Tor\Geoip\geoip6" Link="Tor\geoip6" />
 		<AndroidAsset Include="..\LICENSE.md" Link="Legal\Wasabi.txt" />
+		<AndroidResource Include="..\Contrib\Assets\WasabiLogo256.png" Link="Resources\drawable\wasabi_logo.png" />
 		<AndroidAsset Include="$(WasabiCoordinatorBootstrapFile)" Link="PersonalCoordinator.json" Condition="'$(WasabiPackageChannel)' == 'Personal' And '$(WasabiCoordinatorBootstrapFile)' != ''" />
 		<AndroidAsset Include="..\WalletWasabi\BundledApps\Binaries\win-x64\Tor\LICENSE" Link="Legal\Tor.txt" />
 	</ItemGroup>
@@ -56,7 +56,6 @@
 	<Target Name="RequireTor" BeforeTargets="PrepareForBuild">
 		<Error Condition="'$(WasabiPackageChannel)' != 'Development' And '$(WasabiPackageChannel)' != 'Personal'" Text="Choose the Development or Personal package channel." />
 		<Error Condition="!Exists('Native/arm64-v8a/libtor.so') Or !Exists('Native/x86_64/libtor.so')" Text="Run Contrib/Android/prepare-tor.ps1 before building Android." />
-		<Error Condition="'$(Configuration)' == 'Release' And '$(WasabiUiTest)' == 'true'" Text="UI test screenshot access cannot be enabled in a Release package." />
 		<Error Condition="'$(Configuration)' == 'Release' And '$(WasabiMonoRuntimeVersion)' != '10.0.12'" Text="Release requires the pinned Mono servicing runtime. Requalify a runtime change before delivery." />
 		<Error Condition="'$(Configuration)' == 'Release' And ('$(UseMonoRuntime)' != 'true' Or '$(UseInterpreter)' != 'false' Or '$(AndroidUseAssemblyStore)' != 'false' Or '$(PublishTrimmed)' != 'false' Or '$(RunAOTCompilation)' != 'false' Or '$(PublishReadyToRun)' != 'false' Or '$(AndroidEnableMarshalMethods)' != 'false')" Text="Release requires the qualified untrimmed Mono JIT, dynamic JNI and individual assembly packaging. AOT needs separate qualification." />
 		<Error Condition="'$(WasabiPackageChannel)' == 'Personal' And ('$(Configuration)' != 'Release' Or '$(AndroidKeyStore)' != 'true' Or !Exists('$(AndroidSigningKeyStore)'))" Text="Personal packages require Release configuration and the dedicated external signing key." />

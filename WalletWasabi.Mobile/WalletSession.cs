@@ -32,6 +32,7 @@ public sealed class WalletSession : IAsyncDisposable
 	private readonly string _torDirectory;
 	private readonly Config _config;
 	private readonly WalletPolicy _policy;
+	private readonly bool _regtestNodeConfigured;
 	private readonly TransactionJournal _journal;
 	private readonly CoinJoinJournal _coinJoinJournal;
 	private readonly object _authorizationGate = new();
@@ -51,10 +52,12 @@ public sealed class WalletSession : IAsyncDisposable
 	public int PendingCoinJoins => _coinJoinJournal.Entries.Count(e => e.TransactionId is not null);
 	public string? SynchronizationError { get; private set; }
 
-	public WalletSession(string dataDir, MobileSettings settings, string torDirectory, WalletPolicy? policy = null, int socksPort = 37154, Func<bool>? transportReady = null, Action<HttpClientHandler>? configureHttpHandler = null)
+	public WalletSession(string dataDir, MobileSettings settings, string torDirectory, WalletPolicy? policy = null, int socksPort = 37154, Func<bool>? transportReady = null, Action<HttpClientHandler>? configureHttpHandler = null, RegtestNodeOptions? regtestNode = null)
 	{
 		_configureHttpHandler = configureHttpHandler;
 		settings.Validate();
+		regtestNode?.Validate(settings.GetNetwork());
+		_regtestNodeConfigured = regtestNode is not null;
 		_policy = policy ?? WalletPolicy.Development;
 		_policy.RequireNetwork(settings.GetNetwork());
 		_transportReady = transportReady ?? (() => settings.GetNetwork() == Network.RegTest);
@@ -72,8 +75,8 @@ public sealed class WalletSession : IAsyncDisposable
 			Network = settings.GetNetwork(),
 			CoordinatorUri = settings.Coordinator,
 			CoordinatorIdentifier = settings.CoordinatorIdentifier,
-			BitcoinRpcUri = settings.BitcoinRpcUri,
-			BitcoinRpcCredentialString = settings.BitcoinRpcCredentials,
+			BitcoinRpcUri = regtestNode?.Uri ?? "",
+			BitcoinRpcCredentialString = regtestNode?.Credentials ?? "",
 			ExchangeRateProvider = settings.GetNetwork() == Network.RegTest ? "None" : defaults.ExchangeRateProvider,
 			FeeRateEstimationProvider = settings.GetNetwork() == Network.RegTest ? "None" : defaults.FeeRateEstimationProvider,
 			UseTor = settings.GetNetwork() == Network.RegTest ? "Disabled" : "EnabledOnlyRunning",
@@ -97,6 +100,16 @@ public sealed class WalletSession : IAsyncDisposable
 		? _journal.Entries.Where(e => e.WalletId == AccountId(wallet)).Select(e => new SubmissionDetails(e.TransactionId, e.Operation, e.State,
 			e.AmountSatoshis, e.FeeSatoshis, e.CreatedAt, e.Outputs.IsDefault ? [] : e.Outputs)).ToImmutableArray() : [];
 	public bool IsReady => _initialized;
+	public SynchronizationSnapshot GetSynchronizationSnapshot(int torBootstrap)
+	{
+		var wallet = Current;
+		var target = Global.FilterHeaders.ServerTipHeight.Height;
+		var headers = _regtestNodeConfigured ? Global.FilterHeaders.TipHeight.Height : Global.GetBlockHeadersTipHeight();
+		return new(Global.Network.Name, IsReady, torBootstrap, Global.GetPeerCount(), headers,
+			target > 0 || Global.FilterHeaders.IsSynchronized ? target : null, Global.FilterHeaders.TipHeight.Height,
+			wallet?.KeyManager.GetBestHeight().Height, wallet?.Loaded is true, IsSynchronized,
+			wallet is null ? null : WalletReference(wallet), SynchronizationError);
+	}
 	public bool IsSynchronized => Current is { } wallet && IsSynchronizedWallet(wallet);
 	private bool IsSynchronizedWallet(Wallet wallet) => _initialized && wallet.Loaded
 		&& _transportReady()

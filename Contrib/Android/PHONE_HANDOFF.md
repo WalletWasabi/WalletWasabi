@@ -1,13 +1,15 @@
 # Personal APK phone handoff
 
-**Version 0.3.4 / version code 9: qualification blocked.** Close all uncompleted
+**Version 0.3.7 / version code 12: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
-SM-S948B phone passed the isolated stock-runtime ARM64 cryptographic probe on
-Android 16/API 36 with 4096-byte pages. Wallet installation and full handset
-qualification remain outstanding; no real-bitcoin amount or destination is authorized.
-First rerun the corrected source-native runtime, TLS and SQLite probes on that
-phone. The earlier stock-runtime pass does not qualify its new native libraries.
+SM-S948B phone passed the corrected source-native ARM64 cryptographic, SQLite
+and 15-connection TLS probe at clean source `76ab3fa9`, on Android 16/API 36 with
+4096-byte pages. Version 0.3.6 was installed and opened with the personal
+certificate, and the user reached the new disposable wallet's home screen.
+Full handset qualification remains outstanding; no real-bitcoin amount,
+destination or fee budget is authorized. Record the actual version-12 update
+separately, preserving the wallet and signing identity.
 
 ## Files and signing identity
 
@@ -47,7 +49,8 @@ identity and remains independently installed.
 4. Scan known BIP21 requests with the physical camera in supported orientations and
    after pause/resume. Confirm the displayed destination and amount match the QR.
    Scanning must never sign. Check small-screen scrolling, keyboard behavior,
-   large text, accessibility navigation and screenshot protection.
+   large text, accessibility navigation and successful screenshot capture.
+   Screenshots are intentionally enabled at the user's request.
 5. Check background lock, two-minute inactivity lock, network changes, Tor-child
    loss/restart, process death, OS foreground-service limits and wake-lock/battery
    behavior. Reconcile pending signed bytes before permitting conflicting operations.

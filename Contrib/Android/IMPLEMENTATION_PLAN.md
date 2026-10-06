@@ -8,9 +8,9 @@ unlocking. Hardware wallets and Play Store publication remain excluded.
 
 | Workstream | Implemented | Acceptance still required |
 | --- | --- | --- |
-| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; published vectors and Core acceptance; source-native Debug/Release matrix passes API 24, 35 and 36, including verified 16 KB pages, at recorded source | Corrected source-native execution on ARM64 phone; untrimmed AOT attempt is separately recorded as unsupported |
+| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; published vectors and Core acceptance; source-native Debug/Release matrix passes API 24, 35 and 36, including verified 16 KB pages, at recorded source; corrected native probe passes on the ARM64 phone at `76ab3fa9` | Current-source matrix and full handset wallet checks; untrimmed AOT attempt is separately recorded as unsupported |
 | 2. Package separation | `.dev` and `.personal`; Testnet4 development default; session-level mainnet prohibition; Release build guards; two-field coordinator bootstrap | Final delivered-package record and handset installation |
-| 3. Authorization and vault | Authenticated Keystore AES-GCM, StrongBox preference/hardware requirement for wallet convenience, per-operation auth, separate RPC encryption, invalidation fallback, background/inactivity lock and CoinJoin key release | Real hardware success/cancellation, device-key loss and OS credential changes on the phone |
+| 3. Authorization and vault | Authenticated Keystore AES-GCM, StrongBox preference/hardware requirement for wallet convenience, per-operation auth, invalidation fallback, background/inactivity lock and CoinJoin key release; personal-node credentials retired by user request | Real hardware success/cancellation, device-key loss and OS credential changes on the phone |
 | 4. Recovery and persistence | Original backup/password handling; both account public keys; fresh import rescan; atomic/fsynced saves; persisted addresses; wrong-network/watch-only guards | Handset fresh recovery and storage/document-picker interruption tests |
 | 5. Transaction pipeline | Immutable proposals; five-minute expiry; serialized confirmation/revalidation; private PSBT; exact-byte durable journal; uncertainty/reservations; funded RBF/cancel/CPFP; lost-reply/restart/reorg tests; production Main/Testnet4 CPFP through Tor | Final personal APK payment and update qualification; handset recovery and update |
 | 6. Lifecycle/network/camera | Serialized runtime states; Tor-only public factories; fail-closed transport; RPC batch/reorg handling; reconnect/stop; foreground/wake-lock limits; Camera2 bounded decoding, focus/orientation and generation guards; common parser; API 24 TLS and native matrix pass | Fresh Main/Testnet4 synchronization through Tor after filter-peer discovery correction; physical camera, accessibility, small-screen and background-budget checks |
@@ -31,8 +31,8 @@ the newly reproduced denomination failure has a verified cause and regression.
   It checks synchronization, authorization, wallet/network identity, expiry,
   immutable review integrity and input eligibility before signing.
 - `ICredentialVault` exposes per-use authorized password retrieval, optional enrollment
-  and removal, and separately encrypted RPC storage. Settings serialization ignores
-  plaintext credentials.
+  and removal. Personal-node settings and credential access were removed at the
+  user's request; old node credentials are retired without decrypting them.
 - Transaction modifiers accept unsigned preparation while retaining desktop signing
   defaults. Mobile speed-up additionally requires recipient preservation.
 - `RuntimeStatus` exposes an immutable lifecycle, synchronization, pending-submission
@@ -51,14 +51,15 @@ the newly reproduced denomination failure has a verified cause and regression.
 2. The old candidate's prebuilt runtime/Tor/SQLite libraries fail strict RELRO-end
    checks. Pinned source rebuilds now pass 38 native protection checks, and a
    packaging path verifies their hashes and assembly-container layout. This
-   qualifies the recorded x64 execution matrix, while corrected ARM64 execution
-   is still required. A first loader build failed on the
+   qualifies the recorded x64 execution matrix. Corrected ARM64 execution passed
+   at clean `76ab3fa9`. A first loader build failed on the
    phone because its container constants differed from the SDK; the build now uses
    the pinned SDK stub and retains a regression gate for that mismatch.
-3. The actual ARM64 phone passed the isolated stock-runtime
-   cryptographic probe. Hardware-backed authorization, physical camera decoding,
+3. The actual ARM64 phone passed the corrected source-native cryptographic,
+   SQLite and TLS probes, and version 11 opened a new disposable wallet.
+   Hardware-backed authorization, physical camera decoding,
    full wallet recovery/updates and handset background behavior remain unverified.
-   It disconnected before corrected source-runtime installation.
+   The successful source-native record supersedes its earlier disconnected state.
 4. A real mainnet transaction requires a new disposable wallet and an explicitly
    authorized amount and destination. Existing funded seeds are excluded from tests.
 

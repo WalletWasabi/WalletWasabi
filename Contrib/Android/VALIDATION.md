@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.6 / version code 11 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.7 / version code 12 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -41,8 +41,9 @@ Earlier failing native/TLS diagnostics remain retained.
 The first rebuilt loader failed with decompression error -31 because its local
 container stub had 10 sections whereas the pinned SDK container has 11. Constants
 now come from the hashed SDK stub; incompatible metadata is rejected. Corrected
-source loader execution passes x64 tests. Corrected ARM64 handset execution is
-still required; the earlier stock-runtime handset result is separate evidence.
+source loader execution passes x64 tests. Corrected ARM64 handset execution
+passed at clean source `76ab3fa9`; the earlier stock-runtime handset result is
+separate evidence.
 
 ## Verification records and architectures
 
@@ -458,12 +459,41 @@ fresh-install payment, password rejection, duplicate submission, background and
 inactivity lock, late unlock, restart and exact-byte reconciliation. An actual
 version 8 to 10 update preserved wallet access, encrypted RPC credentials and
 pending-transaction bytes, and its regtest payment confirmed. Those checks
-qualify version 10 and do not replace final version-11 execution.
+qualify version 10 and do not replace later-version execution.
+
+At clean source `76ab3fa9`, version 11 also passed a fresh actual-APK funded
+regtest payment, wrong authorization, duplicate taps, background/inactivity lock,
+late unlock, process death, exact pending-byte reconciliation, same-version
+reinstallation and confirmation (`native-ui-ca48af1eb0ee484686c2e44b9ded7486`).
+A fresh unfunded Mainnet wallet synchronized through Tor in the separately
+packaged Release engine (`device-public-main-7b4d6aea036341faa9cd97ee42fb873c`).
+Its wallet/database/header chain were fresh; only the named Tor cache was reused.
+This successful warm-cache run does not establish cold-start reliability.
+The interrupted version-10 run remains INCOMPLETE and its recovered logs remain
+retained. No actual bitcoin was submitted by these public synchronization checks.
+
+The corrected source-native probe at that same clean source passed the published
+vectors, SQLite 3.53.3 and all 15 TLS trust/hostname connections on the physical
+ARM64/API 36/4096-byte phone. Duplicate activity creation started one probe only;
+the temporary localhost private key was removed and system trust was unchanged.
+Version 11 was installed with the personal certificate and the user reported
+reaching the new disposable wallet home screen. These records do not establish
+biometric, physical-camera, recovery, update or real-payment qualification.
+
+Version 12 uses the original desktop logo and requested "Unfairly private" line,
+allows screenshots throughout the app, and removes personal-node settings and
+credential access from normal mobile startup. Legacy node credentials are retired
+without decrypting them. Synthetic regtest node injection is separate, restricted
+to localhost/regtest, and rejected by Android on physical devices. The actual-APK
+UI harness checks both historical blocked and current enabled screenshot policies.
+Synchronization now shows real stage counts, a progress bar and elapsed time;
+remaining time uses monotonic observations for that stage and expires on stalls,
+target changes or backward progress. Six deterministic progress checks and the
+public-network node-injection prohibition pass in the 65-test mobile suite.
 
 ## Required external gates
 
-- Corrected source-native ARM64 execution and full wallet tests on the connected
-  phone, including hardware authentication, physical camera, accessibility,
+- Full wallet tests on the connected phone, including hardware authentication, physical camera, accessibility,
   network/background/battery behavior, recovery and updates.
 - A privately retained backup and a new disposable mainnet wallet's small
   receive/send/confirmation test with the user's explicit amount, destination

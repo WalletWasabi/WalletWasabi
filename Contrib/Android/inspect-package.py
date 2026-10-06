@@ -111,7 +111,7 @@ def main():
         raise ValueError("APK does not have the recorded personal signing identity and v2/v3 signatures")
     run([str(tools / ("zipalign" + executable)), "-c", "-P", "16", "-v", "4", str(args.apk)])
     entries, assemblies, native, failed_checks = [], [], [], []
-    forbidden = ("WalletInstrumentation", "WASABI_RELEASE_HARNESS", "wasabi-android-regtest", "WasabiAndroidRegtest", "public android test passphrase", "public native Android test passphrase", "RuntimeProbe", "coinjoin-interrupted-fixture.json", "disruption-ready.txt", "CHECKPOINT: synthetic CoinJoin signing", "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
+    forbidden = ("WalletInstrumentation", "WASABI_RELEASE_HARNESS", "StoreFixtureSecret", "RetrieveFixtureSecret", "synthetic-keystore-secret-", "wasabi-android-regtest", "WasabiAndroidRegtest", "public android test passphrase", "public native Android test passphrase", "RuntimeProbe", "coinjoin-interrupted-fixture.json", "disruption-ready.txt", "CHECKPOINT: synthetic CoinJoin signing", "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
     source_native = json.loads(args.native_manifest.read_text())
     recipes = repository / "Contrib/Android/NativeSources"
     if sha((recipes / "source.lock.json").read_bytes()) != source_native["sourceLockSha256"] or json.loads((recipes / "source.lock.json").read_text()) != source_native["sources"]:
@@ -157,6 +157,8 @@ def main():
         "workingTreeModified": dirty,
         "apk": args.apk.name, "apkSha256": sha(args.apk.read_bytes()),
         "version": version[2], "versionCode": int(version[1]),
+        "screenshotsAllowed": True,
+        "personalNodeSupported": False,
         "certificateSha256": digest[1], "signatures": ["v2", "v3"],
         "toolchain": json.loads((repository / "Contrib/Android/toolchain.json").read_text()),
         "coordinatorBootstrap": bootstrap,

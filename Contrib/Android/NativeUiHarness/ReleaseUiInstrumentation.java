@@ -52,13 +52,20 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
                 check(accessible("Allow", true), "Normal notification permission prompt");
                 Thread.sleep(1000);
             }
-            check((activity.getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_SECURE) != 0, "Actual Release window blocks screenshots");
+            boolean screenshotsAllowed = arguments.getString("screenshot-policy", "blocked").equals("allow");
+            check(((activity.getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_SECURE) == 0) == screenshotsAllowed, "Actual Release screenshot policy");
+            if (screenshotsAllowed) {
+                android.graphics.Bitmap screenshot = getUiAutomation().takeScreenshot();
+                check(screenshot != null, "Actual Release screenshot capture");
+                screenshot.recycle();
+            }
             PackageInfo info = getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0);
             check((info.applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) == 0, "Actual APK is not debuggable");
             check((info.applicationInfo.flags & ApplicationInfo.FLAG_ALLOW_BACKUP) == 0, "Actual APK disables backup");
             check(info.applicationInfo.targetSdkVersion == 36, "Actual target SDK");
             String mode = arguments.getString("mode", "security");
             if (mode.equals("setup-rpc")) setupRpc();
+            else if (mode.equals("settings")) simplifiedSettings();
             else if (mode.equals("wallet")) wallet();
             else if (mode.equals("resume")) resume();
             else if (mode.equals("late-unlock")) verifyLateUnlockRemainsLocked();
@@ -76,6 +83,17 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     }
 
     private Intent mainIntent() { return new Intent().setClassName(PACKAGE, "io.wasabiwallet.android.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); }
+    private void simplifiedSettings() throws Exception {
+        check(has("Bitcoin.\nUnfairly private."), "Requested wallet branding");
+        click("Settings");
+        check(!has("PERSONAL BITCOIN NODE"), "Personal-node section removed");
+        for (View view : views()) if (view instanceof EditText) {
+            CharSequence hint = ((EditText)view).getHint();
+            check(hint == null || !hint.toString().startsWith("RPC"), "RPC controls removed");
+        }
+        check(has("Save and reconnect"), "Normal network settings remain available");
+        click("‹");
+    }
     private void setupRpc() throws Exception {
         click("Settings");
         field("RPC URL (optional onion or localhost)", "http://127.0.0.1:18443/");

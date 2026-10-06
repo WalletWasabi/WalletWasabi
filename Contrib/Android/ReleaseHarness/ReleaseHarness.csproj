@@ -34,6 +34,7 @@
     <Compile Include="../../../WalletWasabi.Android/RuntimeProbe.cs" Link="RuntimeProbe.cs" />
     <Compile Include="../../../WalletWasabi.Android/AppIdentity.cs" Link="AppIdentity.cs" />
     <Compile Include="../../../WalletWasabi.Android/CredentialVault.cs" Link="CredentialVault.cs" />
+    <Compile Include="../../../WalletWasabi.Android/CredentialVault.Fixture.cs" Link="CredentialVault.Fixture.cs" />
     <Compile Include="../../../WalletWasabi.Android/TorHost.cs" Link="TorHost.cs" />
     <Compile Include="../../../WalletWasabi.Android/AndroidCertificateTrust.cs" Link="AndroidCertificateTrust.cs" />
     <AndroidNativeLibrary Include="../../../WalletWasabi.Android/Native/x86_64/libtor.so" Abi="x86_64" />

@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text;
 using WalletWasabi.Io;
 
@@ -11,9 +10,6 @@ public sealed record MobileSettings
 	public string Network { get; init; } = "testnet";
 	public string Coordinator { get; init; } = "";
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
-	public string BitcoinRpcUri { get; init; } = "";
-	[JsonIgnore]
-	public string BitcoinRpcCredentials { get; init; } = "";
 
 	public Network GetNetwork() => Network.ToLowerInvariant() switch
 	{
@@ -26,21 +22,11 @@ public sealed record MobileSettings
 
 	public void Validate()
 	{
-		if (Network is null || Coordinator is null || CoordinatorIdentifier is null || BitcoinRpcUri is null || BitcoinRpcCredentials is null)
+		if (Network is null || Coordinator is null || CoordinatorIdentifier is null)
 		{
 			throw new FormatException("Invalid wallet settings.");
 		}
 		_ = GetNetwork();
-		if (BitcoinRpcUri.Length > 0 && (!Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out var rpc)
-			|| rpc.UserInfo.Length > 0 || rpc.Fragment.Length > 0
-			|| !(rpc.IsLoopback && rpc.Scheme is "http" or "https" || rpc.Host.EndsWith(".onion", StringComparison.OrdinalIgnoreCase) && rpc.Scheme is "http" or "https")))
-		{
-			throw new FormatException("Use a loopback or Tor onion address for your Bitcoin node.");
-		}
-		if (BitcoinRpcCredentials.Length > 0 && !NBitcoin.RPC.RPCCredentialString.TryParse(BitcoinRpcCredentials, out _))
-		{
-			throw new FormatException("Use user:password credentials for your Bitcoin node.");
-		}
 		if (Coordinator.Length == 0)
 		{
 			return;

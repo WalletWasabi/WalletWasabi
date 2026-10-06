@@ -43,7 +43,7 @@ function Get-NativeApkIdentity([string]$Apk, [bool]$RequireChecks = $true) {
     if (!(Test-Path -LiteralPath $taskManifestPath)) { throw "Inspect the signed package before UI qualification: $Apk" }
     $taskManifest = Get-Content -LiteralPath $taskManifestPath -Raw | ConvertFrom-Json
     if ($taskManifest.apkSha256 -ne $taskHash -or ($RequireChecks -and (!$taskManifest.packageChecksPassed -or $taskManifest.failedChecks.Count -gt 0))) { throw 'Package inspection does not qualify these APK bytes.' }
-    @{ sha256=$taskHash; sourceCommit=$taskManifest.sourceCommit; versionCode=$taskManifest.versionCode; certificateSha256=$taskManifest.certificateSha256; packageChecksPassed=$taskManifest.packageChecksPassed; failedChecks=$taskManifest.failedChecks }
+    @{ sha256=$taskHash; sourceCommit=$taskManifest.sourceCommit; versionCode=$taskManifest.versionCode; certificateSha256=$taskManifest.certificateSha256; packageChecksPassed=$taskManifest.packageChecksPassed; failedChecks=$taskManifest.failedChecks; screenshotsAllowed=[bool]$taskManifest.screenshotsAllowed; personalNodeSupported=$(if($null -eq $taskManifest.personalNodeSupported){$taskManifest.versionCode -lt 12}else{[bool]$taskManifest.personalNodeSupported}) }
 }
 $taskVerification = [ordered]@{
     recordedUtc=[DateTime]::UtcNow.ToString('O'); result='INCOMPLETE'; serial=$Serial
@@ -91,7 +91,7 @@ function Invoke-NativeRpc([string]$Method, [object[]]$Params = @()) {
 }
 function Invoke-NativeMode([string]$Mode, [string[]]$Extra = @()) {
     $taskLog = Join-Path $taskRun "$Mode.log"
-    $taskModeStart = @{ FilePath=$taskAdb; ArgumentList=@('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode',$Mode) + $Extra + @('io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation'); RedirectStandardOutput=$taskLog; RedirectStandardError=(Join-Path $taskRun "$Mode-error.log"); PassThru=$true }
+    $taskModeStart = @{ FilePath=$taskAdb; ArgumentList=@('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode',$Mode,'-e','screenshot-policy',$taskScreenshotPolicy) + $Extra + @('io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation'); RedirectStandardOutput=$taskLog; RedirectStandardError=(Join-Path $taskRun "$Mode-error.log"); PassThru=$true }
     if ($IsWindows) { $taskModeStart.WindowStyle='Hidden' }
     $taskModeProcess = Start-Process @taskModeStart
     try {
@@ -148,6 +148,7 @@ try {
     $taskExisting = & $taskAdb -s $Serial shell "find $taskPrivate/Wallets -type f 2>/dev/null"
     if ($taskExisting -and (!$ResumeFixture -or @($taskExisting | Where-Object { $_ -notmatch '/Native qualification\.json(\.old)?$' }).Count -gt 0)) { throw 'The selected emulator contains an unrelated wallet. Qualification preserves it; select a fresh emulator.' }
     Install-NativeApk $BaselineApk 'baseline'
+    $taskScreenshotPolicy=if($taskVerification.baseline.screenshotsAllowed){'allow'}else{'blocked'}
     $taskApi = [int]((& $taskAdb -s $Serial shell getprop ro.build.version.sdk).Trim())
     if ($taskApi -ge 33) {
         & $taskAdb -s $Serial shell pm grant $taskPackage android.permission.POST_NOTIFICATIONS
@@ -161,9 +162,9 @@ try {
     & $taskAdb -s $Serial push $taskSettings $taskRemote | Out-Null
     $taskUid = (& $taskAdb -s $Serial shell "stat -c %u /data/user/0/$taskPackage").Trim()
     if ($taskUid -notmatch '^\d+$') { throw 'Application UID could not be verified.' }
-    # Seed only public regtest settings before the first app launch. Otherwise
-    # unrelated public Tor bootstrap becomes a prerequisite of this funded UI
-    # fixture. Credentials are still entered and vaulted through the real UI.
+    # Emulator qualification injects its localhost node separately from mobile
+    # settings. The personal runtime ignores this file on public networks and
+    # rejects regtest on hardware phones; it cannot configure a personal node.
     & $taskAdb -s $Serial shell "mkdir -p $taskPrivate"
     & $taskAdb -s $Serial shell "cp $taskRemote $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate"
@@ -171,11 +172,18 @@ try {
     & $taskAdb -s $Serial shell "chmod 600 $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "rm $taskRemote"
     & $taskAdb -s $Serial shell "restorecon -R $taskPrivate"
-    Invoke-NativeMode setup-rpc
+    $taskRegtestNode = Join-Path $taskRun 'regtest-node.json'
+    @{ Uri='http://127.0.0.1:18443/'; Credentials='wasabiandroid:wasabi-android-regtest' } | ConvertTo-Json | Set-Content -LiteralPath $taskRegtestNode -Encoding utf8NoBOM
+    & $taskAdb -s $Serial push $taskRegtestNode $taskRemote | Out-Null
+    & $taskAdb -s $Serial shell "cp $taskRemote $taskPrivate/regtest-node.json"
+    & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate/regtest-node.json"
+    & $taskAdb -s $Serial shell "chmod 600 $taskPrivate/regtest-node.json"
+    & $taskAdb -s $Serial shell "restorecon $taskPrivate/regtest-node.json"
+    & $taskAdb -s $Serial shell "rm $taskRemote"
+    Invoke-NativeMode $(if($taskVerification.baseline.personalNodeSupported){'setup-rpc'}else{'settings'})
     & $taskAdb -s $Serial shell am force-stop $taskPackage
-    # Regtest is intentionally absent from the production network selector.
-    # Its real settings UI saved mainnet while enrolling the RPC credential;
-    # restore the emulator's public fixture network before starting the wallet.
+    # Legacy baselines save mainnet while enrolling their old RPC credential.
+    # Restore only this owned fixture's regtest settings before wallet testing.
     & $taskAdb -s $Serial push $taskSettings $taskRemote | Out-Null
     & $taskAdb -s $Serial shell "cp $taskRemote $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate/mobile-settings.json"
@@ -183,7 +191,7 @@ try {
     & $taskAdb -s $Serial shell "restorecon $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "rm $taskRemote"
     $taskLog = Join-Path $taskRun 'wallet.log'
-    $taskArgs = @('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode','wallet','-e','destination',$taskDestination,'-e','inactivity','true','io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation')
+    $taskArgs = @('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode','wallet','-e','destination',$taskDestination,'-e','inactivity','true','-e','screenshot-policy',$taskScreenshotPolicy,'io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation')
     $taskStart = @{ FilePath=$taskAdb; ArgumentList=$taskArgs; RedirectStandardOutput=$taskLog; RedirectStandardError=(Join-Path $taskRun 'wallet-error.log'); PassThru=$true }
     if ($IsWindows) { $taskStart.WindowStyle='Hidden' }
     $taskInstrumentation = Start-Process @taskStart
@@ -218,6 +226,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $taskRun 'resume.log') -Destination (Join-Path $taskRun 'resume-before-update.log')
     & $taskAdb -s $Serial shell am force-stop $taskPackage
     Install-NativeApk $UpdateApk 'update'
+    $taskScreenshotPolicy=if($taskVerification.update.screenshotsAllowed){'allow'}else{'blocked'}
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
     $taskUpdatedResult=Get-Content -LiteralPath (Join-Path $taskRun 'resume.log') -Raw
     if ($taskUpdatedResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)' -or [int]$Matches[1] -ne $taskVerification.update.versionCode) { throw 'Actual updated version does not match the inspected package.' }

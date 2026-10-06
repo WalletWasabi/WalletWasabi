@@ -18,9 +18,12 @@ internal static class WalletRuntime
   public static bool InterfaceForeground { get; set; }
   public static int Bootstrap => _tor?.Bootstrap ?? 0;
   public static RuntimeStatus Snapshot => Volatile.Read(ref _snapshot);
+  public static SynchronizationSnapshot Synchronization => Session?.GetSynchronizationSnapshot(Bootstrap)
+    ?? new(ReadOnlyNetwork, false, Bootstrap, 0, 0, null, 0, null, false, false, Error: Error);
+  private static string ReadOnlyNetwork => AppIdentity.IsPersonal ? "Main" : "TestNet4";
   private static void PublishStatus() => Volatile.Write(ref _snapshot, new(_lifecycle, Bootstrap, Session?.Global.GetPeerCount() ?? 0,
     Session?.IsSynchronized is true, Session?.CoinJoinStatus ?? "Idle",
-    Session?.PendingTransactions.Count(e => e.State is SubmissionState.Pending or SubmissionState.Uncertain) ?? 0, Error, Session?.PendingCoinJoins ?? 0));
+    Session?.PendingTransactions.Count(e => e.State is SubmissionState.Pending or SubmissionState.Uncertain) ?? 0, Error, Session?.PendingCoinJoins ?? 0, Synchronization));
   public static string DataDir(Context context) => Path.Combine(context.FilesDir!.AbsolutePath, "Wasabi");
 
   public static async Task StartAsync(Context context)
@@ -58,12 +61,12 @@ internal static class WalletRuntime
   {
     var dataDir = DataDir(context);
     var settings = ReadSettings(context);
-    settings = settings with { BitcoinRpcCredentials = new CredentialVault(context, dataDir).RetrieveRpcCredentials() };
+    new CredentialVault(context, dataDir).RemoveRetiredNodeCredentials();
     _tor = new();
     await _tor.StartAsync(context, dataDir, settings, cancellationToken).ConfigureAwait(false);
     var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!,
       AppIdentity.IsPersonal ? WalletPolicy.Personal : WalletPolicy.Development, AppIdentity.SocksPort,
-      () => _tor is { IsAlive: true, Bootstrap: 100 }, AndroidCertificateTrust.Configure);
+      () => _tor is { IsAlive: true, Bootstrap: 100 }, AndroidCertificateTrust.Configure, ReadRegtestNode(context, settings));
     Session = session;
     await session.InitializeAsync(cancellationToken).ConfigureAwait(false);
     _lifecycle = RuntimeLifecycle.Ready;
@@ -71,6 +74,16 @@ internal static class WalletRuntime
   }
 
   public static MobileSettings ReadSettings(Context context) => MobileSettings.Load(DataDir(context), InitialSettings(context));
+
+  private static RegtestNodeOptions? ReadRegtestNode(Context context, MobileSettings settings)
+  {
+    if (settings.GetNetwork() != NBitcoin.Network.RegTest) { return null; }
+    if (global::Android.OS.Build.Hardware is not ("ranchu" or "goldfish"))
+    { throw new InvalidOperationException("Regtest qualification is confined to disposable emulators."); }
+    var path = Path.Combine(DataDir(context), "regtest-node.json");
+    return File.Exists(path) ? System.Text.Json.JsonSerializer.Deserialize<RegtestNodeOptions>(File.ReadAllText(path))
+      ?? throw new FormatException("Invalid regtest qualification node.") : null;
+  }
 
   private static MobileSettings InitialSettings(Context context)
   {
