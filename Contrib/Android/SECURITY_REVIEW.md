@@ -122,6 +122,19 @@ password field on the interface thread. Hardware authentication and latest signe
 package UI execution remain required; an earlier baseline System UI ANR is retained
 without claiming a uniquely proven cause.
 
+An additional actual-wire reproduction establishes that a removed peer's
+unvalidated height could remain a permanent target. Two negative cases fail before
+correction and pass with separate validated progress and live peer estimates.
+Only the departed estimate is removed; active higher reports and validated
+progress remain protected against partial-response races. Without validated
+progress or a live report, cached filters alone cannot establish readiness.
+Authoritative RPC reorganization updates retain their ability to lower the tip;
+a later peer departure cannot erase that update. Handshake/disconnect races check
+attachment and state again after registration. All 1,152 unit tests, including
+nine actual transport cases, and all 60 mobile checks pass after correction.
+Final Android execution is required separately from the earlier successful
+version-10 UI/package results.
+
 ## Residual technical limits
 
 The installed workload's initial Mono 10.0.9 was advanced to the stable 10.0.12

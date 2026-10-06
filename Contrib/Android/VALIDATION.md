@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.5 / version code 10 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.6 / version code 11 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -425,6 +425,40 @@ The failure and fixture data are retained. Restarting the owned emulator with th
 CI's 4 GB memory allocation is a retry condition, not proof of the unique cause.
 Neither this interface correction nor the peer timeout is asserted to explain
 every earlier public-network or System UI stall.
+
+## Peer-estimate expiry
+
+Two additional actual-wire regressions reproduce a departed peer's advertised
+height remaining as a permanent synchronization target. A validated height-one
+chain remained blocked by an expired height-two estimate, and removing all peers
+left their estimate behind without distinguishing cached filters from network
+knowledge. Both cases fail against the old behavior and pass after correction.
+
+Filter-header bookkeeping now separates validated progress from per-peer
+estimates. Disconnecting or detaching removes only that peer's estimate; live
+higher estimates still prevent premature readiness. Partial responses cannot
+erase active estimates or validated progress. Authoritative RPC height updates
+replace estimates and can still lower the target after reorganization. A final
+actual-transport case covers subsequent departure after an RPC reorganization.
+All nine actual-transport cases, the full 1,152-unit suite and all 60 mobile
+checks pass after correction, with no failures or skips. The full local unit
+run completed in 8m46s. Release compilation also passes without warnings or
+errors. Android/public network and final signed-package records must qualify
+this correction separately.
+
+The earlier unfunded mainnet fixture reached validated header height 970145,
+but its reported peer target rose above 975800 and it hit the ten-minute progress
+limit. A read-only Blockstream tip request through the owned Android Tor returned
+970145; a separate mempool request timed out. This corroborates an overstated
+estimate but does not identify the original advertising peer or establish every
+cause of that fixture's earlier slowdown. Failed records are retained.
+
+At clean version-10 source `54543039`, the actual personally signed APK passed
+fresh-install payment, password rejection, duplicate submission, background and
+inactivity lock, late unlock, restart and exact-byte reconciliation. An actual
+version 8 to 10 update preserved wallet access, encrypted RPC credentials and
+pending-transaction bytes, and its regtest payment confirmed. Those checks
+qualify version 10 and do not replace final version-11 execution.
 
 ## Required external gates
 

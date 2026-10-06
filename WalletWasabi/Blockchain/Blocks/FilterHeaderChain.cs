@@ -10,6 +10,9 @@ public class FilterHeaderChain
 
 	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
 	private bool _serverTipKnown;
+	private ChainHeight _validatedServerTipHeight = ChainHeight.Genesis;
+	private bool _validatedServerTipKnown;
+	private readonly Dictionary<object, ChainHeight> _peerTipHeights = new(ReferenceEqualityComparer.Instance);
 
 #pragma warning disable IDE0032 // Use auto property – we want to control the setter and getter with locks, so we can't use auto properties here.
 	private int _hashesLeft;
@@ -176,6 +179,9 @@ public class FilterHeaderChain
 		{
 			_serverTipHeight = height;
 			_serverTipKnown = true;
+			_validatedServerTipHeight = height;
+			_validatedServerTipKnown = true;
+			_peerTipHeights.Clear(); // An authoritative RPC response replaces estimates.
 			SetHashesLeftNoLock();
 		}
 	}
@@ -185,11 +191,45 @@ public class FilterHeaderChain
 	{
 		lock (_lock)
 		{
-			if (height > _serverTipHeight) { _serverTipHeight = height; }
-			_serverTipKnown = true;
-			SetHashesLeftNoLock();
+			if (height > _validatedServerTipHeight) { _validatedServerTipHeight = height; }
+			_validatedServerTipKnown = true;
+			RecomputeServerTipNoLock();
 			return _serverTipHeight;
 		}
+	}
+
+	/// <summary>An unvalidated estimate belongs only to its live peer.</summary>
+	public ChainHeight RegisterPeerTipHeight(object peer, ChainHeight height)
+	{
+		ArgumentNullException.ThrowIfNull(peer);
+		lock (_lock)
+		{
+			_peerTipHeights[peer] = height;
+			RecomputeServerTipNoLock();
+			return _serverTipHeight;
+		}
+	}
+
+	/// <summary>Forget a departed peer without discarding validated progress.</summary>
+	public ChainHeight RemovePeerTipHeight(object peer)
+	{
+		ArgumentNullException.ThrowIfNull(peer);
+		lock (_lock)
+		{
+			if (_peerTipHeights.Remove(peer)) { RecomputeServerTipNoLock(); }
+			return _serverTipHeight;
+		}
+	}
+
+	private void RecomputeServerTipNoLock()
+	{
+		_serverTipHeight = _validatedServerTipHeight;
+		foreach (var height in _peerTipHeights.Values)
+		{
+			if (height > _serverTipHeight) { _serverTipHeight = height; }
+		}
+		_serverTipKnown = _validatedServerTipKnown || _peerTipHeights.Count != 0;
+		SetHashesLeftNoLock();
 	}
 
 	private void SetTipNoLock(SmartHeader? tip)

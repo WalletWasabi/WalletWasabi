@@ -20,9 +20,11 @@ public class BlockHeadersChainBehavior(
 	private long _lastProgressTimestamp;
 	private uint256? _lastValidatedTip;
 	private IDisposable? _ticks;
+	private volatile bool _detached = true;
 
 	protected override void AttachCore()
 	{
+		_detached = false;
 		base.AttachCore();
 		AttachedNode.StateChanged += AttachedNodeOnStateChanged;
 		AttachedNode.MessageReceived += AttachedNodeOnMessageReceived;
@@ -33,8 +35,10 @@ public class BlockHeadersChainBehavior(
 
 	protected override void DetachCore()
 	{
+		_detached = true;
 		_ticks?.Dispose();
 		_ticks = null;
+		RemovePeerTarget();
 		AttachedNode.StateChanged -= AttachedNodeOnStateChanged;
 		AttachedNode.MessageReceived -= AttachedNodeOnMessageReceived;
 		base.DetachCore();
@@ -45,14 +49,17 @@ public class BlockHeadersChainBehavior(
 		if (node.State == NodeState.HandShaked)
 		{
 			ResetProgress();
-			var myBestFilterHeight = filterHeaderChain.ServerTipHeight;
 			var theirBestFilterHeight = AttachedNode.PeerVersion.StartHeight;
-			if (theirBestFilterHeight > myBestFilterHeight)
+			if (theirBestFilterHeight >= 0)
 			{
-				var reportedTip = filterHeaderChain.AdvanceServerTipHeight((uint)theirBestFilterHeight);
+				var reportedTip = filterHeaderChain.RegisterPeerTipHeight(this, (uint)theirBestFilterHeight);
+				// A concurrent disconnect/detach may have removed the estimate just
+				// before registration. Never leave that dead peer registered again.
+				if (_detached || node.State != NodeState.HandShaked || !ReferenceEquals(AttachedNode, node)) { RemovePeerTarget(); return; }
 				eventBus.Publish(new NetworkTipHeightChanged(reportedTip));
 			}
 		}
+		else { RemovePeerTarget(); }
 	}
 
 	private void AttachedNodeOnMessageReceived(Node node, IncomingMessage message)
@@ -69,8 +76,21 @@ public class BlockHeadersChainBehavior(
 			if (currentHeight > _lastPublishedHeight)
 			{
 				_lastPublishedHeight = currentHeight;
+				var reportedTip = filterHeaderChain.AdvanceServerTipHeight((uint)currentHeight);
+				eventBus.Publish(new NetworkTipHeightChanged(reportedTip));
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
 			}
+		}
+	}
+
+	private void RemovePeerTarget()
+	{
+		var previous = filterHeaderChain.ServerTipHeight;
+		var remaining = filterHeaderChain.RemovePeerTipHeight(this);
+		if (remaining != previous)
+		{
+			Logger.LogInfo($"Removed departed peer's unvalidated target: {previous} -> {remaining}");
+			eventBus.Publish(new NetworkTipHeightChanged(remaining));
 		}
 	}
 
@@ -99,7 +119,7 @@ public class BlockHeadersChainBehavior(
 	private void CheckHeaderProgress()
 	{
 		var node = AttachedNode;
-		if (node is null || node.State != NodeState.HandShaked || !CanSync || !AutoSync) { return; }
+		if (_detached || node is null || node.State != NodeState.HandShaked || !CanSync || !AutoSync) { return; }
 		if (InvalidHeaderReceived) { RetirePeer(node, invalid: true); return; }
 		// A caught-up peer can remain available for block downloads. While the
 		// chain is behind its announced height, unanswered getheaders requests
@@ -114,7 +134,7 @@ public class BlockHeadersChainBehavior(
 
 	private void RetirePeer(Node node, bool invalid)
 	{
-		if (!node.IsConnected || !ReferenceEquals(AttachedNode, node)) { return; }
+		if (_detached || !node.IsConnected || !ReferenceEquals(AttachedNode, node)) { return; }
 		var endpoint = node.Peer.Endpoint;
 		var reason = invalid ? "Invalid block header received" : "Block header download stopped making validated progress";
 		Logger.LogInfo($"Disconnecting header peer {endpoint}: {reason}");
