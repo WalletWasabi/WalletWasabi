@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.8 / version code 13 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.9 / version code 14 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -501,6 +501,8 @@ The actual-APK harness exercises a synthetic unavailable device key without
 replacing an existing vault record, and verifies original-password recovery.
 This tooling is separate from successful physical Keystore authentication,
 which remains a handset gate until it has actually executed.
+
+Version 14 uses "Wasabi Wallet" as the main screen title at the user's request.
 
 ## Required external gates
 

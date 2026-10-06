@@ -86,6 +86,9 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     private Intent mainIntent() { return new Intent().setClassName(PACKAGE, "io.wasabiwallet.android.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); }
     private void simplifiedSettings() throws Exception {
         check(has("Bitcoin.\nUnfairly private."), "Requested wallet branding");
+        if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 14) {
+            check(has("Wasabi Wallet"), "Requested full wallet title");
+        }
         click("Settings");
         checkSimplifiedSettings();
         click("‹");

@@ -248,7 +248,7 @@ public sealed class MainActivity : Activity
 
 	private void ShowWallets()
 	{
-		Screen("wasabi", "wallets");
+		Screen("Wasabi Wallet", "wallets");
 		_body.Tag = WalletListSignature();
 		var brand = new ImageView(this) { ContentDescription = "Wasabi Wallet logo" };
 		brand.SetImageResource(Resource.Drawable.wasabi_logo);

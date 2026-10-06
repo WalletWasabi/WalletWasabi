@@ -9,8 +9,8 @@
 		<ApplicationId Condition="'$(WasabiPackageChannel)' == 'Personal'">io.wasabiwallet.android.personal</ApplicationId>
 		<ApplicationTitle>Wasabi Wallet Test</ApplicationTitle>
 		<ApplicationTitle Condition="'$(WasabiPackageChannel)' == 'Personal'">Wasabi Wallet</ApplicationTitle>
-		<ApplicationVersion>13</ApplicationVersion>
-		<ApplicationDisplayVersion>0.3.8</ApplicationDisplayVersion>
+		<ApplicationVersion>14</ApplicationVersion>
+		<ApplicationDisplayVersion>0.3.9</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
 		<NuGetLockFilePath Condition="'$(WasabiEmulatorOnly)' == 'true'">packages.emulator.lock.json</NuGetLockFilePath>
