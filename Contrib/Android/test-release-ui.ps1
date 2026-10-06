@@ -180,7 +180,8 @@ try {
     & $taskAdb -s $Serial shell "chmod 600 $taskPrivate/regtest-node.json"
     & $taskAdb -s $Serial shell "restorecon $taskPrivate/regtest-node.json"
     & $taskAdb -s $Serial shell "rm $taskRemote"
-    Invoke-NativeMode $(if($taskVerification.baseline.personalNodeSupported){'setup-rpc'}else{'settings'})
+    $taskSetupMode = if($taskVerification.baseline.personalNodeSupported){'setup-rpc'}else{'settings'}
+    Invoke-NativeMode $taskSetupMode
     & $taskAdb -s $Serial shell am force-stop $taskPackage
     # Legacy baselines save mainnet while enrolling their old RPC credential.
     # Restore only this owned fixture's regtest settings before wallet testing.
@@ -232,6 +233,11 @@ try {
     if ($taskUpdatedResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)' -or [int]$Matches[1] -ne $taskVerification.update.versionCode) { throw 'Actual updated version does not match the inspected package.' }
     $taskAfter = (& $taskAdb -s $Serial shell "sha256sum $taskJournal").Split(' ')[0]
     if ($taskBefore -ne $taskAfter) { throw 'Update changed pending transaction journal bytes.' }
+    if ($taskVerification.update.versionCode -ge 13) {
+        & $taskAdb -s $Serial shell am force-stop $taskPackage
+        Invoke-NativeMode lost-device-key
+        if ((Get-Content -LiteralPath (Join-Path $taskRun 'lost-device-key.log') -Raw) -notmatch 'DEVICE_KEY_LOSS_PASSWORD_RECOVERY') { throw 'Actual device-key loss did not preserve password recovery.' }
+    }
     $taskBlock = @(Invoke-NativeRpc generatetoaddress @(1,$taskMining))[0]
     if ((Invoke-NativeRpc getrawtransaction @($taskTransaction,$true)).confirmations -lt 1) { throw 'Actual payment did not confirm.' }
     $taskVerification.destination=$taskDestination
@@ -242,7 +248,9 @@ try {
     $taskVerification.confirmationBlock=$taskBlock
     $taskVerification.checkedUtc=[DateTime]::UtcNow.ToString('O')
     $taskVerification.result='PASS'
-    $taskVerification.logs=@('setup-rpc.log','wallet.log','resume-before-update.log','resume.log') | ForEach-Object { @{ path=$_; sha256=(Get-FileHash -LiteralPath (Join-Path $taskRun $_) -Algorithm SHA256).Hash.ToLowerInvariant() } }
+    $taskEvidenceLogs=@("$taskSetupMode.log",'wallet.log','resume-before-update.log','resume.log')
+    if ($taskVerification.update.versionCode -ge 13) { $taskEvidenceLogs += 'lost-device-key.log' }
+    $taskVerification.logs=$taskEvidenceLogs | ForEach-Object { @{ path=$_; sha256=(Get-FileHash -LiteralPath (Join-Path $taskRun $_) -Algorithm SHA256).Hash.ToLowerInvariant() } }
     $taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
     Write-Output "Actual Release APK native UI evidence: $taskRun"
 }

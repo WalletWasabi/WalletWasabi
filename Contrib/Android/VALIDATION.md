@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.7 / version code 12 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.8 / version code 13 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -490,6 +490,17 @@ Synchronization now shows real stage counts, a progress bar and elapsed time;
 remaining time uses monotonic observations for that stage and expires on stalls,
 target changes or backward progress. Six deterministic progress checks and the
 public-network node-injection prohibition pass in the 65-test mobile suite.
+
+Version 13 makes device unlocking automatic after verified password access or
+wallet creation/recovery on supported hardware. Wallet selection and confirmation
+use the system prompt by default, with original-password fallback; the settings
+enrollment controls are removed. Cancelled prompts never invoke signing actions,
+and cancelled enrollment cannot override a background lock. Delayed password
+verification now explicitly relocks the engine when its UI generation expires.
+The actual-APK harness exercises a synthetic unavailable device key without
+replacing an existing vault record, and verifies original-password recovery.
+This tooling is separate from successful physical Keystore authentication,
+which remains a handset gate until it has actually executed.
 
 ## Required external gates
 

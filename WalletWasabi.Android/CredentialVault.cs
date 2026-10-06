@@ -25,6 +25,9 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 	private static KeyStore OpenStore() { var store = KeyStore.GetInstance("AndroidKeyStore")!; store.Load(null); return store; }
 	private bool Exists(string reference) => File.Exists(FilePath(reference)) || File.Exists(FilePath(reference) + ".old");
 	public bool HasWalletPassword(string walletReference) => Exists("wallet:" + walletReference);
+	public bool CanEnrollWalletPassword => OperatingSystem.IsAndroidVersionAtLeast(30)
+		&& context is Activity && context.GetSystemService(Context.BiometricService) is BiometricManager manager
+		&& (int)manager.CanAuthenticate(0x000f | 0x8000) == (int)BiometricCode.Success;
 
 	public async Task EnrollWalletPasswordAsync(string walletReference, string originalPassword, CancellationToken cancellationToken)
 	{
@@ -40,10 +43,12 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
 			cipher.Init(CipherMode.EncryptMode, key);
 			cipher.UpdateAAD(AssociatedData(reference));
-			await AuthenticateAsync(activity, cipher, "Enable device unlocking", cancellationToken).ConfigureAwait(false);
+			await AuthenticateAsync(activity, cipher, "Protect wallet access", cancellationToken).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
 			var encrypted = SealSecret(cipher, originalPassword);
-			var old = Load(reference);
+			Envelope? old;
+			try { old = Load(reference); }
+			catch (Exception error) when (error is IOException or JsonException or FormatException) { old = null; }
 			Save(reference, new(alias, Convert.ToBase64String(cipher.GetIV()!), Convert.ToBase64String(encrypted)));
 			committed = true;
 			if (old is not null) { store.DeleteEntry(old.Alias); }
@@ -55,7 +60,7 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 	{
 		if (!OperatingSystem.IsAndroidVersionAtLeast(30) || context is not Activity activity) { throw new InvalidOperationException("Use your original wallet password on this Android version."); }
 		var reference = "wallet:" + walletReference;
-		var envelope = Load(reference) ?? throw new InvalidOperationException("Device unlocking has not been enabled for this wallet.");
+		var envelope = Load(reference) ?? throw new InvalidOperationException("Enter the original wallet password to restore device unlocking.");
 		try
 		{
 			using var store = OpenStore();
@@ -139,7 +144,7 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 		using var factory = SecretKeyFactory.GetInstance("AES", "AndroidKeyStore")!;
 		using var info = factory.GetKeySpec(key, Java.Lang.Class.FromType(typeof(KeyInfo)))!.JavaCast<KeyInfo>();
 		var hardware = OperatingSystem.IsAndroidVersionAtLeast(31) ? (int)info.SecurityLevel is 1 or 2 : info.IsInsideSecureHardware;
-		if (!hardware) { throw new InvalidOperationException("This device has no hardware-backed authenticated Keystore. Use password unlocking."); }
+		if (!hardware) { throw new PlatformNotSupportedException("This device has no hardware-backed authenticated Keystore. Use password unlocking."); }
 	}
 
 	private byte[] AssociatedData(string reference) => Encoding.UTF8.GetBytes(context.PackageName + ":" + reference);

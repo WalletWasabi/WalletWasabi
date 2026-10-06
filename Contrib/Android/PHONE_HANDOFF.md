@@ -1,6 +1,6 @@
 # Personal APK phone handoff
 
-**Version 0.3.7 / version code 12: qualification blocked.** Close all uncompleted
+**Version 0.3.8 / version code 13: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the corrected source-native ARM64 cryptographic, SQLite
@@ -43,7 +43,9 @@ identity and remains independently installed.
    A failed install preserves data. Investigate the reported signature/version or
    compatibility error instead of removing the app.
 3. Qualify with a **new disposable test wallet**, initially using test coins. Test
-   password access; enroll device convenience only if hardware Keystore supports it.
+   password access and automatic device-unlock enrollment after successful password
+   entry, creation and recovery when hardware Keystore supports it. Settings have
+   no enrollment toggle. Devices without supported authentication use passwords.
    Check biometric and device-credential success, cancellation, backgrounding during
    authorization and key invalidation. The original password must still recover it.
 4. Scan known BIP21 requests with the physical camera in supported orientations and
@@ -58,8 +60,9 @@ identity and remains independently installed.
    the original words/password. Recover into a fresh test installation/device state
    without its database or Keystore keys. Do not erase a live wallet to perform this
    test. Verify both accounts, addresses, balance and restored signing.
-7. Install an update signed with the same certificate. Verify wallet files, encrypted
-   RPC credentials, device authorization and pending transaction identity persist.
+7. Install an update signed with the same certificate. Verify wallet files, device
+   authorization and pending transaction identity persist. Retired personal-node
+   credentials should be removed without affecting wallet credentials.
 
 Record what actually executed, including failed checks. Emulator logs do not satisfy
 physical camera, hardware authorization or handset compatibility requirements.

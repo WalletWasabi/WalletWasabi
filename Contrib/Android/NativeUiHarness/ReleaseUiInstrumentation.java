@@ -69,6 +69,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             else if (mode.equals("wallet")) wallet();
             else if (mode.equals("resume")) resume();
             else if (mode.equals("late-unlock")) verifyLateUnlockRemainsLocked();
+            else if (mode.equals("lost-device-key")) lostDeviceKey();
             else check(mode.equals("security"), "Known test mode");
             result.putString("stream", "PASS: actual Release " + mode + " UI\n");
             result.putInt("api", Build.VERSION.SDK_INT);
@@ -86,13 +87,17 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     private void simplifiedSettings() throws Exception {
         check(has("Bitcoin.\nUnfairly private."), "Requested wallet branding");
         click("Settings");
+        checkSimplifiedSettings();
+        click("‹");
+    }
+    private void checkSimplifiedSettings() {
         check(!has("PERSONAL BITCOIN NODE"), "Personal-node section removed");
+        check(!has("WALLET UNLOCKING") && !has("Enable device unlocking") && !has("Remove device unlocking"), "Device unlocking is not a settings opt-in");
         for (View view : views()) if (view instanceof EditText) {
             CharSequence hint = ((EditText)view).getHint();
             check(hint == null || !hint.toString().startsWith("RPC"), "RPC controls removed");
         }
         check(has("Save and reconnect"), "Normal network settings remain available");
-        click("‹");
     }
     private void setupRpc() throws Exception {
         click("Settings");
@@ -121,6 +126,12 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             waitFor(() -> has("TOTAL BALANCE"), 30000, "Recovery opens wallet");
         }
         waitFor(() -> hasPart("Connected"), 90000, "Recovered wallet synchronized before receive");
+        if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 13) {
+            click("Settings");
+            checkSimplifiedSettings();
+            click("‹");
+            check(has("TOTAL BALANCE"), "Returning from simplified settings retains the authorized home screen");
+        }
         double beforeFunding = balance();
         click("↓  Receive");
         field("Label (who is paying you?)", "Native release fixture");
@@ -188,7 +199,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         waitFor(() -> hasPart("Connected") || hasPart("Synchronizing"), 90000, "Restarted engine initialized");
         status("ENGINE_READY_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - startup));
         unlock();
-        waitFor(() -> hasPart("Connected"), 90000, "Update/restart resumes synchronization with the saved RPC key");
+        waitFor(() -> hasPart("Connected"), 90000, "Update/restart resumes synchronization with the saved regtest backend");
         File journal = new File(activity.getFilesDir(), "Wasabi/submissions-RegTest.json");
         String bytes = new String(read(journal), StandardCharsets.UTF_8);
         check(bytes.contains(arguments.getString("transaction")), "Pending transaction journal survives update");
@@ -202,6 +213,43 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         click("Unlock");
         waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password still unlocks");
         status("UNLOCK_COMPLETED_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - started));
+    }
+    private String hash(String value) throws Exception {
+        byte[] bytes = java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hex = new StringBuilder();
+        for (byte b : bytes) hex.append(String.format(java.util.Locale.ROOT, "%02X", b & 255));
+        return hex.toString();
+    }
+    private void lostDeviceKey() throws Exception {
+        waitFor(() -> hasPart("Connected") || hasPart("Synchronizing"), 90000, "Engine initialized for device-key loss");
+        File root = new File(activity.getFilesDir(), "Wasabi");
+        org.json.JSONObject wallet = new org.json.JSONObject(new String(read(new File(root, "Wallets/Native qualification.json")), StandardCharsets.UTF_8));
+        String reference = hash("RegTest:" + wallet.getString("AccountKeyPath") + ":" + wallet.getString("ExtPubKey"));
+        File vault = new File(root, "vault");
+        check(vault.isDirectory() || vault.mkdir(), "Qualification vault directory");
+        File envelope = new File(vault, hash("wallet:" + reference) + ".json");
+        check(!envelope.exists() && !new File(envelope.getPath() + ".old").exists(), "Never replace an existing wallet credential");
+        // This synthetic envelope names a key that has never existed. The actual
+        // Release vault must refuse it and retain original-password recovery.
+        String data = "{\"Alias\":\"wasabi-ui-missing-" + java.util.UUID.randomUUID() + "\",\"Iv\":\"AAAAAAAAAAAAAAAA\",\"Ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA==\"}";
+        try {
+            try (java.io.FileOutputStream stream = new java.io.FileOutputStream(envelope)) { stream.write(data.getBytes(StandardCharsets.UTF_8)); stream.getFD().sync(); }
+            clickPart("Native qualification");
+            waitFor(() -> has("Use device unlock"), 10000, "Unavailable enrolled key falls back to the original password");
+            check(!has("TOTAL BALANCE"), "Missing device key cannot unlock the wallet");
+            field("Wallet password", "incorrect fixture password");
+            click("Unlock");
+            waitFor(() -> has("Incorrect wallet password."), 10000, "Key loss does not bypass password verification");
+            click("OK");
+            field("Wallet password", PASSWORD);
+            click("Unlock");
+            waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password restores access after device-key loss");
+            click("Settings");
+            checkSimplifiedSettings();
+            click("‹");
+            click("Lock wallet");
+            status("DEVICE_KEY_LOSS_PASSWORD_RECOVERY");
+        } finally { check(!envelope.exists() || envelope.delete(), "Remove only the synthetic missing-key envelope"); }
     }
     private byte[] read(File file) throws Exception {
         try (java.io.FileInputStream stream = new java.io.FileInputStream(file); java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {

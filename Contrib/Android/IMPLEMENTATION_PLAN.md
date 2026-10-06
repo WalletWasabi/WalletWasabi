@@ -30,8 +30,10 @@ the newly reproduced denomination failure has a verified cause and regression.
 - `WalletSession` serializes preparation, confirmation, replacement and reconciliation.
   It checks synchronization, authorization, wallet/network identity, expiry,
   immutable review integrity and input eligibility before signing.
-- `ICredentialVault` exposes per-use authorized password retrieval, optional enrollment
-  and removal. Personal-node settings and credential access were removed at the
+- `ICredentialVault` exposes per-use authorized password retrieval, enrollment
+  and removal. Android enrolls device unlocking automatically after successful
+  password access or wallet setup on supported hardware; system authorization is
+  the default with original-password fallback. Personal-node settings and credential access were removed at the
   user's request; old node credentials are retired without decrypting them.
 - Transaction modifiers accept unsigned preparation while retaining desktop signing
   defaults. Mobile speed-up additionally requires recipient preservation.

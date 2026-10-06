@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.7 / version code 12** produces a personally signed APK. This is a
+Version **0.3.8 / version code 13** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -126,10 +126,13 @@ only synthetic localhost credentials and removes its generated private key.
 - Speed-up preserves recipient amounts through RBF or eligible CPFP. Cancellation
   requires its own review and authorization and competes with confirmation of the
   original transaction. Unsupported or ineligible modifiers report unavailability.
-- Enable device unlocking only on Android 11+ with supported hardware-backed
-  Keystore authentication. StrongBox is preferred. Software-only devices retain
-  password access. Payments, replacements, backup disclosure and CoinJoin start
-  require fresh authorization. RPC credentials use a separate encrypted vault.
+- Device unlocking enrolls automatically after wallet creation/recovery or a
+  successful password unlock on Android 11+ with supported hardware-backed
+  Keystore authentication. StrongBox is preferred. Wallet selection uses the
+  system prompt by default; the original wallet password remains available.
+  Software-only devices retain password access. Payments, replacements, backup
+  disclosure and CoinJoin start require fresh authorization. Settings contain no
+  device-unlock enrollment toggle. Retired personal-node credentials are removed.
 - Backgrounding and two minutes of inactivity lock the UI. Only explicitly started
   CoinJoin retains signing credentials while locked; stopping releases them.
   Device-key invalidation requests the original password and preserves the wallet.

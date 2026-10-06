@@ -47,6 +47,7 @@ public sealed class MainActivity : Activity
 	private bool _externalFlow;
 	private bool _uiLocked = true;
 	private bool _authenticating;
+	private readonly HashSet<string> _unavailableDeviceKeys = [];
 	private readonly CancellationTokenSource _activityLifetime = new();
 	private string _screen = "wallets";
 	private long _lastInteraction = Stopwatch.GetTimestamp();
@@ -259,7 +260,7 @@ public sealed class MainActivity : Activity
 			foreach (var wallet in session.Global.WalletManager.GetWallets())
 			{
 				var target = wallet;
-				AddButton("◈   " + wallet.WalletName + "   ›", () => ShowUnlock(target), false);
+				AddButton("◈   " + wallet.WalletName + "   ›", () => OpenWallet(target), false);
 			}
 		}
 		AddButton("Create a wallet", () => ShowCreate(false));
@@ -271,10 +272,32 @@ public sealed class MainActivity : Activity
 		if (WalletRuntime.Error is not null) { AddButton("Retry connection", async () => { await WalletRuntime.StopAsync(); StartWalletService(); ShowWallets(); }); }
 	}
 
-	private void ShowUnlock(Wallet wallet)
+	private void OpenWallet(Wallet wallet)
+	{
+		ShowUnlock(wallet);
+		if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
+		{
+			Work(() => WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName,
+				_ => { ShowUnlockedWallet(); return Task.CompletedTask; }, () => ShowUnlock(wallet, passwordOnly: true)));
+		}
+	}
+
+	private void ShowUnlockedWallet()
+	{
+		if (_payment is not null) { ShowSend(); } else { ShowHome(); }
+	}
+
+	private void ShowUnlock(Wallet wallet, bool passwordOnly = false)
 	{
 		Screen(wallet.WalletName, "unlock", ShowWallets);
 		AddText("Unlock your wallet", 28, Color.White, true);
+		if (!passwordOnly && Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
+		{
+			AddButton("Unlock", () => Work(() => WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName,
+				_ => { ShowUnlockedWallet(); return Task.CompletedTask; }, () => ShowUnlock(wallet, passwordOnly: true))));
+			AddButton("Use wallet password", () => ShowUnlock(wallet, passwordOnly: true), false);
+			return;
+		}
 		var password = Field("Wallet password", true);
 		AddButton("Unlock", () => Work(async () =>
 		{
@@ -282,14 +305,16 @@ public sealed class MainActivity : Activity
 			var secret = password.Text ?? "";
 			password.Text = "";
 			await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
+			await EnsureDeviceUnlockAsync(session, wallet, secret);
 			_uiLocked = false;
-			if (_payment is not null) { ShowSend(); } else { ShowHome(); }
+			ShowUnlockedWallet();
 		}));
 		if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
 		{
 			AddButton("Use device unlock", () => Work(async () =>
 			{
-				await WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName, _ => { if (_payment is not null) { ShowSend(); } else { ShowHome(); } return Task.CompletedTask; });
+				await WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName,
+					_ => { ShowUnlockedWallet(); return Task.CompletedTask; }, () => ShowUnlock(wallet, passwordOnly: true));
 			}), false);
 		}
 	}
@@ -297,31 +322,78 @@ public sealed class MainActivity : Activity
 	private async Task UnlockInBackgroundAsync(WalletSession session, Wallet wallet, string password, CancellationToken cancellationToken)
 	{
 		var generation = _uiGeneration;
-		await Task.Run(() => session.Unlock(wallet, password), cancellationToken);
-		cancellationToken.ThrowIfCancellationRequested();
-		if (!_foreground || Session != session || _uiGeneration != generation)
+		try
 		{
-			throw new System.OperationCanceledException("Return to Wasabi and unlock again.");
+			await Task.Run(() => session.Unlock(wallet, password), cancellationToken);
+			cancellationToken.ThrowIfCancellationRequested();
+			if (!_foreground || Session != session || _uiGeneration != generation)
+			{ throw new System.OperationCanceledException("Return to Wasabi and unlock again."); }
 		}
+		catch { session.Lock(preserveProposal: _authenticating); throw; }
 	}
 
-	private async Task WithDeviceAuthorization(Wallet wallet, string purpose, Func<string, Task> action)
+	private async Task EnsureDeviceUnlockAsync(WalletSession session, Wallet wallet, string password)
 	{
-		var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+		var reference = WalletSession.WalletReference(wallet);
+		var vault = Vault;
+		if ((vault.HasWalletPassword(reference) && !_unavailableDeviceKeys.Contains(reference)) || !vault.CanEnrollWalletPassword) { return; }
+		var generation = _uiGeneration;
 		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_activityLifetime.Token);
 		deadline.CancelAfter(TimeSpan.FromMinutes(1));
 		_authenticating = true;
 		try
 		{
-			var password = await Vault.RetrieveWalletPasswordAsync(WalletSession.WalletReference(wallet), purpose, deadline.Token);
-			// Device-credential confirmation can briefly put this activity behind the
-			// system lock screen. Resume only after our own activity is foreground.
-			for (var i = 0; !_foreground && i < 40; i++) { await Task.Delay(50, deadline.Token); }
-			if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and authorize again."); }
-			await UnlockInBackgroundAsync(session, wallet, password, deadline.Token);
-			_workGeneration = _uiGeneration; // A fresh per-use device grant authorizes this resumed UI.
-			_lastInteraction = Stopwatch.GetTimestamp();
-			_uiLocked = false;
+			try { await vault.EnrollWalletPasswordAsync(reference, password, deadline.Token); }
+			catch (Exception error) when (error is System.OperationCanceledException or PlatformNotSupportedException)
+			{
+				// Password access was already verified. A cancelled setup cannot undo a
+				// background lock or give an operation a new authorization generation.
+				if (!_foreground || Session != session || generation != _uiGeneration)
+				{ session.Lock(); throw new System.OperationCanceledException("Return to Wasabi and unlock again."); }
+				return;
+			}
+			await ResumeAuthorizedWalletAsync(session, wallet, password, deadline.Token);
+			_unavailableDeviceKeys.Remove(reference);
+		}
+		catch { session.Lock(); throw; }
+		finally { _authenticating = false; }
+	}
+
+	private async Task ResumeAuthorizedWalletAsync(WalletSession session, Wallet wallet, string password, CancellationToken cancellationToken)
+	{
+		// Device-credential confirmation can briefly put this activity behind the
+		// system lock screen. Only a successful per-use grant permits resuming.
+		for (var i = 0; !_foreground && i < 40; i++) { await Task.Delay(50, cancellationToken); }
+		if (!_foreground || Session != session) { session.Lock(); throw new System.OperationCanceledException("Return to Wasabi and authorize again."); }
+		await UnlockInBackgroundAsync(session, wallet, password, cancellationToken);
+		_workGeneration = _uiGeneration;
+		_lastInteraction = Stopwatch.GetTimestamp();
+		_uiLocked = false;
+	}
+
+	private async Task WithDeviceAuthorization(Wallet wallet, string purpose, Func<string, Task> action, Action passwordFallback)
+	{
+		var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+		var generation = _uiGeneration;
+		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_activityLifetime.Token);
+		deadline.CancelAfter(TimeSpan.FromMinutes(1));
+		_authenticating = true;
+		try
+		{
+			string password;
+			try { password = await Vault.RetrieveWalletPasswordAsync(WalletSession.WalletReference(wallet), purpose, deadline.Token); }
+			catch (System.OperationCanceledException)
+			{
+				if (_foreground && Session == session && generation == _uiGeneration) { passwordFallback(); }
+				return;
+			}
+			catch (Exception error) when (error is InvalidOperationException or PlatformNotSupportedException or IOException or System.Text.Json.JsonException or FormatException)
+			{
+				_unavailableDeviceKeys.Add(WalletSession.WalletReference(wallet));
+				if (_foreground && Session == session && generation == _uiGeneration) { passwordFallback(); }
+				return;
+			}
+			await ResumeAuthorizedWalletAsync(session, wallet, password, deadline.Token);
 			await action(password);
 		}
 		finally { _authenticating = false; }
@@ -330,12 +402,27 @@ public sealed class MainActivity : Activity
 	private void AddAuthorization(string title, string purpose, Func<string, Task> action)
 	{
 		var wallet = Session?.Current ?? throw new InvalidOperationException("Unlock a wallet first.");
-		var password = Field("Confirm wallet password", true);
-		AddButton(title, () => Work(async () => { var secret = password.Text ?? ""; password.Text = ""; if (!_foreground || _uiLocked) { throw new System.OperationCanceledException("Unlock the wallet and review again."); } await action(secret); }));
+		var panel = Column();
+		_body.AddView(panel, Wrap);
+		void PasswordFallback()
+		{
+			panel.RemoveAllViews();
+			var password = Field("Confirm wallet password", true, panel);
+			panel.AddView(Button(title, () => Work(async () =>
+			{
+				var secret = password.Text ?? "";
+				password.Text = "";
+				if (!_foreground || _uiLocked) { throw new System.OperationCanceledException("Unlock the wallet and review again."); }
+				await action(secret);
+			})), new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12) });
+		}
 		if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
 		{
-			AddButton("Use device unlock", () => Work(() => WithDeviceAuthorization(wallet, purpose, action)), false);
+			panel.AddView(Button(title, () => Work(() => WithDeviceAuthorization(wallet, purpose, action, PasswordFallback))),
+				new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12) });
+			panel.AddView(Button("Use wallet password", PasswordFallback, false), new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12) });
 		}
+		else { PasswordFallback(); }
 	}
 
 	private void ShowImport()
@@ -377,9 +464,7 @@ public sealed class MainActivity : Activity
 			if (words is not null) { words.Text = ""; }
 			if (recover)
 			{
-				await Task.Run(() => Session.CreateAsync(walletName, secret, mnemonic, true));
-				_uiLocked = false;
-				ShowHome();
+				await CreateWalletInBackgroundAsync(walletName, secret, mnemonic, true);
 			}
 			else { ShowRecoveryWords(walletName, secret, mnemonic); }
 		}));
@@ -416,10 +501,21 @@ public sealed class MainActivity : Activity
 		AddButton("Create wallet", () => Work(async () =>
 		{
 			if (fields.Any(f => !string.Equals(f.Field.Text?.Trim(), mnemonic.Words[f.Index], StringComparison.OrdinalIgnoreCase))) { throw new ArgumentException("Check the recovery words and try again."); }
-			await Task.Run(() => Session!.CreateAsync(name, password, mnemonic, false));
-			_uiLocked = false;
-			ShowHome();
+			foreach (var field in fields) { field.Field.Text = ""; }
+			await CreateWalletInBackgroundAsync(name, password, mnemonic, false);
 		}));
+	}
+
+	private async Task CreateWalletInBackgroundAsync(string name, string password, Mnemonic mnemonic, bool recover)
+	{
+		var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+		var generation = _uiGeneration;
+		var wallet = await Task.Run(() => session.CreateAsync(name, password, mnemonic, recover));
+		if (!_foreground || Session != session || generation != _uiGeneration)
+		{ session.Lock(); throw new System.OperationCanceledException("Return to Wasabi and unlock the saved wallet."); }
+		await EnsureDeviceUnlockAsync(session, wallet, password);
+		_uiLocked = false;
+		ShowHome();
 	}
 
 	private void ShowHome()
@@ -823,35 +919,6 @@ public sealed class MainActivity : Activity
 			StartWalletService();
 			ShowWallets();
 		}));
-		if (Session?.Current is { } wallet && !_uiLocked)
-		{
-			Gap(24);
-			AddText("WALLET UNLOCKING", 12, Muted);
-			if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
-			{
-				AddButton("Remove device unlocking", () => { Vault.RemoveWalletPassword(WalletSession.WalletReference(wallet)); ShowSettings(); }, false);
-			}
-			else if (OperatingSystem.IsAndroidVersionAtLeast(30))
-			{
-				var original = Field("Original wallet password", true);
-				AddButton("Enable device unlocking", () => Work(async () =>
-				{
-					var session = Session!;
-					var secret = original.Text ?? "";
-					original.Text = "";
-					await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
-					_authenticating = true;
-					try { await Vault.EnrollWalletPasswordAsync(WalletSession.WalletReference(wallet), secret, _activityLifetime.Token); }
-					finally { _authenticating = false; }
-					if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and unlock again."); }
-					await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
-					_workGeneration = _uiGeneration;
-					_lastInteraction = Stopwatch.GetTimestamp();
-					_uiLocked = false;
-					ShowSettings();
-				}));
-			}
-		}
 		Gap(24);
 		var version = PackageManager!.GetPackageInfo(PackageName!, global::Android.Content.PM.PackageInfoFlags.MetaData)!.VersionName;
 		AddText((AppIdentity.IsPersonal ? "Wasabi Wallet for Android · " : "Wasabi Wallet Test · ") + version, 14, Muted);
@@ -1002,7 +1069,7 @@ public sealed class MainActivity : Activity
 		return button;
 	}
 	private void AddButton(string value, Action action, bool primary = true) => _body.AddView(Button(value, action, primary), new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12) });
-	private EditText Field(string hint, bool secret = false)
+	private EditText Field(string hint, bool secret = false, LinearLayout? parent = null)
 	{
 		var field = new EditText(this) { Hint = hint, TextSize = 16, InputType = secret ? InputTypes.ClassText | InputTypes.TextVariationPassword : InputTypes.ClassText | InputTypes.TextFlagNoSuggestions };
 		if (OperatingSystem.IsAndroidVersionAtLeast(26)) { field.ImportantForAutofill = ImportantForAutofill.NoExcludeDescendants; }
@@ -1013,7 +1080,7 @@ public sealed class MainActivity : Activity
 		field.Background = Rounded(Surface);
 		field.TextChanged += (_, _) => _lastInteraction = Stopwatch.GetTimestamp();
 		field.SetMinHeight(Dp(64));
-		_body.AddView(field, new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12), BottomMargin = Dp(12) });
+		(parent ?? _body).AddView(field, new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12), BottomMargin = Dp(12) });
 		return field;
 	}
 	private void Gap(int height) => _body.AddView(new View(this), new LinearLayout.LayoutParams(1, Dp(height)));
