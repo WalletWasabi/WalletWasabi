@@ -164,6 +164,11 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     }
 
     private void resume() throws Exception {
+        // A saved wallet is listed while its runtime is still initializing.
+        // Match wallet()'s startup gate before measuring password authorization.
+        long startup = android.os.SystemClock.elapsedRealtime();
+        waitFor(() -> hasPart("Connected") || hasPart("Synchronizing"), 90000, "Restarted engine initialized");
+        status("ENGINE_READY_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - startup));
         unlock();
         waitFor(() -> hasPart("Connected"), 90000, "Update/restart resumes synchronization with the saved RPC key");
         File journal = new File(activity.getFilesDir(), "Wasabi/submissions-RegTest.json");
@@ -175,8 +180,10 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         waitFor(() -> hasPart("Native qualification"), 60000, "Wallet survives restart");
         clickPart("Native qualification");
         field("Wallet password", PASSWORD);
+        long started = android.os.SystemClock.elapsedRealtime();
         click("Unlock");
         waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password still unlocks");
+        status("UNLOCK_COMPLETED_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - started));
     }
     private byte[] read(File file) throws Exception {
         try (java.io.FileInputStream stream = new java.io.FileInputStream(file); java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
