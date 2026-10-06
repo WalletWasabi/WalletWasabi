@@ -3,6 +3,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using Xunit;
 
@@ -10,6 +16,77 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class CredentialDependencyTests
 {
+	[Fact]
+	public void SchedulerRejectsIncompleteDependenciesBeforeMakingRequests()
+	{
+		var unresolved = DependencyGraph.FromValues([(3L, 3L)], [(1L, 1L), (1L, 1L), (1L, 1L)],
+			ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
+		Assert.Throws<InvalidOperationException>(() => new DependencyGraphTaskScheduler(unresolved));
+	}
+
+	[Fact]
+	public void SchedulerRejectsACycleBeforeMakingRequests()
+	{
+		var graph = DependencyGraph.ResolveCredentialDependencies([(3L, 3L)], [(1L, 1L), (1L, 1L), (1L, 1L)],
+			ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
+		var node = Assert.Single(graph.GetReissuances());
+		var amounts = graph.EdgeSets[(int)CredentialType.Amount];
+		var original = Assert.Single(amounts.InEdges[node], edge => edge.Value == 0);
+		var cyclic = original with { From = node };
+		amounts = amounts with
+		{
+			InEdges = amounts.InEdges.SetItem(node, amounts.InEdges[node].Remove(original).Add(cyclic)),
+			OutEdges = amounts.OutEdges.SetItem(original.From, amounts.OutEdges[original.From].Remove(original))
+				.SetItem(node, amounts.OutEdges[node].Add(cyclic))
+		};
+		graph = graph with { EdgeSets = graph.EdgeSets.SetItem((int)CredentialType.Amount, amounts) };
+		Assert.Throws<InvalidOperationException>(() => new DependencyGraphTaskScheduler(graph));
+	}
+
+	[Fact]
+	public void IndependentlyDecomposedBlameFixtureOutputsCanBeScheduled()
+	{
+		var inputs = new[] { (69_999_655L, 186L), (79_999_655L, 186L) };
+		var allInputs = new long[] { 29_999_655, 39_999_655, 49_999_655, 59_999_655, 69_999_655, 79_999_655 }.Select(Money.Satoshis).ToArray();
+		for (var seed = 0; seed < 500; seed++)
+		{
+			var decomposer = new AmountDecomposer(new FeeRate(5m), Money.Satoshis(5000), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice),
+				372, [ScriptType.Taproot, ScriptType.P2WPKH], RandomExtensions.CreateSeeded(seed));
+			var outputs = decomposer.Decompose(Money.Satoshis(inputs.Sum(input => input.Item1)), allInputs)
+				.Select(output => (output.EffectiveCost.Satoshi, (long)output.ScriptType.EstimateOutputVsize())).ToArray();
+			var graph = DependencyGraph.ResolveCredentialDependencies(inputs, outputs, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
+			AssertSchedulable(graph, seed, outputs);
+		}
+	}
+
+	[Fact]
+	public void GeneratedGraphsCanScheduleBothCredentialTypesTogether()
+	{
+		for (var seed = 0; seed < 2_000; seed++)
+		{
+			var random = new Random(seed);
+			var inputs = new[] { (70_000_000L, 186L), (80_000_000L, 186L) };
+			var count = random.Next(2, 9);
+			var total = random.NextInt64(100_000_000, 150_000_001);
+			var cuts = Enumerable.Range(0, count - 1).Select(_ => random.NextInt64(1, total)).Append(0).Append(total).Order().ToArray();
+			var outputs = cuts.Zip(cuts.Skip(1), (start, end) => (end - start, random.Next(2) == 0 ? 31L : 43L)).ToArray();
+			var graph = DependencyGraph.ResolveCredentialDependencies(inputs, outputs, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
+			AssertSchedulable(graph, seed, outputs);
+		}
+	}
+
+	private static void AssertSchedulable(DependencyGraph graph, int seed, (long, long)[] outputs)
+	{
+		var completed = graph.GetInputs().Cast<RequestNode>().ToHashSet();
+		while (completed.Count < graph.Vertices.Count)
+		{
+			var available = graph.Vertices.Where(node => !completed.Contains(node)
+				&& DependencyGraph.CredentialTypes.All(type => graph.InEdges(node, type).All(edge => completed.Contains(edge.From)))).ToArray();
+			Assert.True(available.Length > 0, $"Credential dependency cycle for seed {seed}; outputs {string.Join(';', outputs)}.\n{graph.AsGraphviz()}");
+			completed.UnionWith(available);
+		}
+	}
+
 	[Fact]
 	public async Task AsyncDependencyGraphTraversalAsync()
 	{
@@ -256,6 +333,9 @@ public class CredentialDependencyTests
 	[InlineData("13,255 1,255 1,255 1,255 1,255 1,255", "3,255 3,255 3,255 3,255 3,255 3,255", 17)]
 	[InlineData("99991099,186 39991099,186 29991099,186 19991099,186 9991099,186", "33558431,31 33558431,31 33558431,31 33558431,31 33558431,31 28701813,31", 14)]
 	[InlineData("99991099,186 39991099,186 29991099,186 19991099,186 9991099,186", "33558431,31 33558431,31 33558431,31 33558431,31 33558431,31 28701813,31 3192645,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 12067,31", 50)]
+	// Seed 23 of the three-participant decomposition previously routed a zero
+	// credential from node 12 back to ancestor 18, blocking every remaining request.
+	[InlineData("69999655,186 79999655,186", "67109019,31 67109019,31 5000215,43 5000215,43 2097307,31 2097307,31 531596,31 354509,43 354509,43 345614,31", 21)]
 	public async Task ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
 	{
 		// blackbox tests (apart from finalVertexCount, which leaks

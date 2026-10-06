@@ -1,6 +1,6 @@
 # Android source security review
 
-This is a source review by the implementing agent, recorded 2026-10-05. It is
+This is a source review by the implementing agent, recorded 2026-10-06. It is
 **not independent, not a penetration test, and not an audit or guarantee**.
 Release acceptance is blocked by the findings and missing device evidence below.
 
@@ -22,6 +22,7 @@ Release acceptance is blocked by the findings and missing device evidence below.
 | External fee information | Concurrent cache updates no longer collide, periodic updates fetch fresh information, and discarded retry responses are disposed. CPFP now selects the same official onion service already used by fee estimates when Tor is enabled, preserving HTTPS for direct desktop operation. Two route regressions fail before correction. Live Main/Testnet4 provider qualification remains a separate gate. |
 | Settings publication | The Windows CI sharing failure was reproduced. Configuration instances share a normalized path lock; saves publish complete files atomically, initial creation completes before returning, and read failures propagate without overwriting usable settings. Corrupt UI decoding starts reactive persistence only after validation. Six settings and two safe-file regressions pass. |
 | Blame qualification | The failing desktop fixture had registration and phase windows incompatible with Arena/client rules, unintended single-coin isolation, and a factory discarding the blame input minimum. Corrected fixture conditions retain production privacy and participation protections. Removed exception-to-success shortcut; three real blame rounds and all 325 WabiSabi checks pass locally. |
+| Credential graph / allocation | A retained seed-23 production decomposition reproduces a zero-credential cycle. Routing excludes descendants across both credential types; the scheduler rejects incomplete/cyclic graphs before requests. Missing or reordered credentials cannot silently leave dependency promises unresolved. Literal, seeded-decomposition and generated-graph regressions are retained; the real blame fixture exercises seed 23. The original Mac trace did not retain exact graph values; current-source CI and Android rounds have separate evidence. |
 | Android / package | Secure windows, disabled backups/debugging, separate instrumentation, sensitive inputs/clipboard, generation-aware Camera2 teardown, bounded decoding and foreground/wake-lock limits. Pure-Java testing exercises the actual signed APK without security exemptions. |
 | Native metadata | Added documented common-page-size flag to the pinned SDK's generated app-library linker invocation, retaining RELRO/NOW/non-executable stack. Prebuilt binaries are not patched. |
 

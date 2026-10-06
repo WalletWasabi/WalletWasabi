@@ -16,10 +16,10 @@ public class SmartRequestNode
 		IEnumerable<TaskCompletionSource<Credential>> outputAmountCredentialTasks,
 		IEnumerable<TaskCompletionSource<Credential>> outputVsizeCredentialTasks)
 	{
-		AmountCredentialToPresentTasks = inputAmountCredentialTasks;
-		VsizeCredentialToPresentTasks = inputVsizeCredentialTasks;
-		AmountCredentialTasks = outputAmountCredentialTasks;
-		VsizeCredentialTasks = outputVsizeCredentialTasks;
+		AmountCredentialToPresentTasks = inputAmountCredentialTasks.ToArray();
+		VsizeCredentialToPresentTasks = inputVsizeCredentialTasks.ToArray();
+		AmountCredentialTasks = outputAmountCredentialTasks.ToArray();
+		VsizeCredentialTasks = outputVsizeCredentialTasks.ToArray();
 	}
 
 	public IEnumerable<Task<Credential>> AmountCredentialToPresentTasks { get; }
@@ -30,11 +30,17 @@ public class SmartRequestNode
 	public async Task StartReissuanceAsync(BobClient bobClient, IEnumerable<long> amounts, IEnumerable<long> vsizes, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
+		var requiredAmounts = amounts.ToArray();
+		var requiredVsizes = vsizes.ToArray();
+		if (requiredAmounts.Length != AmountCredentialTasks.Count() || requiredVsizes.Length != VsizeCredentialTasks.Count())
+		{
+			throw new InvalidOperationException("Credential requests must match their output dependencies.");
+		}
 		await Task.WhenAll(AmountCredentialToPresentTasks.Concat(VsizeCredentialToPresentTasks)).WaitAsync(cancellationToken).ConfigureAwait(false);
 		IEnumerable<Credential> inputAmountCredentials = AmountCredentialToPresentTasks.Select(x => x.Result);
 		IEnumerable<Credential> inputVsizeCredentials = VsizeCredentialToPresentTasks.Select(x => x.Result);
-		var amountsToRequest = AddExtraCredentialRequests(amounts, inputAmountCredentials.Sum(x => x.Value));
-		var vsizesToRequest = AddExtraCredentialRequests(vsizes, inputVsizeCredentials.Sum(x => x.Value));
+		var amountsToRequest = AddExtraCredentialRequests(requiredAmounts, inputAmountCredentials.Sum(x => x.Value));
+		var vsizesToRequest = AddExtraCredentialRequests(requiredVsizes, inputVsizeCredentials.Sum(x => x.Value));
 
 		(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials) result;
 
@@ -54,8 +60,11 @@ public class SmartRequestNode
 		}
 
 		// TODO keep the credentials that were not needed by the graph
-		var (amountCredentials, _) = SeparateExtraCredentials(result.RealAmountCredentials, amounts);
-		var (vsizeCredentials, _) = SeparateExtraCredentials(result.RealVsizeCredentials, vsizes);
+		// Resolve both complete allocations before publishing any dependency.
+		// Zip must never silently leave a promise unresolved after a successful request.
+		var (amountCredentials, _) = SeparateExtraCredentials(result.RealAmountCredentials, requiredAmounts);
+		var (vsizeCredentials, _) = SeparateExtraCredentials(result.RealVsizeCredentials, requiredVsizes);
+		cancellationToken.ThrowIfCancellationRequested();
 
 		foreach (var (tcs, credential) in AmountCredentialTasks.Zip(amountCredentials))
 		{
@@ -107,43 +116,20 @@ public class SmartRequestNode
 		return nonZeroValues.Concat(Enumerable.Repeat(0L, additionalZeros));
 	}
 
-	private (IEnumerable<Credential>, IEnumerable<Credential>) SeparateExtraCredentials(IEnumerable<Credential> issuedCredentials, IEnumerable<long> requiredValues)
+	internal (IReadOnlyList<Credential> Required, IReadOnlyList<Credential> Extra) SeparateExtraCredentials(IEnumerable<Credential> issuedCredentials, IEnumerable<long> requiredValues)
 	{
-		var taggedCredentials = TagExtraCredentials(issuedCredentials, requiredValues).ToImmutableArray();
-
-		return (
-			taggedCredentials.Where(x => !x.IsExtra).Select(x => x.Credential),
-			taggedCredentials.Where(x => x.IsExtra).Select(x => x.Credential)
-		);
-	}
-
-	private IEnumerable<(bool IsExtra, Credential Credential)> TagExtraCredentials(IEnumerable<Credential> issuedCredentials, IEnumerable<long> requiredValues)
-	{
-		using var requiredEnumerator = requiredValues.GetEnumerator();
-		using var issuedEnumerator = issuedCredentials.GetEnumerator();
-
-		while (requiredEnumerator.MoveNext())
+		var remaining = issuedCredentials.ToList();
+		var requiredCredentials = new List<Credential>();
+		foreach (var required in requiredValues)
 		{
-			var required = requiredEnumerator.Current;
-			while (issuedEnumerator.MoveNext())
+			var index = remaining.FindIndex(credential => credential.Value == required);
+			if (index < 0)
 			{
-				var issued = issuedEnumerator.Current;
-				var isExtra = issued.Value != required;
-
-				yield return (isExtra, issued);
-
-				if (!isExtra)
-				{
-					// Move to next required value
-					break;
-				}
+				throw new InvalidOperationException("Reissuance did not supply every required credential.");
 			}
+			requiredCredentials.Add(remaining[index]);
+			remaining.RemoveAt(index);
 		}
-
-		while (issuedEnumerator.MoveNext())
-		{
-			var issued = issuedEnumerator.Current;
-			yield return (true, issued);
-		}
+		return (requiredCredentials, remaining);
 	}
 }

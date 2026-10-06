@@ -8,6 +8,7 @@ public class DependencyGraphTaskScheduler
 	public DependencyGraphTaskScheduler(DependencyGraph graph)
 	{
 		_graph = graph;
+		EnsureSchedulable();
 		var allInEdges = Enum.GetValues<CredentialType>()
 			.SelectMany(type => _graph.GetReissuances().Concat<RequestNode>(_graph.GetOutputs())
 			.SelectMany(node => _graph.EdgeSets[(int)type].InEdges[node]));
@@ -16,6 +17,34 @@ public class DependencyGraphTaskScheduler
 
 	private readonly DependencyGraph _graph;
 	private Dictionary<CredentialDependency, TaskCompletionSource<Credential>> DependencyTasks { get; }
+
+	private void EnsureSchedulable()
+	{
+		var incoming = _graph.Vertices.ToDictionary(node => node,
+			node => DependencyGraph.CredentialTypes.Sum(type => _graph.EdgeSets[(int)type].InEdges[node].Count));
+		if (_graph.Vertices.Any(node => DependencyGraph.CredentialTypes.Any(type =>
+			_graph.EdgeSets[(int)type].InEdges[node].Count != node.MaxInDegree)))
+		{
+			throw new InvalidOperationException("Credential dependencies are incomplete.");
+		}
+		var available = new Queue<RequestNode>(incoming.Where(entry => entry.Value == 0).Select(entry => entry.Key));
+		var completed = 0;
+		while (available.TryDequeue(out var node))
+		{
+			completed++;
+			foreach (var type in DependencyGraph.CredentialTypes)
+			{
+				foreach (var edge in _graph.EdgeSets[(int)type].OutEdges[node])
+				{
+					if (--incoming[edge.To] == 0) { available.Enqueue(edge.To); }
+				}
+			}
+		}
+		if (completed != _graph.Vertices.Count)
+		{
+			throw new InvalidOperationException("Credential dependencies contain a cycle.");
+		}
+	}
 
 	private async Task CompleteConnectionConfirmationAsync(IEnumerable<AliceClient> aliceClients, BobClient bobClient, CancellationToken cancellationToken)
 	{

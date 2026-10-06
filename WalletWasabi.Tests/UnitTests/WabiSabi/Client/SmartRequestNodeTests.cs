@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -11,6 +12,55 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class SmartRequestNodeTests
 {
+	[Theory]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 0, 100 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 100, 0 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 0, 100, 50 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 100, 0, 50 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 50, 100, 0 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { 50, 0, 100 })]
+	[InlineData(new long[] { 100, 0, 0, 0 }, new long[] { 0, 0, 100 })]
+	[InlineData(new long[] { 100, 100, 0, 0 }, new long[] { 0, 100, 100 })]
+	[InlineData(new long[] { 100, 100, 0, 0 }, new long[] { 100 })]
+	[InlineData(new long[] { 100, 50, 0, 0 }, new long[] { })]
+	public void ReissuedCredentialsFollowGraphOrderAndAreAllocatedOnce(long[] issuedValues, long[] requiredValues)
+	{
+		// Pure allocation test: these synthetic credentials are never presented to an issuer.
+		var issued = issuedValues.Select(value => new Credential(value, default, null!)).ToArray();
+		var node = new SmartRequestNode([], [], [], []);
+		var (required, extra) = node.SeparateExtraCredentials(issued, requiredValues);
+		var selected = required.ToArray();
+		var remaining = extra.ToArray();
+		Assert.Equal(requiredValues, selected.Select(credential => credential.Value));
+		Assert.Equal(issued.Length, selected.Length + remaining.Length);
+		foreach (var credential in issued)
+		{
+			Assert.Single(selected.Concat(remaining), candidate => ReferenceEquals(candidate, credential));
+		}
+	}
+
+	[Theory]
+	[InlineData(new long[] { 100 }, new long[] { 0 })]
+	[InlineData(new long[] { 100, 0 }, new long[] { 100, 100 })]
+	[InlineData(new long[] { 100, 0 }, new long[] { 0, 0 })]
+	public void MissingReissuedCredentialFailsInsteadOfLeavingAnUnresolvedDependency(long[] issuedValues, long[] requiredValues)
+	{
+		var issued = issuedValues.Select(value => new Credential(value, default, null!)).ToArray();
+		var node = new SmartRequestNode([], [], [], []);
+		Assert.Throws<InvalidOperationException>(() => node.SeparateExtraCredentials(issued, requiredValues));
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task MismatchedOutputDependenciesFailBeforeCallingTheIssuer(bool vsizeMismatch)
+	{
+		var dependency = new TaskCompletionSource<Credential>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var node = vsizeMismatch ? new SmartRequestNode([], [], [], [dependency]) : new SmartRequestNode([], [], [dependency], []);
+		await Assert.ThrowsAsync<InvalidOperationException>(() => node.StartReissuanceAsync(null!, [], [], CancellationToken.None));
+		Assert.False(dependency.Task.IsCompleted);
+	}
+
 	[Theory]
 	[InlineData(false)]
 	[InlineData(true)]

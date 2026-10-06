@@ -5,6 +5,7 @@ param(
     [ValidateSet('runtime','wallet','faults','coinjoin','tor','vault','fees','public-sync')][string[]]$Modes = @('runtime','wallet','faults','coinjoin','tor','vault'),
     [ValidateRange(1,20)][int]$CoinJoinRounds = 1,
     [ValidateSet('complete','stop-input','stop-confirmation','stop-output','stop-signing','stop-signed','interrupt-signing','dropout-confirmation','blame-signing','restart-output')][string]$CoinJoinScenario = 'complete',
+    [ValidateSet('both','main','testnet')][string]$PublicNetwork = 'both',
     [switch]$ReleaseEngine,
     [ValidateSet(4096,16384)][int]$ExpectedPageSize = 4096,
     [string]$Repository = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -74,7 +75,7 @@ try {
     workingTreeModified=($taskSourceChanges.Count -ne 0); workingTreeChanges=$taskSourceChanges
     apkSha256=(Get-FileHash -LiteralPath (Join-Path $Repository $taskApk) -Algorithm SHA256).Hash.ToLowerInvariant()
     package=$taskPackage; configuration=$(if ($ReleaseEngine) { 'Release' } else { 'Debug' })
-    expectedPageSize=$ExpectedPageSize; coinJoinScenario=$CoinJoinScenario; modes=@()
+    expectedPageSize=$ExpectedPageSize; coinJoinScenario=$CoinJoinScenario; publicNetwork=$PublicNetwork; modes=@()
   }
     $taskDeadline = [DateTime]::UtcNow.AddSeconds(45)
     do {
@@ -120,12 +121,12 @@ try {
                 $taskDisruptingParticipant = Start-Process @taskDisruptionStart
             }
         }
-        $taskTestArgs = @('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode',$taskMode,'-e','coinjoin-scenario',$CoinJoinScenario,"$taskPackage/io.wasabiwallet.android.WalletInstrumentation")
+        $taskTestArgs = @('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode',$taskMode,'-e','coinjoin-scenario',$CoinJoinScenario,'-e','public-network',$PublicNetwork,"$taskPackage/io.wasabiwallet.android.WalletInstrumentation")
         $taskTestStart = @{ FilePath = (Get-Command adb).Source; ArgumentList = $taskTestArgs; RedirectStandardOutput = (Join-Path $taskRun "$taskEvidenceName.log"); RedirectStandardError = (Join-Path $taskRun "$taskEvidenceName-error.log"); PassThru = $true }
         if ($IsWindows) { $taskTestStart.WindowStyle = 'Hidden' }
         $taskTest = Start-Process @taskTestStart
         $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(11)
-        if ($taskMode -eq 'public-sync') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(85) }
+        if ($taskMode -eq 'public-sync') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes($(if ($PublicNetwork -eq 'both') { 85 } else { 45 })) }
         if ($taskMode -eq 'coinjoin' -and $CoinJoinScenario -eq 'restart-output') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(20) }
         if ($taskMode -eq 'coinjoin') {
             # Cold Mono JIT and filter scanning can exceed two minutes on a

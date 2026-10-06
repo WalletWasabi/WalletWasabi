@@ -32,10 +32,12 @@ public sealed partial class WalletInstrumentation : Instrumentation
 	public WalletInstrumentation(IntPtr handle, global::Android.Runtime.JniHandleOwnership ownership) : base(handle, ownership) { }
 	private string _mode = "wallet";
 	private string _coinJoinScenario = "complete";
+	private string _publicNetwork = "both";
 	public override void OnCreate(Bundle? arguments)
 	{
 		_mode = arguments?.GetString("mode") ?? "wallet";
 		_coinJoinScenario = arguments?.GetString("coinjoin-scenario") ?? "complete";
+		_publicNetwork = arguments?.GetString("public-network") ?? "both";
 		base.OnCreate(arguments);
 		Start();
 	}
@@ -106,7 +108,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 	{
 		var path = Path.Combine(TargetContext!.FilesDir!.AbsolutePath, "instrumentation-" + _mode + ".log");
 		File.Delete(path); // This fixture's log only; previous runs are retained by the host.
-		Logger.Configure(path, _mode is "fees" or "public-sync" ? LogLevel.Trace : LogLevel.Info, [LogMode.File]);
+		Logger.Configure(path, _mode == "fees" ? LogLevel.Trace : LogLevel.Info, [LogMode.File]);
 	}
 
 	private async Task DiagnoseTransportAsync()

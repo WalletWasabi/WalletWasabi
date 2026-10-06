@@ -1,6 +1,6 @@
 # Personal APK phone handoff
 
-**Version 0.3.1 / version code 6: qualification blocked.** Close all uncompleted
+**Version 0.3.2 / version code 7: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the isolated stock-runtime ARM64 cryptographic probe on

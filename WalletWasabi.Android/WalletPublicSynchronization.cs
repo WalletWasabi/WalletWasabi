@@ -9,8 +9,9 @@ public sealed partial class WalletInstrumentation
 {
 	private async Task VerifyPublicSynchronizationAsync()
 	{
+		if (_publicNetwork is not ("both" or "main" or "testnet")) { throw new ArgumentException("Unknown public synchronization network."); }
 		var failures = new List<Exception>();
-		foreach (var name in new[] { "main", "testnet" })
+		foreach (var name in _publicNetwork == "both" ? new[] { "main", "testnet" } : new[] { _publicNetwork })
 		{
 			try { await VerifyPublicNetworkAsync(name); }
 			catch (Exception error)

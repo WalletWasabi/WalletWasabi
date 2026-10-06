@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.1 / version code 6** produces a personally signed APK. This is a
+Version **0.3.2 / version code 7** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -162,7 +162,10 @@ Emulator-only Android builds use `packages.emulator.lock.json`; the full ARM64/x
 dependency lock remains unchanged, and both configurations support locked restore.
 Optional `fees` and `public-sync` modes read actual public networks through Tor
 without real-bitcoin transactions; public synchronization uses only fresh unfunded
-Release-harness wallets. `-ExpectedPageSize 16384` verifies execution
+Release-harness wallets. `-PublicNetwork main` or `testnet` qualifies either network
+independently; the default `both` requires both and records the selected scope.
+Public wallet synchronization logs use Info and exclude generated receive addresses.
+`-ExpectedPageSize 16384` verifies execution
 on a real 16 KB kernel; an AVD name alone is not evidence.
 
 `ReleaseHarness` is a separate, emulator-only package compiled in Release with the

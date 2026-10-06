@@ -74,3 +74,13 @@ reproductions identify these defects, while earlier API 36 rejection logs lack
 the precise node reasons. The broadcaster and synthetic qualification now
 retain those reasons. A new current-source Android matrix is required; a
 successful earlier rerun alone does not close an unresolved failure.
+
+Version 0.3.2/code 7 prevents zero-credential dependency cycles across amount and
+vsize requests, rejects incomplete graphs before issuing requests, and verifies
+complete one-use credential allocation. Retained seed-23 production denominations
+reproduce the prior graph deadlock; qualification includes the real cryptographic
+blame fixture. Public Main/Testnet4 synchronization can be executed independently
+and logs no generated receive addresses. Complete the new source's automated
+matrix, personally signed APK payment/update checks and independent public-network
+results before closing those software gates. Physical-phone and real-bitcoin
+authorization gates remain separate.

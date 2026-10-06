@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-05 (Asia/Singapore). Version 0.3.1 / version code 6 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.2 / version code 7 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -274,6 +274,42 @@ headers; signing and reservation reconciliation require matching network/filter
 tips. All 17 routing/filter/synchronization checks pass after correction. Public
 execution and the final APK are qualified separately; earlier timeout failures
 are retained.
+
+## Credential dependency cycle correction
+
+Desktop CI `37403699733` retained a Mac Intel blame failure: the third honest
+participant completed seven credential requests but never registered outputs.
+Its exact graph values were not retained, so that old trace alone does not identify
+its unique decomposition. A deterministic production-denomination reproduction
+with seed 23 produces a zero-amount edge from node 12 to ancestor 18, while
+18 -> 16 -> 12 already carries positive amounts. Seven requests can complete;
+the remaining cycle cannot execute. The pre-correction graph test fails with
+this retained graph, independently of CPU timing or coordinator availability.
+
+Zero-credential routing now checks reachability across both credential types before
+adding an edge. No-progress routing fails explicitly; the scheduler rejects
+incomplete/cyclic graphs before requests. Amounts, fees, outputs and protocol
+degree limits remain unchanged. A literal-value regression retains the failing
+graph; 500 seeded production decompositions and 2,000 generated graphs are also
+checked. The cryptographic blame fixture uses seed 23 for the third independently
+keyed participant. All 1,131 desktop unit tests passed locally in 8m16s, including
+its four-honest-input blame transaction and 79 dependency-graph cases. The retained
+phase trace shows both honest clients signed the same final transaction. Final
+Android/current-source CI execution is recorded separately in delivery evidence;
+earlier CI passes are historical.
+
+Credential allocation has a separate deterministic regression: reordered required
+values and missing duplicates were silently dropped by a sequential scan/Zip.
+Required credentials now match values with multiplicity, are allocated once and
+follow graph order; missing credentials fail before any output promise is completed.
+Seventeen focused cases pass after this correction. Normal graph sorting means this
+allocator flaw alone cannot explain the retained Mac trace.
+
+Fresh Testnet4 P2P/filter/wallet synchronization through Tor reached height 155324
+on API 35/Release at clean `3299d9b2`, in `device-3a22dc18bc5c4f949830e36021fb5ae0`.
+That aggregate run remains FAIL because its preceding cold mainnet Tor bootstrap
+timed out. Independent public-network selection retains this distinction; Info
+logging avoids exporting generated receive addresses from these unfunded fixtures.
 
 ## Required external gates
 

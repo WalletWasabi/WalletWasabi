@@ -375,7 +375,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
 		var coinJoinClient2Bad = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2Bad, keyManager2, roundStateProvider);
-		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
+		// This seed produces the real output values that previously deadlocked
+		// zero-credential routing. Exercise that graph with cryptographic issuance
+		// and both independently keyed honest participants through the blame round.
+		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, new KeyChain(keyManager3, ""),
+			new OutputProvider(new InternalDestinationProvider(keyManager3), RandomExtensions.CreateSeeded(23)),
+			roundStateProvider, keyManager3.NonPrivateCoinIsolation);
 		void RecordProgress(string participant, CoinJoinProgressEventArgs change)
 		{
 			if (change is RoundStateChanged changed) { observedRounds.TryAdd(changed.RoundState.Id.ToString(), 0); }
