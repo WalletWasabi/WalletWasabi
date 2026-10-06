@@ -37,6 +37,7 @@ public sealed class MainActivity : Activity
 	private TextView _status = null!;
 	private TextView _syncDetails = null!;
 	private ProgressBar _syncProgress = null!;
+	private ProgressBar _workIndicator = null!;
 	private readonly SynchronizationProgressTracker _synchronization = new();
 	private Action? _back;
 	private System.Threading.Timer? _refresh;
@@ -182,6 +183,9 @@ public sealed class MainActivity : Activity
 		var heading = Text(title, 24, Color.White, true);
 		heading.SetMinHeight(Dp(64));
 		header.AddView(heading, new LinearLayout.LayoutParams(0, -2, 1));
+		_workIndicator = new ProgressBar(this, null, global::Android.Resource.Attribute.ProgressBarStyleSmall) { Indeterminate = true, ContentDescription = "Working", Visibility = _busy ? ViewStates.Visible : ViewStates.Gone };
+		_workIndicator.IndeterminateTintList = global::Android.Content.Res.ColorStateList.ValueOf(Accent);
+		header.AddView(_workIndicator, new LinearLayout.LayoutParams(Dp(24), Dp(24)) { MarginStart = Dp(12) });
 		_root.AddView(header);
 		var scroll = new ScrollView(this) { FillViewport = true };
 		_body = Column();
@@ -1001,6 +1005,7 @@ public sealed class MainActivity : Activity
 	{
 		if (_busy) { return; }
 		_busy = true;
+		_workIndicator.Visibility = ViewStates.Visible;
 		_workGeneration = _uiGeneration;
 		try { await action(); }
 		catch (Exception ex) { if (!IsFinishing && _foreground && _workGeneration == _uiGeneration) { Alert(ex.Message); } }
@@ -1009,6 +1014,7 @@ public sealed class MainActivity : Activity
 			var lockedDuringOperation = _workGeneration != _uiGeneration;
 			_workGeneration = null;
 			_busy = false;
+			_workIndicator.Visibility = ViewStates.Gone;
 			if (lockedDuringOperation || !_foreground && !_externalFlow) { LockUi(); }
 		}
 	}

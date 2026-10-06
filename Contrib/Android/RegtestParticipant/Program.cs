@@ -21,16 +21,16 @@ Logger.Configure(Path.Combine(dataDir, "engine.log"), LogLevel.Info, [LogMode.Fi
 ((List<NetworkAddress>)Network.RegTest.SeedNodes).Add(new NetworkAddress(IPAddress.Loopback, 18544));
 var settings = new MobileSettings
 {
-	Network = "regtest", Coordinator = "http://127.0.0.1:18545/", CoordinatorIdentifier = "WasabiAndroidRegtest",
-	BitcoinRpcUri = "http://127.0.0.1:18543/", BitcoinRpcCredentials = "wasabiandroid:wasabi-android-regtest"
+	Network = "regtest", Coordinator = "http://127.0.0.1:18545/", CoordinatorIdentifier = "WasabiAndroidRegtest"
 };
+var regtestNode = new RegtestNodeOptions("http://127.0.0.1:18543/", "wasabiandroid:wasabi-android-regtest");
 using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(disruption == "restart-output" ? 20 : 10));
-await using var session = new WalletSession(dataDir, settings, dataDir);
+await using var session = new WalletSession(dataDir, settings, dataDir, regtestNode: regtestNode);
 await session.InitializeAsync(timeout.Token);
 var password = "public test " + Guid.NewGuid().ToString("N");
 var wallet = await session.CreateAsync("Independent participant", password,
 	new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"), false);
-var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri(settings.BitcoinRpcUri), Network.RegTest);
+var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri(regtestNode.Uri), Network.RegTest);
 var mining = await rpc.GetNewAddressAsync();
 await rpc.SendToAddressAsync(BitcoinAddress.Create(session.Receive("independent test input"), Network.RegTest), Money.Coins(0.05m));
 await rpc.GenerateToAddressAsync(1, mining);

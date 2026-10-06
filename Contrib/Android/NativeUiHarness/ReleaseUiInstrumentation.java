@@ -183,8 +183,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         // Exercise background/resume while the real managed password operation
         // has queued an asynchronous completion. No wallet test hooks are added.
         for (int attempt = 0; attempt < 3; attempt++) {
-            waitFor(() -> hasPart("Native qualification"), 10000, "Locked wallet list");
-            clickPart("Native qualification");
+            openPasswordUnlock();
             field("Wallet password", PASSWORD);
             Button unlock = button("Unlock");
             runOnMainSync(() -> {
@@ -209,7 +208,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
                 callActivityOnResume(activity);
             });
             Thread.sleep(1750);
-            check(hasPart("Native qualification") && hasPart("Connected"), "Returning before a queued idle stop preserves the active wallet runtime");
+            check(hasPart("Native qualification") && hasPart("Connected"), "Returning before a queued idle stop preserves the active wallet runtime at attempt " + attempt + ": " + accessibleMessages());
         }
         status("QUEUED_IDLE_STOP_RESUME_PRESERVED");
     }
@@ -228,13 +227,20 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         check(has("TOTAL BALANCE"), "Recovered wallet opens after process death/update");
     }
     private void unlock() throws Exception {
-        waitFor(() -> hasPart("Native qualification"), 60000, "Wallet survives restart");
-        clickPart("Native qualification");
+        openPasswordUnlock();
         field("Wallet password", PASSWORD);
         long started = android.os.SystemClock.elapsedRealtime();
         click("Unlock");
-        waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password still unlocks");
+        waitFor(() -> has("TOTAL BALANCE"), 60000, "Original password still unlocks");
         status("UNLOCK_COMPLETED_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - started));
+    }
+    private void openPasswordUnlock() throws Exception {
+        waitFor(() -> {
+            check(!has("TOTAL BALANCE"), "A delayed operation cannot reopen the locked wallet");
+            if (has("Recover a wallet") && hasPart("Native qualification")) { clickPart("Native qualification"); }
+            for (View view : views()) if (view instanceof EditText && "Wallet password".contentEquals(((EditText)view).getHint())) { return true; }
+            return false;
+        }, 60000, "Wallet password screen becomes available after pending work");
     }
     private String hash(String value) throws Exception {
         byte[] bytes = java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
@@ -261,11 +267,11 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             check(!has("TOTAL BALANCE"), "Missing device key cannot unlock the wallet");
             field("Wallet password", "incorrect fixture password");
             click("Unlock");
-            waitFor(() -> has("Incorrect wallet password."), 10000, "Key loss does not bypass password verification");
+            waitFor(() -> has("Incorrect wallet password."), 60000, "Key loss does not bypass password verification");
             click("OK");
             field("Wallet password", PASSWORD);
             click("Unlock");
-            waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password restores access after device-key loss");
+            waitFor(() -> has("TOTAL BALANCE"), 60000, "Original password restores access after device-key loss");
             click("Lock wallet");
             click("Settings");
             checkSimplifiedSettings();

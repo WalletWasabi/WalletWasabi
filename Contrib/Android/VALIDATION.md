@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.10 / version code 15 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.11 / version code 16 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -509,13 +509,25 @@ runtime identity. A resumed or replaced runtime revokes the queued decision,
 and its idle condition is rechecked on the main thread. Foreground refresh can
 restart a fully stopped runtime. The older version-11 update fixture's lost
 session remains an unexplained failed run. A separate actual-APK timing exercise
-delays background decisions before resuming; it passed on version 14 and does
-not reproduce or uniquely explain the older failure. Its later key-loss check
+delays background decisions before resuming. Earlier version-14 runs passed;
+a later run failed while the runtime log recorded process exit. Both outcomes
+are retained, and they do not uniquely explain the older failure. Its earlier key-loss check
 failed because the harness omitted the network directory in the wallet path;
 the harness now uses the verified RegTest path. State-transition checks cover returning
 to the app, a second background period and replacement-runtime identity. All
 69 mobile checks pass after the change; hardware and actual-APK execution remain
 separate gates until their records report success.
+
+Version 16 shows a small busy indicator during operations. The actual-APK
+late-unlock harness now waits for the password screen while continually checking
+that delayed work cannot reopen wallet details. The prior version-14 update run
+failed when it tapped during still-active password verification; its log is retained.
+The synthetic independently keyed CoinJoin participant now injects its localhost
+regtest node through `RegtestNodeOptions`. The version-15 CI run caught its stale
+references to removed mobile RPC settings; those compile-error logs are retained.
+All five version-15 desktop CI jobs passed with complete source-bound logs
+(1,152 unit tests per job and 39 Nix integration tests). Android and CoinJoin
+qualification for the final source remains required.
 
 ## Required external gates
 
