@@ -543,6 +543,31 @@ signing checkpoints. All 73 mobile checks pass, including reopened-journal and
 ambiguous-owner cases. Actual funded migration, package and handset checks remain
 separate gates until their records pass.
 
+At clean source `8934cf3f`, all six source-native Release modes pass on the
+API 35/x86_64/4096-byte emulator, including funded legacy payment and interrupted
+CoinJoin-journal migration. One independently keyed synthetic CoinJoin also
+passes. All five desktop CI jobs pass with 1,152 unit tests per job and 39 Nix
+integration tests. The final signed version-17 package passes native-source,
+dependency, ELF, security-flag, certificate and test-exclusion inspection.
+
+The actual signed version-17 UI passes payment, rejected authorization, duplicate
+taps, locking, late unlock, runtime-resume timing, process death, same-version
+reinstallation, pending-byte reconciliation, confirmation and unavailable-key
+password recovery. The fixture was initially installed fresh, but its first UI
+run was blocked by a System UI ANR that guest logs date before APK installation.
+A normal emulator reboot preserved the wallet and chain; the resumed test passed.
+This is retained as a resumed fixture, not an uninterrupted fresh-install result.
+
+An actual version-15 to 17 update preserved a pending payment, but its first
+test ended when the wallet opened, before the next background reconciliation
+tick. The separate retained-data check observed five journal owners migrate
+2.832 seconds after unlocking, preserved every approved transaction field and
+input reservation, and matched the pending transaction bytes to Bitcoin Core.
+The emulator-only UI harness now waits for that durable owner before ending
+instrumentation. Failed and resumed records remain separate; no wallet or chain
+data was deleted. The Android CI matrix, actual clean-install/update flows and
+physical handset checks must still qualify the final recorded source.
+
 ## Required external gates
 
 - Full wallet tests on the connected phone, including hardware authentication, physical camera, accessibility,

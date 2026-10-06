@@ -152,9 +152,11 @@ page findings. The subsequent pinned source builds and narrow TLS correction are
 qualified separately above.
 
 The original wallet format is encrypted with the original Wasabi password; device
-credentials only decrypt an optional convenience copy. Recovery remains independent
-of Android keys. RPC credentials are available in process memory to authorized
-background networking. Managed immutable strings and third-party key objects cannot
+credentials decrypt an automatically enrolled convenience copy on supported
+hardware after verified password access. Recovery remains independent of Android
+keys. Normal mobile settings and networking no longer expose personal-node RPC
+credentials. Localhost regtest fixtures are separate and rejected on physical
+devices. Managed immutable strings and third-party key objects cannot
 be promised perfectly erased from all heap copies; references/caches are cleared,
 owned signing keys are disposed, and byte buffers are zeroed where available.
 A compromised OS, unlocked process or dependency can still expose a software wallet.

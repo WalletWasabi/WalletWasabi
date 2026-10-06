@@ -224,7 +224,31 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         File journal = new File(activity.getFilesDir(), "Wasabi/submissions-RegTest.json");
         String bytes = new String(read(journal), StandardCharsets.UTF_8);
         check(bytes.contains(arguments.getString("transaction")), "Pending transaction journal survives update");
+        if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 17) {
+            // UI readiness can precede the next serialized reconciliation tick.
+            // Observe the durable owner before finish() tears down the runtime.
+            File walletFile = new File(activity.getFilesDir(), "Wasabi/Wallets/RegTest/Native qualification.json");
+            org.json.JSONObject wallet = new org.json.JSONObject(new String(read(walletFile), StandardCharsets.UTF_8));
+            String owner = hash("RegTest:" + wallet.getString("AccountKeyPath") + ":" + wallet.getString("ExtPubKey"));
+            long reconciliation = android.os.SystemClock.elapsedRealtime();
+            waitFor(() -> journalOwner(journal, arguments.getString("transaction"), owner), 30000, "Pending transaction uniquely reconciles to its wallet account");
+            status("JOURNAL_OWNER_RECONCILED_AFTER_MS=" + (android.os.SystemClock.elapsedRealtime() - reconciliation));
+        }
         check(has("TOTAL BALANCE"), "Recovered wallet opens after process death/update");
+    }
+    private boolean journalOwner(File journal, String transaction, String owner) {
+        try {
+            org.json.JSONArray entries = new org.json.JSONArray(new String(read(journal), StandardCharsets.UTF_8));
+            int matches = 0;
+            for (int i = 0; i < entries.length(); i++) {
+                org.json.JSONObject entry = entries.getJSONObject(i);
+                if (entry.getString("TransactionId").equals(transaction)) {
+                    if (!entry.getString("WalletId").equals(owner)) return false;
+                    matches++;
+                }
+            }
+            return matches == 1;
+        } catch (Exception failure) { return false; }
     }
     private void unlock() throws Exception {
         openPasswordUnlock();
