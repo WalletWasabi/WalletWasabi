@@ -130,10 +130,12 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         }
         waitFor(() -> hasPart("Connected"), 90000, "Recovered wallet synchronized before receive");
         if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 13) {
+            click("Lock wallet");
             click("Settings");
             checkSimplifiedSettings();
             click("‹");
-            check(has("TOTAL BALANCE"), "Returning from simplified settings retains the authorized home screen");
+            unlock();
+            check(has("TOTAL BALANCE"), "Password fallback remains available after visiting simplified settings");
         }
         double beforeFunding = balance();
         click("↓  Receive");
@@ -247,10 +249,10 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             field("Wallet password", PASSWORD);
             click("Unlock");
             waitFor(() -> has("TOTAL BALANCE"), 10000, "Original password restores access after device-key loss");
+            click("Lock wallet");
             click("Settings");
             checkSimplifiedSettings();
             click("‹");
-            click("Lock wallet");
             status("DEVICE_KEY_LOSS_PASSWORD_RECOVERY");
         } finally { check(!envelope.exists() || envelope.delete(), "Remove only the synthetic missing-key envelope"); }
     }
