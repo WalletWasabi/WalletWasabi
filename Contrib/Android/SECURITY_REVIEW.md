@@ -106,6 +106,22 @@ The selected desktop coordinator currently redirects `/wabisabi/status` to a
 homepage. Production CoinJoin availability is blocked; no synthetic round count
 establishes external service availability.
 
+Header transport has a separate actual-wire reproduction: a handshaked peer
+announcing a higher height can withhold headers indefinitely. A two-minute
+monotonic validated-progress bound now disconnects and scores that peer. Empty
+responses cannot reset it; invalid proof of work causes immediate retirement;
+caught-up peers and disabled synchronization remain available. All six regressions
+and the full 1,149-unit suite pass, with the old failing timeout retained. This
+does not uniquely attribute the slower public mainnet fixture to one peer.
+
+Biometric unlock/enrollment and replacement password work previously executed on
+the Android interface thread. These operations now run in a worker, retaining
+foreground/session/generation and cancellation checks before exposing the wallet
+or using a resumed device grant. Ordinary unlocking reads and clears its native
+password field on the interface thread. Hardware authentication and latest signed
+package UI execution remain required; an earlier baseline System UI ANR is retained
+without claiming a uniquely proven cause.
+
 ## Residual technical limits
 
 The installed workload's initial Mono 10.0.9 was advanced to the stable 10.0.12

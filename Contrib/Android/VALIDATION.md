@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.4 / version code 9 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.5 / version code 10 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -393,6 +393,38 @@ synchronization remains an open gate until the new records pass.
 
 Later fixture builds and commits have their own checksums and source records.
 The earlier clean CI results are not relabeled as execution of a later build.
+
+## Header progress and interface responsiveness
+
+The clean version-9 Release fixture at `f320c3a1` reached Testnet4 height 155339
+through Tor, with wallet, filter and block-header tips synchronized. It explicitly
+reused the retained synthetic Tor cache after a cold-start idle timeout, while
+wallet, database and header-chain state were fresh. The cold failure remains
+recorded; the warm retry does not establish cold-start reliability.
+
+A controlled NBitcoin peer reproduces another transport defect: a peer can
+complete the handshake, advertise a higher height and never answer `getheaders`,
+without the existing chain behavior retiring it. Header downloads now have a
+two-minute monotonic validated-progress deadline. Empty responses cannot extend
+it, caught-up peers remain available, and invalid headers are retired immediately.
+NBitcoin still validates proof of work and cumulative chain work. All six actual
+wire-transport checks pass; one timeout case failed before the correction.
+The full local 1,149-unit suite and all 60 mobile checks pass. Android execution
+and CI of this new production change require their own final-source records.
+
+Password verification for biometric unlocking/enrollment and replacement
+preparation/signing now executes off the interface thread. Ordinary unlocking
+also captures and clears the password field before scheduling work. A background
+or inactivity lock, changed session, or cancelled request invalidates completion;
+per-use device authorization retains its original checks. These paths require
+actual signed-package UI and handset qualification.
+
+The first version-8-to-9 UI attempt encountered Android's "System UI isn't
+responding" dialog on the baseline version-8 build before installing version 9.
+The failure and fixture data are retained. Restarting the owned emulator with the
+CI's 4 GB memory allocation is a retry condition, not proof of the unique cause.
+Neither this interface correction nor the peer timeout is asserted to explain
+every earlier public-network or System UI stall.
 
 ## Required external gates
 

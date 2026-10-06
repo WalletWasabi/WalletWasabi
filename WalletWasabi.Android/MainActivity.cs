@@ -236,8 +236,10 @@ public sealed class MainActivity : Activity
 		var password = Field("Wallet password", true);
 		AddButton("Unlock", () => Work(async () =>
 		{
-			await Task.Run(() => Session!.Unlock(wallet, password.Text ?? ""));
+			var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+			var secret = password.Text ?? "";
 			password.Text = "";
+			await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
 			_uiLocked = false;
 			if (_payment is not null) { ShowSend(); } else { ShowHome(); }
 		}));
@@ -247,6 +249,17 @@ public sealed class MainActivity : Activity
 			{
 				await WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName, _ => { if (_payment is not null) { ShowSend(); } else { ShowHome(); } return Task.CompletedTask; });
 			}), false);
+		}
+	}
+
+	private async Task UnlockInBackgroundAsync(WalletSession session, Wallet wallet, string password, CancellationToken cancellationToken)
+	{
+		var generation = _uiGeneration;
+		await Task.Run(() => session.Unlock(wallet, password), cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		if (!_foreground || Session != session || _uiGeneration != generation)
+		{
+			throw new System.OperationCanceledException("Return to Wasabi and unlock again.");
 		}
 	}
 
@@ -263,7 +276,7 @@ public sealed class MainActivity : Activity
 			// system lock screen. Resume only after our own activity is foreground.
 			for (var i = 0; !_foreground && i < 40; i++) { await Task.Delay(50, deadline.Token); }
 			if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and authorize again."); }
-			session.Unlock(wallet, password);
+			await UnlockInBackgroundAsync(session, wallet, password, deadline.Token);
 			_workGeneration = _uiGeneration; // A fresh per-use device grant authorizes this resumed UI.
 			_lastInteraction = Stopwatch.GetTimestamp();
 			_uiLocked = false;
@@ -639,7 +652,8 @@ public sealed class MainActivity : Activity
 				rate = new FeeRate(value);
 			}
 			using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-			var proposal = await Session!.PrepareReplacementAsync(transaction.GetHash().ToString(), operation, rate, timeout.Token);
+			var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+			var proposal = await Task.Run(() => session.PrepareReplacementAsync(transaction.GetHash().ToString(), operation, rate, timeout.Token), timeout.Token);
 			Screen(operation == PaymentOperation.SpeedUp ? "Review speed-up" : "Review cancellation", "review", () => ShowTransaction(transaction));
 			foreach (var output in proposal.Outputs.Where(o => o.IsRecipient || !o.IsWalletOutput)) { AddText(Money.Satoshis(output.AmountSatoshis).ToString(false, false) + " BTC", 24, Color.White, true); AddText(output.Address ?? output.ScriptHex, 14, Muted).SetTextIsSelectable(true); }
 			if (proposal.AmountSatoshis == 0) { AddText(operation == PaymentOperation.Cancel ? "Return pending funds to this wallet" : "Add a transaction to accelerate confirmation", 22, Color.White, true); }
@@ -648,7 +662,7 @@ public sealed class MainActivity : Activity
 			AddAuthorization(operation == PaymentOperation.SpeedUp ? "Confirm speed-up" : "Confirm cancellation", "Authorize transaction replacement", async secret =>
 			{
 				using var submitTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-				var receipt = await Session!.ConfirmAsync(proposal.Id, secret, submitTimeout.Token);
+				var receipt = await Task.Run(() => session.ConfirmAsync(proposal.Id, secret, submitTimeout.Token), submitTimeout.Token);
 				Screen("Submission pending", "sent", ShowHistory);
 				AddText("◷", 72, Accent, true);
 				AddText(receipt.TransactionId, 14, Muted).SetTextIsSelectable(true);
@@ -796,12 +810,12 @@ public sealed class MainActivity : Activity
 					var session = Session!;
 					var secret = original.Text ?? "";
 					original.Text = "";
-					session.Unlock(wallet, secret);
+					await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
 					_authenticating = true;
 					try { await Vault.EnrollWalletPasswordAsync(WalletSession.WalletReference(wallet), secret, _activityLifetime.Token); }
 					finally { _authenticating = false; }
 					if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and unlock again."); }
-					session.Unlock(wallet, secret);
+					await UnlockInBackgroundAsync(session, wallet, secret, _activityLifetime.Token);
 					_workGeneration = _uiGeneration;
 					_lastInteraction = Stopwatch.GetTimestamp();
 					_uiLocked = false;

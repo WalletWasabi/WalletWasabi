@@ -177,6 +177,8 @@ public class P2pConnectionManager : IDisposable
 
 		_eventBus.Subscribe<NodeTimeoutDownloadingBlock>(e =>
 			ReportMisbehavior(e.EndPoint, MisbehaviorType.TimedOutDownloadingBlock)).DisposeUsing(_disposables);
+		_eventBus.Subscribe<NodeTimeoutDownloadingHeaders>(e =>
+			ReportMisbehavior(e.EndPoint, MisbehaviorType.TimedOutDownloadingHeaders)).DisposeUsing(_disposables);
 	}
 
 	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, CancellationToken cancellationToken)
@@ -624,7 +626,8 @@ public class P2pConnectionManager : IDisposable
 		DisconnectedQuickly,
 		ProvidedInvalidData,
 		TimedOutDownloadingBlock,
-		Unknown
+		Unknown,
+		TimedOutDownloadingHeaders
 	}
 
 	private abstract record CoordinatorMessage;
@@ -691,6 +694,8 @@ public class P2pConnectionManager : IDisposable
 					state = behavior switch
 					{
 						MisbehaviorType.TimedOutDownloadingBlock when offendingNode.Score > 30 =>
+							Punish(offendingEndpoint, offendingNode, behavior),
+						MisbehaviorType.TimedOutDownloadingHeaders when offendingNode.Score > 30 =>
 							Punish(offendingEndpoint, offendingNode, behavior),
 						MisbehaviorType.DisconnectedQuickly when offendingNode.Score > 30 =>
 							Punish(offendingEndpoint, offendingNode, behavior),
