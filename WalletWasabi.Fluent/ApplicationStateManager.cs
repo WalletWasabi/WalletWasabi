@@ -36,9 +36,8 @@ public class ApplicationStateManager : IMainWindowService
 		UiContext = uiContext;
 		MainViewModel = mainViewModel;
 
-		var activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
-
-		if (activatableLifetime is not null)
+		// The IActivatableLifetime feature is only available on macOS. Linux and Windows will return null.
+		if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
 		{
 			if (startInBg)
 			{
