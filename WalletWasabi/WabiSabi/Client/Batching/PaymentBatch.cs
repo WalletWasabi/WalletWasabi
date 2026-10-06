@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
@@ -12,7 +13,11 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 //
 // Depending on whether a set of payments is done successfully or not all its belonging
 // payments are moved to finished or back to pending state.
-public class PaymentBatch
+//
+// A payment that was signed but not broadcast goes back to pending too, and the signed transaction
+// stays in its history as a failed attempt. The payment is then only made in a transaction that also
+// spends an input of each failed attempt that can still confirm, so that it cannot be made twice.
+public class PaymentBatch(CoinsRegistry coins)
 {
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
@@ -56,7 +61,7 @@ public class PaymentBatch
 		}
 	}
 
-	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters)
+	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters, ImmutableArray<OutPoint> registeredInputs)
 	{
 		// Not all payments are allowed. Wasabi coordinator only supports P2WPKH and Taproot
 		// and even those depend on the round parameters.
@@ -66,6 +71,13 @@ public class PaymentBatch
 		var allowedPayments = PendingPayments
 			.Where(payment => payment.FitParameters(allowedOutputTypes, allowedOutputAmounts))
 			.ToArray();
+
+		var retryInputs = registeredInputs.ToHashSet();
+		foreach (var payment in allowedPayments.Where(payment => !CanBeRetriedWith(payment, retryInputs)))
+		{
+			Logger.LogInfo($"Payment {payment.Id} is postponed: none of the inputs of an earlier signed transaction paying it is registered in this round.");
+		}
+		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
 		// Once we know how much money we have registered in the coinjoin, lets see how many payments
 		// we can do we that. Maximum 4 payments in a single coinjoin (arbitrary number)
@@ -83,6 +95,17 @@ public class PaymentBatch
 		return bestPaymentSet;
 	}
 
+	// Selecting and moving under the same lock, so the selected payments cannot change in between.
+	public PaymentSet MoveBestPaymentSetToInProgress(Money availableAmount, int availableVsize, RoundParameters roundParameters, ImmutableArray<OutPoint> registeredInputs, uint256 roundId)
+	{
+		lock (_syncObj)
+		{
+			var bestPaymentSet = GetBestPaymentSet(availableAmount, availableVsize, roundParameters, registeredInputs);
+			MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
+			return bestPaymentSet;
+		}
+	}
+
 	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
 		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId) });
@@ -90,45 +113,50 @@ public class PaymentBatch
 	}
 
 	public void MovePaymentsToFinished(uint256 txId) =>
-		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
+		MovePaymentsTo(SignedPayments.Where(p => ((SignedUnknownPayment)p.State).TransactionId == txId), payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
 	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
-	public void MovePaymentsToSigned(uint256 transactionId) =>
+	public void MoveSignedPaymentsToPending() =>
+		MovePaymentsTo(SignedPayments, payment => payment with { State = new PendingPayment(payment.State) });
+
+	public void MovePaymentsToSigned(uint256 transactionId, ImmutableArray<OutPoint> inputs) =>
 		MovePaymentsTo(InProgressPayments, payment => payment with
 		{
-			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId)
+			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId, inputs)
 		});
 
 	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
 	{
-		var uncertainPayments = SignedPayments.ToArray();
-		if (uncertainPayments.Length == 0)
-		{
-			return false;
-		}
-
-		var resolved = false;
 		var txId = transaction.GetHash();
 
-		foreach (var payment in uncertainPayments.Where(p => p.State is SignedUnknownPayment s && s.TransactionId == txId))
+		lock (_syncObj)
 		{
-			Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} confirmed.");
-			lock (_syncObj)
+			var paidPayments = _payments.Where(p => p.State is not FinishedPayment && p.SignedAttempts.Any(a => a.TransactionId == txId)).ToArray();
+			foreach (var payment in paidPayments)
 			{
+				Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} seen.");
 				_payments.Remove(payment);
 				_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
 			}
-			resolved = true;
-		}
 
-		return resolved;
+			return paidPayments.Length != 0;
+		}
 	}
 
 	public bool AreTherePendingPayments => PendingPayments.Any();
 
 	public bool AreThereUncertainPayments => SignedPayments.Any();
+
+	private bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
+		payment.SignedAttempts.Where(CanStillConfirm).All(attempt => attempt.Inputs.Any(inputs.Contains));
+
+	private bool CanStillConfirm(SignedUnknownPayment attempt) =>
+		!attempt.Inputs.Any(input =>
+			coins.TryGetByOutPoint(input, out var coin)
+			&& coin.SpenderTransaction is { Confirmed: true } spender
+			&& spender.GetHash() != attempt.TransactionId);
 
 	private void MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,
