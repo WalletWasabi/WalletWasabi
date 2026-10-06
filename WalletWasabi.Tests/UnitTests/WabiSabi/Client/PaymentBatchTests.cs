@@ -148,7 +148,6 @@ public class PaymentBatchTests
 		Assert.False(paymentBatch.AreThereUncertainPayments);
 		var failedAttempt = Assert.Single(paymentBatch.GetPayments().Single().SignedAttempts);
 		Assert.Equal(tx.GetHash(), failedAttempt.TransactionId);
-		Assert.Equal([inputs], paymentBatch.GetFailedAttemptInputSets());
 
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [BitcoinFactory.CreateOutPoint()]).PaymentCount);
@@ -212,17 +211,14 @@ public class PaymentBatchTests
 		var spender = new SmartTransaction(spenderTx, Height.Mempool);
 		coins.Spend(ourCoin, spender);
 
-		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
 
 		spender.TryUpdate(new SmartTransaction(spenderTx, new Height.ChainHeight(100)));
 
-		Assert.Empty(paymentBatch.GetFailedAttemptInputSets());
 		Assert.Equal(1, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
 
 		spender.SetUnconfirmed();
 
-		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
 	}
 
@@ -248,7 +244,6 @@ public class PaymentBatchTests
 
 		coins.Spend(ourCoin, new SmartTransaction(tx, new Height.ChainHeight(100)));
 
-		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [BitcoinFactory.CreateOutPoint()]).PaymentCount);
 	}
 

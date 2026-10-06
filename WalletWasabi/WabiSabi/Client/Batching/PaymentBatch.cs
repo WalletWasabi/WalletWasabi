@@ -127,10 +127,6 @@ public class PaymentBatch(CoinsRegistry coins)
 			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId, inputs)
 		});
 
-	// The inputs of each failed attempt that can still confirm. A transaction retrying the payments must spend an input of each set.
-	public ImmutableArray<ImmutableArray<OutPoint>> GetFailedAttemptInputSets() =>
-		[.. PendingPayments.SelectMany(p => p.SignedAttempts).DistinctBy(a => a.TransactionId).Where(CanStillConfirm).Select(a => a.Inputs)];
-
 	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
 	{
 		var txId = transaction.GetHash();
