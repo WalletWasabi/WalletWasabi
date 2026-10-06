@@ -1,8 +1,6 @@
 using NBitcoin;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
-using System.Text;
 using System.Diagnostics;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -408,7 +406,8 @@ public sealed class WalletSession : IAsyncDisposable
 
 	// Legacy backups acquire a Taproot account on their first successful unlock.
 	// Their vault/journal identity must remain stable across that migration.
-	private static string AccountId(Wallet wallet) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(wallet.Network.Name + ":" + wallet.KeyManager.SegwitAccountKeyPath + ":" + wallet.KeyManager.SegwitExtPubKey)));
+	private static string AccountId(Wallet wallet) => WalletAccountIdentity.Reference(wallet.Network, wallet.KeyManager.SegwitAccountKeyPath, wallet.KeyManager.SegwitExtPubKey);
+	private static string LegacyAccountId(Wallet wallet) => WalletAccountIdentity.LegacyReference(wallet.Network, wallet.KeyManager.SegwitAccountKeyPath);
 	public static string WalletReference(Wallet wallet) => AccountId(wallet);
 
 	public async Task<byte[]> ExportEncryptedBackupAsync(string password, CancellationToken cancellationToken)
@@ -516,11 +515,36 @@ public sealed class WalletSession : IAsyncDisposable
 	private static BroadcastReceipt Receipt(JournalEntry entry) => new(entry.ProposalId, entry.TransactionId, entry.State);
 	private HashSet<OutPoint> ReservedInputs() => _journal.Reservations().Concat(_coinJoinJournal.Reservations()).ToHashSet();
 
+	private void MigrateLegacyJournalOwners()
+	{
+		// The old reference was shared by different keys. Never assign its records
+		// by name or by first match. Require ownership of every reserved input after
+		// synchronization, and keep ambiguous records and reservations unchanged.
+		var accounts = Global.WalletManager.GetWallets().Where(IsSynchronizedWallet)
+			.Select(w => new WalletAccountIdentity.Ownership(AccountId(w), LegacyAccountId(w), w.GetAllCoins().Select(c => c.Outpoint).ToHashSet())).ToArray();
+		foreach (var entry in _journal.Entries)
+		{
+			var inputs = Transaction.Parse(entry.Hex, Global.Network).Inputs.Select(i => i.PrevOut);
+			if (WalletAccountIdentity.ResolveLegacyOwner(entry.WalletId, inputs, accounts) is { } owner)
+			{ _journal.Put(entry with { WalletId = owner }); }
+		}
+		if (!IsMixing)
+		{
+			foreach (var checkpoint in _coinJoinJournal.Entries)
+			{
+				var inputs = checkpoint.Inputs.Select(i => new OutPoint(uint256.Parse(i.TransactionId), i.Index));
+				if (WalletAccountIdentity.ResolveLegacyOwner(checkpoint.WalletId, inputs, accounts) is { } owner)
+				{ _coinJoinJournal.ReassignWallet(checkpoint, owner); }
+			}
+		}
+	}
+
 	public async Task ReconcilePendingAsync(CancellationToken cancellationToken)
 	{
 		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
+			MigrateLegacyJournalOwners();
 			if (!IsMixing)
 			{
 				foreach (var checkpoint in _coinJoinJournal.Entries)
@@ -567,7 +591,7 @@ public sealed class WalletSession : IAsyncDisposable
 				var wallet = RequirePreparedWallet();
 				if (!Global.Config.TryGetCoordinatorUri(out _)) { throw new InvalidOperationException("Configure a coordinator first."); }
 				if (_journal.Entries.Any(e => e.State == SubmissionState.Uncertain)) { throw new InvalidOperationException("Reconcile interrupted payments before starting CoinJoin."); }
-				if (_coinJoinJournal.Entries.Any(e => e.WalletId == AccountId(wallet))) { throw new InvalidOperationException("Reconcile the interrupted CoinJoin before starting another round."); }
+				if (_coinJoinJournal.Entries.Any(e => e.WalletId == AccountId(wallet) || e.WalletId == LegacyAccountId(wallet))) { throw new InvalidOperationException("Reconcile the interrupted CoinJoin before starting another round."); }
 				if (!PasswordHelper.TryPassword(wallet.KeyManager, password, out var compatiblePassword) || !wallet.TryLogin(compatiblePassword ?? password, out _)) { throw new UnauthorizedAccessException("Incorrect wallet password."); }
 				_reviewed = null;
 				wallet.KeyManager.ToFile();

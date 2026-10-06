@@ -223,6 +223,7 @@ try {
     $taskJournal = & $taskAdb -s $Serial shell "find $taskPrivate -maxdepth 1 -name 'submissions-*.json'"
     if (@($taskJournal).Count -ne 1) { throw 'Actual durable journal missing.' }
     $taskBefore = (& $taskAdb -s $Serial shell "sha256sum $taskJournal").Split(' ')[0]
+    $taskBeforeEntries = @((((& $taskAdb -s $Serial shell "cat $taskJournal") -join "`n").TrimStart([char]0xfeff) | ConvertFrom-Json))
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
     Copy-Item -LiteralPath (Join-Path $taskRun 'resume.log') -Destination (Join-Path $taskRun 'resume-before-update.log')
     & $taskAdb -s $Serial shell am force-stop $taskPackage
@@ -232,7 +233,29 @@ try {
     $taskUpdatedResult=Get-Content -LiteralPath (Join-Path $taskRun 'resume.log') -Raw
     if ($taskUpdatedResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)' -or [int]$Matches[1] -ne $taskVerification.update.versionCode) { throw 'Actual updated version does not match the inspected package.' }
     $taskAfter = (& $taskAdb -s $Serial shell "sha256sum $taskJournal").Split(' ')[0]
-    if ($taskBefore -ne $taskAfter) { throw 'Update changed pending transaction journal bytes.' }
+    $taskAfterEntries = @((((& $taskAdb -s $Serial shell "cat $taskJournal") -join "`n").TrimStart([char]0xfeff) | ConvertFrom-Json))
+    if ($taskBeforeEntries.Count -ne $taskAfterEntries.Count) { throw 'Update removed or added an approved transaction.' }
+    $taskPublicWallet = (((& $taskAdb -s $Serial shell "cat '$taskPrivate/Wallets/RegTest/Native qualification.json'") -join "`n").TrimStart([char]0xfeff) | ConvertFrom-Json)
+    $taskLegacyOwner = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes("RegTest:$($taskPublicWallet.AccountKeyPath):NBitcoin.ExtPubKey")))
+    $taskCanonicalOwner = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes("RegTest:$($taskPublicWallet.AccountKeyPath):$($taskPublicWallet.ExtPubKey)")))
+    $taskMigratedOwners = 0
+    foreach ($taskApproved in $taskBeforeEntries) {
+        $taskRestored = @($taskAfterEntries | Where-Object { $_.ProposalId -eq $taskApproved.ProposalId })
+        if ($taskRestored.Count -ne 1) { throw 'Approved proposal identity changed during update.' }
+        $taskRestored = $taskRestored[0]
+        $taskApprovedBody = $taskApproved | Select-Object -Property * -ExcludeProperty WalletId,State | ConvertTo-Json -Compress -Depth 12
+        $taskRestoredBody = $taskRestored | Select-Object -Property * -ExcludeProperty WalletId,State | ConvertTo-Json -Compress -Depth 12
+        if ($taskApprovedBody -cne $taskRestoredBody) { throw 'Update altered approved transaction bytes or review details.' }
+        if ($taskApproved.WalletId -cne $taskRestored.WalletId) {
+            if ($taskVerification.update.versionCode -lt 17 -or $taskApproved.WalletId -cne $taskLegacyOwner -or $taskRestored.WalletId -cne $taskCanonicalOwner) { throw 'Unrecognized transaction owner migration.' }
+            $taskMigratedOwners++
+        }
+    }
+    $taskPendingPayment = @($taskAfterEntries | Where-Object { $_.TransactionId -eq $taskTransaction })
+    if ($taskPendingPayment.Count -ne 1 -or $taskPendingPayment[0].State -notin @(0,1,'Uncertain','Pending')) { throw 'Unconfirmed payment lost its input reservations.' }
+    if ($taskVerification.update.versionCode -ge 17 -and $taskPendingPayment[0].WalletId -cne $taskCanonicalOwner) { throw 'Updated pending payment has not recovered its unique wallet owner.' }
+    $taskVerification.journalBeforeSha256=$taskBefore
+    $taskVerification.migratedWalletOwners=$taskMigratedOwners
     if ($taskVerification.update.versionCode -ge 13) {
         & $taskAdb -s $Serial shell am force-stop $taskPackage
         Invoke-NativeMode lost-device-key

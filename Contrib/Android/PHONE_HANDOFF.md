@@ -1,6 +1,6 @@
 # Personal APK phone handoff
 
-**Version 0.3.11 / version code 16: qualification blocked.** Close all uncompleted
+**Version 0.3.12 / version code 17: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the corrected source-native ARM64 cryptographic, SQLite
@@ -10,6 +10,13 @@ certificate, and the user reached the new disposable wallet's home screen.
 Full handset qualification remains outstanding; no real-bitcoin amount,
 destination or fee budget is authorized. Record the actual version-12 update
 separately, preserving the wallet and signing identity.
+
+Version 17 corrects wallet account references. Older convenience credentials
+are not reused because their shared reference did not prove which wallet owned
+them. Enter the original wallet password privately to set up device unlocking
+again. The recovery words, password and Bitcoin derivation remain unchanged.
+Legacy pending transactions keep their exact signed bytes and reservations;
+their unique owner is restored only after synchronized input ownership is proven.
 
 ## Files and signing identity
 

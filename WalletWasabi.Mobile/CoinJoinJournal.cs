@@ -32,6 +32,16 @@ internal sealed class CoinJoinJournal
 	public ImmutableArray<RoundCheckpoint> Entries { get { lock (_gate) { return _entries; } } }
 	public HashSet<OutPoint> Reservations() => Entries.SelectMany(e => e.Inputs.Select(i => new OutPoint(uint256.Parse(i.TransactionId), i.Index))).ToHashSet();
 	public void Remove(RoundCheckpoint entry) { lock (_gate) { Save(_entries.Where(e => e.WalletId != entry.WalletId || e.RoundId != entry.RoundId).ToImmutableArray()); } }
+	public void ReassignWallet(RoundCheckpoint entry, string walletId)
+	{
+		lock (_gate)
+		{
+			if (string.IsNullOrWhiteSpace(walletId) || !_entries.Contains(entry)
+				|| _entries.Any(e => e.WalletId == walletId && e.RoundId == entry.RoundId))
+			{ throw new IOException("The interrupted round owner is ambiguous. Keep its reservations until reconciliation."); }
+			Save(_entries.Replace(entry, entry with { WalletId = walletId }));
+		}
+	}
 	private void Save(ImmutableArray<RoundCheckpoint> entries)
 	{
 		File.SafelyWriteAllText(_path, JsonSerializer.Serialize(entries), Encoding.UTF8);

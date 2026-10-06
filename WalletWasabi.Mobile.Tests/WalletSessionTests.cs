@@ -13,6 +13,22 @@ public class WalletSessionTests
 	private const string Password = "public test passphrase";
 
 	[Fact]
+	public async Task IndependentAccountsHaveDistinctStableReferences()
+	{
+		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
+		await using var session = new WalletSession(path, new MobileSettings { Network = "regtest" }, path);
+		var first = await session.CreateAsync("First account", Password, new Mnemonic(Words), false);
+		var firstReference = WalletSession.WalletReference(first);
+		var second = await session.CreateAsync("Second account", Password,
+			new Mnemonic("legal winner thank year wave sausage worth useful legal winner thank yellow"), false);
+		Assert.Equal(first.KeyManager.SegwitAccountKeyPath, second.KeyManager.SegwitAccountKeyPath);
+		Assert.NotEqual(first.KeyManager.SegwitExtPubKey, second.KeyManager.SegwitExtPubKey);
+		Assert.NotEqual(firstReference, WalletSession.WalletReference(second));
+		var recovered = await session.CreateAsync("Recovered first", Password, new Mnemonic(Words), true);
+		Assert.Equal(firstReference, WalletSession.WalletReference(recovered));
+	}
+
+	[Fact]
 	public async Task PersistRecoverAndLockSigningKeys()
 	{
 		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));

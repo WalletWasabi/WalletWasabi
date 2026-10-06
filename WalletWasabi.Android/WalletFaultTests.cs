@@ -4,10 +4,14 @@ using NBitcoin.RPC;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Client;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Mobile;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -29,10 +33,14 @@ public sealed partial class WalletInstrumentation
 		var destination = await rpc.GetNewAddressAsync();
 		BroadcastReceipt uncertain;
 		string approvedHex;
+		string accountReference;
+		string legacyReference;
 		await using (var session = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode()))
 		{
 			await session.InitializeAsync(timeout.Token);
 			var wallet = await session.CreateAsync("Failure qualification", password, new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"), false);
+			accountReference = WalletSession.WalletReference(wallet);
+			legacyReference = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("RegTest:" + wallet.KeyManager.SegwitAccountKeyPath + ":NBitcoin.ExtPubKey")));
 			await rpc.SendToAddressAsync(BitcoinAddress.Create(session.Receive("Failure fixture"), Network.RegTest), Money.Coins(1m));
 			await rpc.GenerateToAddressAsync(1, mining);
 			var lastTrace = DateTimeOffset.MinValue;
@@ -76,17 +84,43 @@ public sealed partial class WalletInstrumentation
 			await RejectAsync(() => session.PrepareAsync(request, Money.Coins(0.1m), new FeeRate(2m), proposal.Inputs.Select(i => new OutPoint(uint256.Parse(i.TransactionId), i.Index)).ToArray(), cancellationToken: timeout.Token), "Uncertain inputs cannot fund a different payment");
 			Check((await session.ConfirmAsync(proposal.Id, password, timeout.Token)).TransactionId == uncertain.TransactionId, "Duplicate tap after a lost reply keeps the same transaction");
 		}
+		// Reproduce the old shared identity in this owned synthetic fixture. Keep
+		// the Core-accepted bytes untouched, and retain an uncertain round's inputs.
+		var paymentPath = Path.Combine(directory, "submissions-RegTest.json");
+		var payments = JsonNode.Parse(File.ReadAllText(paymentPath))!.AsArray();
+		foreach (var entry in payments) { entry!["WalletId"] = legacyReference; }
+		File.SafelyWriteAllText(paymentPath, payments.ToJsonString(), Encoding.UTF8);
+		var signed = Transaction.Parse(approvedHex, Network.RegTest);
+		var checkpointPath = Path.Combine(directory, "coinjoins-RegTest.json");
+		var checkpoints = new JsonArray(new JsonObject
+		{
+			["WalletId"] = legacyReference, ["RoundId"] = uint256.One.ToString(), ["TransactionId"] = uint256.One.ToString(),
+			["Inputs"] = new JsonArray(signed.Inputs.Select(i => (JsonNode)new JsonObject { ["TransactionId"] = i.PrevOut.Hash.ToString(), ["Index"] = i.PrevOut.N }).ToArray())
+		});
+		File.SafelyWriteAllText(checkpointPath, checkpoints.ToJsonString(), Encoding.UTF8);
 		await using var reopened = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!, regtestNode: RegtestNode());
 		await reopened.InitializeAsync(timeout.Token);
 		var restored = reopened.Global.WalletManager.GetWallets().Single();
 		reopened.Unlock(restored, password);
 		await WaitAsync(() => reopened.IsSynchronized, timeout.Token);
 		await reopened.ReconcilePendingAsync(timeout.Token);
+		using (var migrated = JsonDocument.Parse(File.ReadAllText(paymentPath)))
+		{
+			Check(migrated.RootElement.EnumerateArray().Single().GetProperty("WalletId").GetString() == accountReference && accountReference != legacyReference,
+				"A synchronized owner recovers the legacy payment's unique account identity");
+		}
+		using (var migrated = JsonDocument.Parse(File.ReadAllText(checkpointPath)))
+		{
+			var checkpoint = migrated.RootElement.EnumerateArray().Single();
+			Check(checkpoint.GetProperty("WalletId").GetString() == accountReference && checkpoint.GetProperty("TransactionId").GetString() == uint256.One.ToString()
+				&& reopened.PendingCoinJoins == 1, "Legacy round migration retains its unknown signed transaction and input reservations");
+		}
 		Check(JournalHex(directory, uncertain.TransactionId) == approvedHex, "Restart reconciliation retains the approved signed bytes");
 		Check((await rpc.GetRawTransactionAsync(uint256.Parse(uncertain.TransactionId))).ToHex() == approvedHex, "Rebroadcast or recognition uses the same payment");
 		var blocks = await rpc.GenerateToAddressAsync(1, mining);
 		await WaitAsync(() => restored.GetTransactions().Any(t => t.GetHash().ToString() == uncertain.TransactionId && t.Confirmed), timeout.Token);
 		await WaitForReceiptStateAsync(reopened, uncertain.TransactionId, SubmissionState.Confirmed, timeout.Token);
+		Check(reopened.PendingCoinJoins == 0, "Confirmed conflicting spends reconcile migrated interrupted-round inputs");
 		await rpc.SendCommandAsync("invalidateblock", blocks.Single().ToString());
 		// Replace the invalidated block with an empty one so the payment becomes
 		// pending, rather than immediately confirming in the replacement block.

@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.11 / version code 16 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.12 / version code 17 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -528,6 +528,20 @@ references to removed mobile RPC settings; those compile-error logs are retained
 All five version-15 desktop CI jobs passed with complete source-bound logs
 (1,152 unit tests per job and 39 Nix integration tests). Android and CoinJoin
 qualification for the final source remains required.
+
+Version 17 corrects an account-reference collision discovered by the actual-APK
+missing-key check. `ExtPubKey.ToString()` returned a type name, so distinct keys
+with the same network/account path shared the old reference. The two-account
+regression fails on version 16. Canonical backup-format public keys now bind
+wallet references; recovery and Taproot-account migration preserve that binding.
+Old vault records cannot prove their owner and are not reused; original-password
+access automatically enrolls a new authenticated credential on supported hardware.
+Legacy payment and interrupted-round journals are reassigned only when exactly
+one synchronized account owns every recorded input. Ambiguous records remain
+reserved. Migration preserves approved bytes, inputs, fees, outputs and round
+signing checkpoints. All 73 mobile checks pass, including reopened-journal and
+ambiguous-owner cases. Actual funded migration, package and handset checks remain
+separate gates until their records pass.
 
 ## Required external gates
 
