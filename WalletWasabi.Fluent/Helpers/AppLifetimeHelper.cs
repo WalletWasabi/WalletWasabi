@@ -11,6 +11,10 @@ namespace WalletWasabi.Fluent.Helpers;
 /// </summary>
 public static class AppLifetimeHelper
 {
+	/// <summary>Set when the user asked for a restart.</summary>
+	/// <remarks>The new application process is started only after the application has stopped and released the single instance lock to avoid "already running" error.</remarks>
+	public static bool RestartRequested { get; set; }
+
 	/// <summary>
 	/// Attempts to start a new instance of the app with optional program arguments
 	/// </summary>

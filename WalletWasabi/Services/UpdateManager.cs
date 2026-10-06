@@ -310,12 +310,12 @@ public static class Installer
 			{
 				throw new InvalidOperationException($"Can't start {nameof(p)} {startInfo.FileName}.");
 			}
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				// For MacOS, you need to start the process twice, first start => permission denied
 				// TODO: find out why and fix.
-
-				p!.WaitForExit(5000);
+				p.WaitForExit(5000);
 				p.Start();
 			}
 		}
