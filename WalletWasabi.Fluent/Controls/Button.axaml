@@ -52,6 +52,9 @@
   </ControlTheme>
 
   <ControlTheme x:Key="DialogSelectAllButton" TargetType="ToggleButton" BasedOn="{StaticResource DialogButton}">
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.3" />
+    </Style>
     <Style Selector="^[IsChecked=True]">
       <Setter Property="ToolTip.Tip" Value="Unselect all" />
       <Setter Property="ContentTemplate">
