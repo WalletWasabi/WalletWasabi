@@ -1,6 +1,6 @@
 # Personal APK phone handoff
 
-**Version 0.3.13 / version code 18: qualification blocked.** Close all uncompleted
+**Version 0.3.14 / version code 19: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the corrected source-native ARM64 cryptographic, SQLite
@@ -10,7 +10,16 @@ certificate, and the user reached the new disposable wallet's home screen.
 Full handset qualification remains outstanding; no real-bitcoin amount,
 destination or fee budget is authorized. Version 17 was installed in place on
 2026-10-07, with its exact APK hash and retained data-directory identity verified.
-Record the version-18 update separately, preserving the wallet and signing identity.
+Record each later update separately, preserving the wallet and signing identity.
+
+Version 19 fixes directory persistence on ARM64. The former hardcoded x64
+`O_DIRECTORY` value meant `O_DIRECT` on the phone and could fail after the
+encrypted wallet file had already been renamed into place. Directory opening
+now uses libc's architecture-independent `opendir`/`dirfd` calls and retains
+`fsync`; this also fixes the shared save path for address reservations,
+credentials and transaction journals. After updating, check the wallet list
+and unlock any already-saved wallet with its original password before retrying
+creation. Do not delete a wallet to resolve this error.
 
 Version 18 adds ordinal default names, selectable recovery-word confirmation,
 and Back navigation within creation/recovery. Check both the header arrow and

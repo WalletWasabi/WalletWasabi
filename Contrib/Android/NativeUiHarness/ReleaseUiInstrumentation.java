@@ -67,6 +67,8 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             if (mode.equals("setup-rpc")) setupRpc();
             else if (mode.equals("settings")) simplifiedSettings();
             else if (mode.equals("onboarding")) onboarding();
+            else if (mode.equals("durable-create")) durableCreate();
+            else if (mode.equals("durable-reopen")) durableReopen();
             else if (mode.equals("wallet")) wallet();
             else if (mode.equals("resume")) resume();
             else if (mode.equals("late-unlock")) verifyLateUnlockRemainsLocked();
@@ -177,6 +179,39 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         check(fieldValue("Wallet name").equals("Third Wallet"),"Third default after first and second exist");
         click("‹");
         status("ONBOARDING_NAMES_AND_SELECTABLE_WORDS_AND_BACK=PASS");
+    }
+    private String storageWalletName() { return arguments.getString("wallet-name", "Storage regression 19"); }
+    private void durableCreate() throws Exception {
+        check(getTargetContext().getPackageManager().getPackageInfo(PACKAGE,0).versionCode >= 19,"Storage update installed");
+        Thread.sleep(2000);
+        check(!hasPart(storageWalletName()),"Preserve an existing fixture; use durable-reopen instead");
+        openCreateForm("Create a wallet");
+        field("Wallet name",storageWalletName());
+        field("Wallet password",PASSWORD);
+        field("Repeat password",PASSWORD);
+        click("Continue");
+        waitFor(() -> has("I wrote them down"),10000,"Private synthetic backup displayed");
+        List<String> words=backedUpWords();
+        click("I wrote them down");
+        for (int i=0; i<3; i++) click(words.get(requestedWord()-1));
+        click("Create wallet");
+        waitFor(() -> has("TOTAL BALANCE"),90000,"Durable creation opens the unfunded wallet without a storage error");
+        check(has(storageWalletName()),"Created wallet identity");
+        click("Lock wallet");
+        waitFor(() -> hasPart(storageWalletName()),10000,"Saved wallet listed after locking");
+        durableReopen();
+        status("DURABLE_WALLET_CREATION_AND_UNLOCK=PASS");
+    }
+    private void durableReopen() throws Exception {
+        waitFor(() -> hasPart(storageWalletName()),90000,"Saved wallet survives runtime startup");
+        clickPart(storageWalletName());
+        waitFor(() -> has("Unlock your wallet"),10000,"Persisted wallet unlock screen");
+        field("Wallet password",PASSWORD);
+        click("Unlock");
+        waitFor(() -> has("TOTAL BALANCE"),90000,"Original password opens the persisted wallet");
+        check(has(storageWalletName()),"Reopened wallet identity");
+        click("Lock wallet");
+        status("DURABLE_WALLET_REOPEN=PASS");
     }
     private void simplifiedSettings() throws Exception {
         check(has("Bitcoin.\nUnfairly private."), "Requested wallet branding");

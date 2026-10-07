@@ -17,6 +17,7 @@ using WabiSabi.Crypto;
 using ZXing;
 using ZXing.Common;
 using WalletWasabi.Logging;
+using WalletWasabi.Io;
 
 namespace WalletWasabi.Android;
 
@@ -66,7 +67,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			if (_mode != "runtime") { ConfigureEngineLog(); }
 			if (_mode == "runtime")
 			{
-				RuntimeProbe.Verify(); VerifyCredentials();
+				RuntimeProbe.Verify(); VerifyCredentials(); VerifyDurableStorage();
 				if (!AppIdentity.IsPersonal)
 				{
 				var blocked = false;
@@ -94,6 +95,25 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			AttachEngineLog(result);
 			Finish(global::Android.App.Result.Canceled, result);
 		}
+	}
+
+	private void VerifyDurableStorage()
+	{
+		var directory = Path.Combine(TargetContext!.CacheDir!.AbsolutePath, "storage-" + Guid.NewGuid().ToString("N"), "日本語");
+		Directory.CreateDirectory(directory);
+		try
+		{
+			var path = Path.Combine(directory, "public-storage-test");
+			File.SafelyWriteAllText(path, "original public storage test", System.Text.Encoding.UTF8);
+			for (var i = 0; i < 32; i++) { File.SafelyWriteAllText(path, "replacement " + i, System.Text.Encoding.UTF8); }
+			Check(File.SafelyReadAllText(path, System.Text.Encoding.UTF8) == "replacement 31", "Directory flush completes after atomic replacement");
+			Check(!File.Exists(path + ".new") && !File.Exists(path + ".old"), "Successful save completes its temporary-file cleanup");
+			File.Move(path, path + ".old");
+			Check(File.SafelyReadAllText(path, System.Text.Encoding.UTF8) == "replacement 31", "Last complete save survives an interrupted replacement");
+			File.SafelyWriteAllText(path, "recovered public storage test", System.Text.Encoding.UTF8);
+			Check(File.SafelyReadAllText(path, System.Text.Encoding.UTF8) == "recovered public storage test", "Saving resumes from the preserved backup");
+		}
+		finally { Directory.Delete(Path.GetDirectoryName(directory)!, recursive: true); }
 	}
 
 	private void AttachEngineLog(Bundle result)

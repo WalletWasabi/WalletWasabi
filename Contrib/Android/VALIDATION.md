@@ -1,10 +1,18 @@
 # Android personal candidate verification
 
-Updated 2026-10-07 (Asia/Singapore). Version 0.3.13 / version code 18 is a
+Updated 2026-10-07 (Asia/Singapore). Version 0.3.14 / version code 19 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
 This implementing review is not an independent security audit.
+
+Version 19 corrects an architecture-dependent directory-open flag in durable
+file replacement. The value used on x64 denotes `O_DIRECT` on ARM64, causing
+the containing-directory flush to fail after the encrypted file was renamed.
+The fix delegates directory opening to libc and still requires `fsync` to
+succeed. Storage regressions cover replacements, interrupted-save recovery,
+invalid parents and handle cleanup. Record native ARM64 diagnosis separately
+from managed emulator and handset wallet checks.
 
 ## Runtime and native dependencies
 
