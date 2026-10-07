@@ -1,0 +1,114 @@
+{
+  "recordedUtc": "2026-10-07T08:20:27.032475+00:00",
+  "sourceCommit": "53ccd2dc8782f9304b56239855df15e718f53b84",
+  "version": "0.3.16",
+  "versionCode": 21,
+  "apkSha256": "afe652ecee5593b0aae6df2a4b355216027407fde16040510a4cdc15586ddf48",
+  "installedApkBytesVerified": true,
+  "certificateSha256": "894b7317cd04fa09534d9bd0e8d09b08bf90e9cad6718e9020f33a6fd3f7db48",
+  "package": "io.wasabiwallet.android.personal",
+  "capture": {
+    "api": 35,
+    "architecture": "x86_64",
+    "pageSize": 4096,
+    "network": "RegTest",
+    "fixture": "Native qualification",
+    "method": "adb exec-out screencap -p",
+    "edited": false,
+    "personalWalletDataUsed": false,
+    "handsetScreenshotsUsed": false,
+    "paymentBroadcastDuringCapture": false
+  },
+  "overallQualification": "BLOCKED",
+  "releaseReady": false,
+  "ci": {
+    "android": "https://github.com/nopara73/WalletWasabi/actions/runs/37583395208",
+    "desktop": "https://github.com/nopara73/WalletWasabi/actions/runs/37583395187"
+  },
+  "images": [
+    {
+      "file": "01-wallets.png",
+      "sha256": "0b3b803c1e64b4485ed60e3c1833e411e1abf0e8f1444178ef17d2aef6acb4b1",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:11:20.352355+00:00"
+    },
+    {
+      "file": "02-create-wallet.png",
+      "sha256": "a71cf8bb727b6a3ece2232b88deb07c6859037a4ee0f19c13d3235804c805528",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:19:32.823769+00:00"
+    },
+    {
+      "file": "03-recover-wallet.png",
+      "sha256": "243b1f509a64f3ea5a8563180bcb885a3481ce8943c1ea9195d2c2d918b5cb99",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:20:07.865155+00:00"
+    },
+    {
+      "file": "04-settings.png",
+      "sha256": "12f9e26da52455d19952072ac91f3f32ba212e2471e4f043bee2913dc0ac59db",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:11:58.682782+00:00"
+    },
+    {
+      "file": "05-wallet-home.png",
+      "sha256": "5039255b003748504704565cf20286bb0b86398e7acc7283ee42a12bb138cf3b",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:15:18.123858+00:00"
+    },
+    {
+      "file": "06-receive.png",
+      "sha256": "7f7664bc763293b5b5b9ffd3373c4c1ce349aa42861fee1c2a43555f86323a6a",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:13:52.888245+00:00"
+    },
+    {
+      "file": "07-transactions.png",
+      "sha256": "6a78497a7de5c03a5f32b42640dde445e19c617114e210a0681ee60f34c5392f",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:14:03.785195+00:00"
+    },
+    {
+      "file": "08-coins.png",
+      "sha256": "08481377db475d5b4b8a2c0af10ddef2b874f6b0fe7301e6ab9641ecebfa0fdc",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:14:14.154032+00:00"
+    },
+    {
+      "file": "09-privacy.png",
+      "sha256": "2a45ade1c7d75b5902f4676ef8a2361df7ed2145ad9fe4a4082c739fa7b57b2c",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:14:31.921036+00:00"
+    },
+    {
+      "file": "10-send.png",
+      "sha256": "eddab377b9f0bfcd99622aac3548242c0b9879e5e6006ad4650317cade8a740f",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:16:36.901418+00:00"
+    },
+    {
+      "file": "11-review.png",
+      "sha256": "285cb5737c15cd47d64f53b57cda81f86cc510e358d0de0fbfb9327d29efa8dd",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:17:09.621938+00:00"
+    },
+    {
+      "file": "12-backup.png",
+      "sha256": "0ba7be8304c69af02b9c369770a2630146df0abc1ce7afb090cfa0af731b128f",
+      "width": 1080,
+      "height": 2400,
+      "capturedUtc": "2026-10-07T08:15:29.312485+00:00"
+    }
+  ]
+}

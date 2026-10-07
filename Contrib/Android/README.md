@@ -1,5 +1,8 @@
 # Wasabi Wallet for Android
 
+The Android experiment is archived in a [screenshot showcase](Showcase/README.md).
+Handset acceptance failed and release qualification remains blocked.
+
 The Android app retains Wasabi's Bitcoin and WabiSabi engines and uses native
 Android views, Camera2, Android Keystore and a bundled Tor process.
 
