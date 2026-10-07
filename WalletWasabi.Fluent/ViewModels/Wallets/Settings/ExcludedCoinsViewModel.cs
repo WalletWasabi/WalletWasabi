@@ -27,7 +27,7 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		CoinList = new CoinListViewModel(uiContext, wallet.Coins, initialCoins.ToList(), allowCoinjoiningCoinSelection: false, ignorePrivacyMode: true);
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = ReactiveCommand.Create(() => Close());
-		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()));
+		ToggleSelectionCommand = ReactiveCommand.Create(() => SelectAll(!CoinList.Selection.Any()), this.WhenAnyValue(x => x.IsCoinjoining, b => !b));
 	}
 
 	public CoinListViewModel CoinList { get; set; }
