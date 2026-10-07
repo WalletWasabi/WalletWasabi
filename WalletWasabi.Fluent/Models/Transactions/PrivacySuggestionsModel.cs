@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
@@ -35,7 +36,7 @@ public partial class PrivacySuggestionsModel
 
 	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
-	private readonly IServices _services;
+	private decimal _exchangeRate;
 	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
@@ -45,7 +46,7 @@ public partial class PrivacySuggestionsModel
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
 		_cjManager = services.GetHostedService<CoinJoinManager>();
-		_services = services;
+		services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
@@ -179,7 +180,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _services.GetUsdExchangeRate();
+		var usdExchangeRate = _exchangeRate;
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -289,7 +290,7 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _services.GetUsdExchangeRate();
+		decimal usdExchangeRate = _exchangeRate;
 
 		// Only allow to create 2 more inputs with BnB.
 		int maxInputCount = transaction.SpentCoins.Count() + 2;
