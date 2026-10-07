@@ -42,7 +42,7 @@
                    Opacity="{Binding IsCoinjoining, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                    DockPanel.Dock="Bottom"
                    Margin="0,16,0,0">
-          <TextBlock Text="Stop the Coinjoin process to change excluded coins." />
+          <TextBlock Text="Stop the coinjoin process to change excluded coins." />
       </InfoMessage>
       <coins:CoinListView DataContext="{Binding CoinList}" />
     </DockPanel>
