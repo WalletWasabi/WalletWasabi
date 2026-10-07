@@ -15,7 +15,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
@@ -50,7 +49,11 @@ public partial class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo transactionInfo, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken, bool includeSuggestions)
+	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(
+		TransactionInfo transactionInfo,
+		BuildTransactionResult transactionResult,
+		bool includeSuggestions,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var parameters = new Parameters(transactionInfo, transactionResult, includeSuggestions);
 		var result = new List<PrivacyItem>();
