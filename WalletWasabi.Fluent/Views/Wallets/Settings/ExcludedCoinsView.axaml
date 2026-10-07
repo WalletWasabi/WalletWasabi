@@ -20,6 +20,8 @@
     <ContentArea.Caption>The chosen coins will be excluded from coinjoin. It's important to note that there will be no increase in the privacy of those coins.</ContentArea.Caption>
     <ContentArea.TopContent>
       <StackPanel Orientation="Horizontal" Spacing="4">
+        
+        <!-- Button to sort coins by a chosen criterion -->
         <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight">
@@ -27,6 +29,8 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+
+        <!-- Button to select or unselect all coins -->
         <ToggleButton Theme="{StaticResource DialogSelectAllButton}"
                       Command="{Binding ToggleSelectionCommand}"
                       IsChecked="{Binding HasSelection}"/>
