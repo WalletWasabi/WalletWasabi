@@ -59,6 +59,7 @@ public sealed class MainActivity : Activity
 	private byte[]? _exportPayload;
 	private string? _importName;
 	private WalletCreationDraft? _creationDraft;
+	private BackNavigationCallback? _backNavigationCallback;
 	private HashSet<OutPoint>? _selectedCoins;
 	private string _sendAddress = "";
 	private string _sendAmount = "";
@@ -74,6 +75,11 @@ public sealed class MainActivity : Activity
 	protected override void OnCreate(Bundle? savedInstanceState)
 	{
 		base.OnCreate(savedInstanceState);
+		if (OperatingSystem.IsAndroidVersionAtLeast(33))
+		{
+			_backNavigationCallback = new BackNavigationCallback(NavigateBack);
+			OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(global::Android.Window.IOnBackInvokedDispatcher.PriorityDefault, _backNavigationCallback);
+		}
 		Window!.SetSoftInputMode(SoftInput.AdjustResize);
 		_payment = Intent?.Data?.Scheme == "bitcoin" ? Intent.DataString : null;
 		StartWalletService();
@@ -113,6 +119,12 @@ public sealed class MainActivity : Activity
 
 	protected override void OnDestroy()
 	{
+		if (OperatingSystem.IsAndroidVersionAtLeast(33) && _backNavigationCallback is { } callback)
+		{
+			OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(callback);
+			callback.Dispose();
+			_backNavigationCallback = null;
+		}
 		ClearCreationDraft();
 		_refresh?.Dispose();
 		_activityLifetime.Cancel();
@@ -138,12 +150,19 @@ public sealed class MainActivity : Activity
 
 #pragma warning disable CS0672, CA1422
 
-	public override void OnBackPressed()
+	public override void OnBackPressed() => NavigateBack();
+#pragma warning restore CS0672, CA1422
+
+	private void NavigateBack()
 	{
 		if (!_busy && _back is { } back) { back(); }
 		else if (!_busy) { MoveTaskToBack(true); }
 	}
-#pragma warning restore CS0672, CA1422
+
+	private sealed class BackNavigationCallback(Action navigate) : Java.Lang.Object, global::Android.Window.IOnBackInvokedCallback
+	{
+		public void OnBackInvoked() => navigate();
+	}
 
 	private void LockUi()
 	{

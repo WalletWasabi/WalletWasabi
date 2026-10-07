@@ -13,7 +13,8 @@ destination or fee budget is authorized. Version 17 was installed in place on
 Record the version-18 update separately, preserving the wallet and signing identity.
 
 Version 18 adds ordinal default names, selectable recovery-word confirmation,
-and Back navigation within creation/recovery. Check that returning to the form
+and Back navigation within creation/recovery. Check both the header arrow and
+the system Back gesture/button. Check that returning to the form
 preserves the exact generated words and that background locking clears the draft.
 
 Version 17 corrects wallet account references. Older convenience credentials

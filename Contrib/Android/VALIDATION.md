@@ -571,6 +571,10 @@ physical handset checks must still qualify the final recorded source.
 ## Required external gates
 
 Version 18 changes mobile onboarding and its separate emulator UI harness.
+System Back uses the platform dispatcher on Android 13 and newer, including
+Android 16, and the legacy callback on older devices. Both invoke the same
+previous-step navigation. The harness waits for system Back to complete before
+checking the preserved form, and normalizes spacing in displayed backup words.
 Host verification passes all 76 mobile tests, including mandatory selection of
 three distinct positions, repeated mnemonic words, rejected choices, duplicate
 taps and revocation of later confirmations when going back. Engine/runtime,

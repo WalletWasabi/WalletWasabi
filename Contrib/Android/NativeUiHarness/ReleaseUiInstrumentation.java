@@ -103,7 +103,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         for (int i=1; i<=12; i++) {
             final String prefix=i+" ";
             String displayed=texts().stream().filter(t -> t.startsWith(prefix)).findFirst().orElseThrow(() -> new IllegalStateException("Numbered recovery word missing"));
-            words.add(displayed.substring(prefix.length()));
+            words.add(displayed.substring(prefix.length()).trim());
         }
         return words;
     }
@@ -119,6 +119,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     }
     private void onboarding() throws Exception {
         check(getTargetContext().getPackageManager().getPackageInfo(PACKAGE,0).versionCode >= 18,"Onboarding update installed");
+        status("ONBOARDING_RECOVERY_NAVIGATION_STARTED");
         Thread.sleep(2000);
         openCreateForm("Recover a wallet");
         check(fieldValue("Wallet name").equals("First Wallet"),"Recovery suggests first available name");
@@ -131,9 +132,11 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         click("Continue");
         check(fieldValue("Original Wasabi password / BIP39 passphrase").equals(PASSWORD),"Recovery back retains original password");
         sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+        waitFor(() -> views().stream().anyMatch(v -> v instanceof EditText && "Recovery words".contentEquals(((EditText)v).getHint())),10000,"System Back returns to the recovery words form");
         check(fieldValue("Recovery words").equals(WORDS),"System Back returns one recovery step");
         click("‹");
         for (String expected : new String[]{"First Wallet","Second Wallet"}) {
+            status("ONBOARDING_CREATE_"+expected.toUpperCase(java.util.Locale.ROOT).replace(' ','_')+"_STARTED");
             openCreateForm("Create a wallet");
             check(fieldValue("Wallet name").equals(expected),"Sequential default wallet name");
             field("Wallet password",PASSWORD);
