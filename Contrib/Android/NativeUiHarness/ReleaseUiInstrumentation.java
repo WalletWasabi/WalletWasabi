@@ -66,6 +66,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
             String mode = arguments.getString("mode", "security");
             if (mode.equals("setup-rpc")) setupRpc();
             else if (mode.equals("settings")) simplifiedSettings();
+            else if (mode.equals("onboarding")) onboarding();
             else if (mode.equals("wallet")) wallet();
             else if (mode.equals("resume")) resume();
             else if (mode.equals("late-unlock")) verifyLateUnlockRemainsLocked();
@@ -84,6 +85,96 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     }
 
     private Intent mainIntent() { return new Intent().setClassName(PACKAGE, "io.wasabiwallet.android.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); }
+    private String fieldValue(String hint) {
+        for (View view : views()) if (view instanceof EditText && hint.equals(((EditText)view).getHint().toString())) return ((EditText)view).getText().toString();
+        throw new IllegalStateException("Field missing: " + hint);
+    }
+    private void openCreateForm(String action) throws Exception {
+        long deadline = android.os.SystemClock.elapsedRealtime() + 90000;
+        while (true) {
+            click(action);
+            if (has("Wallet name") || views().stream().anyMatch(v -> v instanceof EditText && "Wallet name".contentEquals(((EditText)v).getHint()))) return;
+            if (accessible("OK", true)) Thread.sleep(250);
+            check(android.os.SystemClock.elapsedRealtime() < deadline, "Engine available for onboarding");
+        }
+    }
+    private List<String> backedUpWords() {
+        List<String> words = new ArrayList<>();
+        for (int i=1; i<=12; i++) {
+            final String prefix=i+" ";
+            String displayed=texts().stream().filter(t -> t.startsWith(prefix)).findFirst().orElseThrow(() -> new IllegalStateException("Numbered recovery word missing"));
+            words.add(displayed.substring(prefix.length()));
+        }
+        return words;
+    }
+    private int requestedWord() {
+        return Integer.parseInt(texts().stream().filter(t -> t.matches("Word [0-9]+" )).findFirst().orElseThrow(() -> new IllegalStateException("Recovery word choice missing")).split(" ")[1]);
+    }
+    private void onboardingPreview() throws Exception {
+        android.graphics.Bitmap screenshot=getUiAutomation().takeScreenshot();
+        check(screenshot!=null,"Selectable-word preview captured");
+        try (java.io.FileOutputStream output=new java.io.FileOutputStream(new File(activity.getCacheDir(),"onboarding-choices.png"))) {
+            check(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output),"Selectable-word preview saved");
+        } finally { screenshot.recycle(); }
+    }
+    private void onboarding() throws Exception {
+        check(getTargetContext().getPackageManager().getPackageInfo(PACKAGE,0).versionCode >= 18,"Onboarding update installed");
+        Thread.sleep(2000);
+        openCreateForm("Recover a wallet");
+        check(fieldValue("Wallet name").equals("First Wallet"),"Recovery suggests first available name");
+        field("Wallet name","Recovery navigation");
+        field("Recovery words",WORDS);
+        click("Continue");
+        field("Original Wasabi password / BIP39 passphrase",PASSWORD);
+        click("‹");
+        check(fieldValue("Wallet name").equals("Recovery navigation") && fieldValue("Recovery words").equals(WORDS),"Recovery back retains name and words");
+        click("Continue");
+        check(fieldValue("Original Wasabi password / BIP39 passphrase").equals(PASSWORD),"Recovery back retains original password");
+        sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+        check(fieldValue("Recovery words").equals(WORDS),"System Back returns one recovery step");
+        click("‹");
+        for (String expected : new String[]{"First Wallet","Second Wallet"}) {
+            openCreateForm("Create a wallet");
+            check(fieldValue("Wallet name").equals(expected),"Sequential default wallet name");
+            field("Wallet password",PASSWORD);
+            field("Repeat password",PASSWORD);
+            click("Continue");
+            waitFor(() -> has("I wrote them down"),10000,"Recovery words displayed");
+            List<String> words=backedUpWords();
+            click("‹");
+            check(fieldValue("Wallet name").equals(expected) && fieldValue("Wallet password").equals(PASSWORD) && fieldValue("Repeat password").equals(PASSWORD),"Creation back retains form");
+            click("Continue");
+            check(backedUpWords().equals(words),"Creation back preserves the exact generated seed");
+            click("I wrote them down");
+            check(views().stream().noneMatch(v -> v instanceof EditText),"Confirmation uses no text fields");
+            int first=requestedWord();
+            String correct=words.get(first-1);
+            String wrong=texts().stream().filter(t -> t.matches("[a-z]+") && !t.equals(correct)).findFirst().orElseThrow(() -> new IllegalStateException("Distractor missing"));
+            click(wrong);
+            check(requestedWord()==first && !has("Create wallet"),"Wrong choice cannot advance or create a wallet");
+            if (expected.equals("First Wallet")) onboardingPreview();
+            click(correct);
+            int second=requestedWord();
+            click("‹");
+            check(requestedWord()==first,"Confirmation Back returns to previous word");
+            click(correct);
+            check(requestedWord()==second,"Confirmation Back preserves challenge order");
+            click(words.get(second-1));
+            int third=requestedWord();
+            click(words.get(third-1));
+            check(has("Backup confirmed") && has("Create wallet"),"All three selected words are required");
+            click("‹");
+            check(requestedWord()==third && !has("Create wallet"),"Back from completion requires the last word again");
+            click(words.get(third-1));
+            click("Create wallet");
+            waitFor(() -> has("TOTAL BALANCE"),90000,"New unfunded wallet opens");
+            click("Lock wallet");
+        }
+        openCreateForm("Create a wallet");
+        check(fieldValue("Wallet name").equals("Third Wallet"),"Third default after first and second exist");
+        click("‹");
+        status("ONBOARDING_NAMES_AND_SELECTABLE_WORDS_AND_BACK=PASS");
+    }
     private void simplifiedSettings() throws Exception {
         check(has("Bitcoin.\nUnfairly private."), "Requested wallet branding");
         if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 14) {
@@ -123,8 +214,9 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         else {
             click("Recover a wallet");
             field("Wallet name", "Native qualification");
-            field("Original Wasabi password / BIP39 passphrase", PASSWORD);
             field("Recovery words", WORDS);
+            if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 18) click("Continue");
+            field("Original Wasabi password / BIP39 passphrase", PASSWORD);
             click("Recover");
             waitFor(() -> has("TOTAL BALANCE"), 30000, "Recovery opens wallet");
         }

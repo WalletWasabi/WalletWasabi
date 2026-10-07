@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.12 / version code 17 is a
+Updated 2026-10-07 (Asia/Singapore). Version 0.3.13 / version code 18 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -569,6 +569,14 @@ data was deleted. The Android CI matrix, actual clean-install/update flows and
 physical handset checks must still qualify the final recorded source.
 
 ## Required external gates
+
+Version 18 changes mobile onboarding and its separate emulator UI harness.
+Host verification passes all 76 mobile tests, including mandatory selection of
+three distinct positions, repeated mnemonic words, rejected choices, duplicate
+taps and revocation of later confirmations when going back. Engine/runtime,
+funded-payment and twenty-round records above retain their original source
+identity; they are not re-labelled as version-18 execution. The new actual APK
+onboarding, package inspection and handset installation are recorded separately.
 
 - Full wallet tests on the connected phone, including hardware authentication, physical camera, accessibility,
   network/background/battery behavior, recovery and updates.

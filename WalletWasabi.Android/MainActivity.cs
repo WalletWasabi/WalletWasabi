@@ -32,6 +32,7 @@ public sealed class MainActivity : Activity
 	private static readonly Color Surface = Color.Rgb(28, 34, 29);
 	private static readonly Color Accent = Color.Rgb(163, 230, 53);
 	private static readonly Color Muted = Color.Rgb(151, 166, 155);
+	private const string RecoveryRequirement = "You need BOTH the Recovery Words AND the Password to recover your wallet.";
 	private LinearLayout _root = null!;
 	private LinearLayout _body = null!;
 	private TextView _status = null!;
@@ -57,6 +58,7 @@ public sealed class MainActivity : Activity
 	private Action<string>? _scanned;
 	private byte[]? _exportPayload;
 	private string? _importName;
+	private WalletCreationDraft? _creationDraft;
 	private HashSet<OutPoint>? _selectedCoins;
 	private string _sendAddress = "";
 	private string _sendAmount = "";
@@ -111,6 +113,7 @@ public sealed class MainActivity : Activity
 
 	protected override void OnDestroy()
 	{
+		ClearCreationDraft();
 		_refresh?.Dispose();
 		_activityLifetime.Cancel();
 		_activityLifetime.Dispose();
@@ -253,6 +256,7 @@ public sealed class MainActivity : Activity
 
 	private void ShowWallets()
 	{
+		ClearCreationDraft();
 		Screen("Wasabi Wallet", "wallets");
 		_body.Tag = WalletListSignature();
 		var brand = new ImageView(this) { ContentDescription = "Wasabi Wallet logo" };
@@ -430,11 +434,14 @@ public sealed class MainActivity : Activity
 		else { PasswordFallback(); }
 	}
 
-	private void ShowImport()
+	private void ShowImport() => ShowImport(null);
+
+	private void ShowImport(string? savedName)
 	{
 		if (Session is null) { Alert("Starting the wallet engine. Try again in a moment."); return; }
 		Screen("Import wallet", "import", ShowWallets);
 		var name = Field("Wallet name");
+		name.Text = savedName ?? SuggestWalletName();
 		AddText("Choose an encrypted Wasabi wallet JSON backup. Use its original password to unlock it.", 16, Muted);
 		AddButton("Choose wallet file", () =>
 		{
@@ -446,40 +453,96 @@ public sealed class MainActivity : Activity
 		});
 	}
 
-	private void ShowCreate(bool recover)
+	private sealed class WalletCreationDraft(string name)
+	{
+		public string Name { get; set; } = name;
+		public string Password { get; set; } = "";
+		public string RepeatPassword { get; set; } = "";
+		public string RecoveryWords { get; set; } = "";
+		public Mnemonic? GeneratedMnemonic { get; set; }
+		public void Clear()
+		{
+			Password = "";
+			RepeatPassword = "";
+			RecoveryWords = "";
+			GeneratedMnemonic = null;
+		}
+	}
+
+	private void ClearCreationDraft()
+	{
+		_creationDraft?.Clear();
+		_creationDraft = null;
+	}
+
+	private void ShowCreate(bool recover, WalletCreationDraft? draft = null)
 	{
 		if (Session is null) { Alert("Starting the wallet engine. Try again in a moment."); return; }
+		draft ??= new WalletCreationDraft(SuggestWalletName());
+		_creationDraft = draft;
 		Screen(recover ? "Recover wallet" : "Create wallet", "create", ShowWallets);
 		var name = Field("Wallet name");
-		var password = Field(recover ? "Original Wasabi password / BIP39 passphrase" : "Wallet password", true);
-		EditText? confirm = recover ? null : Field("Repeat password", true);
-		EditText? words = recover ? Field("Recovery words") : null;
-		if (words is not null) { Multiline(words); }
-		AddText(recover ? "Use the same password that created the wallet. A different passphrase opens a different wallet." : "This password is also your recovery passphrase. Keep it with your recovery words.", 14, Muted);
-		AddButton(recover ? "Recover" : "Continue", () => Work(async () =>
+		name.Text = draft.Name;
+		if (recover)
 		{
-			var walletName = name.Text?.Trim() ?? "";
-			var secret = password.Text ?? "";
-			if (Session!.Global.WalletManager.ValidateWalletName(walletName) is { } error) { throw new ArgumentException(error.Message); }
-			if (!recover && (secret.Length < 8 || secret != confirm!.Text)) { throw new ArgumentException("Use at least 8 characters and repeat the same password."); }
-			var mnemonic = recover ? new Mnemonic(words!.Text!.Trim()) : new Mnemonic(Wordlist.English, WordCount.Twelve);
-			if (!mnemonic.IsValidChecksum) { throw new FormatException("Invalid recovery words."); }
-			password.Text = "";
-			if (confirm is not null) { confirm.Text = ""; }
-			if (words is not null) { words.Text = ""; }
-			if (recover)
+			var words = Field("Recovery words");
+			Multiline(words);
+			words.Text = draft.RecoveryWords;
+			AddButton("Continue", () => Work(() =>
 			{
-				await CreateWalletInBackgroundAsync(walletName, secret, mnemonic, true);
-			}
-			else { ShowRecoveryWords(walletName, secret, mnemonic); }
+				draft.Name = name.Text?.Trim() ?? "";
+				draft.RecoveryWords = words.Text?.Trim() ?? "";
+				if (Session!.Global.WalletManager.ValidateWalletName(draft.Name) is { } error) { throw new ArgumentException(error.Message); }
+				var mnemonic = new Mnemonic(draft.RecoveryWords);
+				if (!mnemonic.IsValidChecksum) { throw new FormatException("Invalid recovery words."); }
+				ShowRecoveryPassword(draft);
+				return Task.CompletedTask;
+			}));
+			return;
+		}
+		var password = Field("Wallet password", true);
+		password.Text = draft.Password;
+		var confirm = Field("Repeat password", true);
+		confirm.Text = draft.RepeatPassword;
+		AddText(RecoveryRequirement, 14, Muted);
+		AddButton("Continue", () => Work(() =>
+		{
+			draft.Name = name.Text?.Trim() ?? "";
+			draft.Password = password.Text ?? "";
+			draft.RepeatPassword = confirm.Text ?? "";
+			if (Session!.Global.WalletManager.ValidateWalletName(draft.Name) is { } error) { throw new ArgumentException(error.Message); }
+			if (draft.Password.Length < 8 || draft.Password != draft.RepeatPassword) { throw new ArgumentException("Use at least 8 characters and repeat the same password."); }
+			// Returning to the form must preserve the words already backed up.
+			draft.GeneratedMnemonic ??= new Mnemonic(Wordlist.English, WordCount.Twelve);
+			ShowRecoveryWords(draft);
+			return Task.CompletedTask;
 		}));
 	}
 
-	private void ShowRecoveryWords(string name, string password, Mnemonic mnemonic)
+	private void ShowRecoveryPassword(WalletCreationDraft draft)
 	{
-		Screen("Recovery words", "backup", ShowWallets);
+		EditText? password = null;
+		Screen("Recover wallet", "create", () =>
+		{
+			draft.Password = password?.Text ?? "";
+			ShowCreate(true, draft);
+		});
+		password = Field("Original Wasabi password / BIP39 passphrase", true);
+		password.Text = draft.Password;
+		AddText("Use the same password that created the wallet. A different passphrase opens a different wallet.", 14, Muted);
+		AddButton("Recover", () => Work(async () =>
+		{
+			draft.Password = password.Text ?? "";
+			await CreateWalletInBackgroundAsync(draft.Name, draft.Password, new Mnemonic(draft.RecoveryWords), true);
+		}));
+	}
+
+	private void ShowRecoveryWords(WalletCreationDraft draft)
+	{
+		var mnemonic = draft.GeneratedMnemonic ?? throw new InvalidOperationException("Restart wallet creation.");
+		Screen("Recovery words", "backup", () => ShowCreate(false, draft));
 		AddText("Write these down", 28, Color.White, true);
-		AddText("Keep the words and your password offline. Anyone with both can spend your bitcoin.", 14, Muted);
+		AddText(RecoveryRequirement, 14, Muted);
 		Gap(20);
 		for (var i = 0; i < mnemonic.Words.Length; i += 3)
 		{
@@ -494,21 +557,73 @@ public sealed class MainActivity : Activity
 			_body.AddView(row);
 		}
 		Gap(16);
-		AddButton("I wrote them down", () => ShowConfirmWords(name, password, mnemonic));
+		AddButton("I wrote them down", () => ShowConfirmWords(draft));
 	}
 
-	private void ShowConfirmWords(string name, string password, Mnemonic mnemonic)
+	private string SuggestWalletName() => WalletNameSuggestion.Next(Session!.Global.WalletManager.WalletDirectories
+		.EnumerateWalletFiles().Select(file => System.IO.Path.GetFileNameWithoutExtension(file.Name)));
+
+	private void ShowConfirmWords(WalletCreationDraft draft)
 	{
-		Screen("Check your backup", "backup", ShowWallets);
-		var positions = new HashSet<int>();
-		while (positions.Count < 3) { positions.Add(RandomNumberGenerator.GetInt32(mnemonic.Words.Length)); }
-		var fields = positions.Order().Select(i => (Index: i, Field: Field($"Word {i + 1}"))).ToArray();
-		AddButton("Create wallet", () => Work(async () =>
+		var mnemonic = draft.GeneratedMnemonic ?? throw new InvalidOperationException("Restart wallet creation.");
+		var confirmation = new RecoveryWordConfirmation(mnemonic);
+		var step = 0;
+		var generation = _uiGeneration;
+		void ShowQuestion()
 		{
-			if (fields.Any(f => !string.Equals(f.Field.Text?.Trim(), mnemonic.Words[f.Index], StringComparison.OrdinalIgnoreCase))) { throw new ArgumentException("Check the recovery words and try again."); }
-			foreach (var field in fields) { field.Field.Text = ""; }
-			await CreateWalletInBackgroundAsync(name, password, mnemonic, false);
-		}));
+			Screen("Check your backup", "backup", () =>
+			{
+				if (step == 0) { ShowRecoveryWords(draft); }
+				else { step--; confirmation.ResetFrom(step); ShowQuestion(); }
+			});
+			var progress = Row();
+			progress.ContentDescription = $"{step} of {confirmation.Questions.Count} recovery words confirmed";
+			for (var i = 0; i < confirmation.Questions.Count; i++)
+			{
+				var segment = new View(this) { Background = Rounded(i < step ? Accent : Surface) };
+				progress.AddView(segment, new LinearLayout.LayoutParams(0, Dp(4), 1) { MarginEnd = i < 2 ? Dp(8) : 0 });
+			}
+			_body.AddView(progress, new LinearLayout.LayoutParams(-1, -2) { BottomMargin = Dp(32) });
+			if (step == confirmation.Questions.Count)
+			{
+				AddText("✓", 56, Accent, true);
+				AddText("Backup confirmed", 28, Color.White, true);
+				AddButton("Create wallet", () => Work(async () =>
+				{
+					if (!confirmation.IsComplete) { throw new InvalidOperationException("Confirm your recovery words first."); }
+					await CreateWalletInBackgroundAsync(draft.Name, draft.Password, mnemonic, false);
+				}));
+				return;
+			}
+			var question = confirmation.Questions[step];
+			var currentStep = step;
+			AddText($"Word {question.Position}", 28, Color.White, true);
+			Gap(16);
+			for (var rowIndex = 0; rowIndex < 3; rowIndex++)
+			{
+				var row = Row();
+				for (var column = 0; column < 2; column++)
+				{
+					var word = question.Choices[rowIndex * 2 + column];
+					Button? choice = null;
+					choice = Button(word, () =>
+					{
+						if (step != currentStep || generation != _uiGeneration || !_foreground || _creationDraft != draft) { return; }
+						if (!confirmation.Select(question.Position, word))
+						{
+							choice!.SetTextColor(Color.Rgb(255, 137, 137));
+							choice.ContentDescription = word + ". Incorrect; choose another word.";
+							return;
+						}
+						step++;
+						ShowQuestion();
+					}, false);
+					row.AddView(choice, new LinearLayout.LayoutParams(0, -2, 1) { MarginEnd = column == 0 ? Dp(12) : 0 });
+				}
+				_body.AddView(row, new LinearLayout.LayoutParams(-1, -2) { BottomMargin = Dp(12) });
+			}
+		}
+		ShowQuestion();
 	}
 
 	private async Task CreateWalletInBackgroundAsync(string name, string password, Mnemonic mnemonic, bool recover)
@@ -959,7 +1074,12 @@ public sealed class MainActivity : Activity
 	protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
 	{
 		base.OnActivityResult(requestCode, resultCode, data);
-		if (resultCode != Result.Ok) { if (requestCode == 4) { _exportPayload = null; } if (requestCode == 5) { _importName = null; } return; }
+		if (resultCode != Result.Ok)
+		{
+			if (requestCode == 4) { _exportPayload = null; }
+			if (requestCode == 5) { var savedName = _importName; _importName = null; ShowImport(savedName); }
+			return;
+		}
 		if (requestCode == 3 && data?.GetStringExtra("payment") is { } payment)
 		{
 			try

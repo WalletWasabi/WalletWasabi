@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.12 / version code 17** produces a personally signed APK. This is a
+Version **0.3.13 / version code 18** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -22,6 +22,14 @@ public CA supplement. Verified native source builds retain all ELF protections
 and pass strict 16 KB inspection. API 35 and API 36/16 KB source-native CI suites
 and 20 consecutive fresh Release rounds have passed at their recorded source;
 new changes require new evidence. Full handset qualification remains open.
+
+New-wallet forms suggest the first unused name: First Wallet, Second Wallet,
+Third Wallet and subsequent English ordinals. Recovery uses separate words and
+original-password steps. Creation confirms three recovery-word positions through
+six selectable words at a time. Back returns one step, preserving the original
+generated words and the current form; background or inactivity locking clears
+the in-memory draft. Password help uses the user's selected historical wording:
+"You need BOTH the Recovery Words AND the Password to recover your wallet."
 
 ## Build and signing
 
