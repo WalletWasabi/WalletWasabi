@@ -193,7 +193,17 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         waitFor(() -> has("I wrote them down"),10000,"Private synthetic backup displayed");
         List<String> words=backedUpWords();
         click("I wrote them down");
-        for (int i=0; i<3; i++) click(words.get(requestedWord()-1));
+        for (int i=0; i<3; i++) {
+            int position = requestedWord();
+            click(words.get(position-1));
+            if (i < 2) {
+                // Let the normal runtime/synchronization refresh run. The first
+                // session adoption used to lock and discard this backup flow.
+                Thread.sleep(1500);
+                check(!has("Recover a wallet"), "Runtime refresh preserves the active backup confirmation");
+                check(requestedWord() != position, "Next distinct recovery word remains selectable");
+            }
+        }
         click("Create wallet");
         waitFor(() -> has("TOTAL BALANCE"),90000,"Durable creation opens the unfunded wallet without a storage error");
         check(has(storageWalletName()),"Created wallet identity");

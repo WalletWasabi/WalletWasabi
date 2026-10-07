@@ -181,10 +181,18 @@ public sealed class MainActivity : Activity
 		if ((!_uiLocked || _screen is "create" or "backup" or "unlock") && Stopwatch.GetElapsedTime(_lastInteraction) > TimeSpan.FromMinutes(2)) { LockUi(); }
 		var session = Session;
 		if (!_busy && session is null && WalletRuntime.Error is null && WalletRuntime.Snapshot.Lifecycle == RuntimeLifecycle.Stopped) { StartWalletService(); }
-		if (_observedSession != session) { _observedSession = session; _synchronization.Reset(); LockUi(); }
+		ObserveSession(session);
 		ShowSynchronization();
 		if (_screen == "wallets" && _body.Tag?.ToString() != WalletListSignature()) { ShowWallets(); }
 		_updateScreen?.Invoke();
+	}
+
+	private void ObserveSession(WalletSession? session)
+	{
+		if (ReferenceEquals(_observedSession, session)) { return; }
+		_observedSession = session;
+		_synchronization.Reset();
+		LockUi();
 	}
 
 	private string WalletListSignature() => Session is { } session ? string.Join('|', session.Global.WalletManager.GetWallets().Select(w => w.WalletName)) + "/ready" : "loading";
@@ -318,6 +326,7 @@ public sealed class MainActivity : Activity
 
 	private void ShowUnlock(Wallet wallet, bool passwordOnly = false)
 	{
+		ObserveSession(Session);
 		Screen(wallet.WalletName, "unlock", ShowWallets);
 		AddText("Unlock your wallet", 28, Color.White, true);
 		if (!passwordOnly && Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
@@ -460,6 +469,7 @@ public sealed class MainActivity : Activity
 	private void ShowImport(string? savedName)
 	{
 		if (Session is null) { Alert("Starting the wallet engine. Try again in a moment."); return; }
+		ObserveSession(Session);
 		Screen("Import wallet", "import", ShowWallets);
 		var name = Field("Wallet name");
 		name.Text = savedName ?? SuggestWalletName();
@@ -499,6 +509,9 @@ public sealed class MainActivity : Activity
 	private void ShowCreate(bool recover, WalletCreationDraft? draft = null)
 	{
 		if (Session is null) { Alert("Starting the wallet engine. Try again in a moment."); return; }
+		// Bind the flow before accepting a password or generating a backup. The
+		// periodic refresh must not first adopt this runtime in the next step.
+		ObserveSession(Session);
 		draft ??= new WalletCreationDraft(SuggestWalletName());
 		_creationDraft = draft;
 		Screen(recover ? "Recover wallet" : "Create wallet", "create", ShowWallets);

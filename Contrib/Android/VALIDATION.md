@@ -1,10 +1,18 @@
 # Android personal candidate verification
 
-Updated 2026-10-07 (Asia/Singapore). Version 0.3.15 / version code 20 is a
+Updated 2026-10-07 (Asia/Singapore). Version 0.3.16 / version code 21 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
 This implementing review is not an independent security audit.
+
+Version 21 binds a runtime session before opening creation, recovery, import or
+password unlocking. On API 24 the previous actual-APK flow displayed the first
+backup question and then returned to the wallet list: the periodic refresh first
+observed the newly started session and locked the interface mid-flow. Session
+replacement and background/inactivity locking still invalidate drafts and
+authorization. The actual-APK regression pauses between selected words so the
+normal refresh executes. Record its new result separately from version 20.
 
 Version 20 moves GCM associated-data processing after per-use system
 authentication, including during decryption. Keystore security/provider failures
