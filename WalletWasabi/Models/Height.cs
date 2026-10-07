@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace WalletWasabi.Models;
 
 public abstract record Height : IComparable<Height>
@@ -51,36 +48,6 @@ public abstract record Height : IComparable<Height>
 	public static Height Max(Height h, params IEnumerable<Height> r) => r.Aggregate(h, (h1, h2) => h1 > h2 ? h1 : h2);
 	public static Height Min(Height h, params IEnumerable<Height> r) => r.Aggregate(h, (h1, h2) => h1 < h2 ? h1 : h2);
 
-	public static bool TryParse(string heightOrHeightType, out Height? height)
-	{
-		if (string.IsNullOrWhiteSpace(heightOrHeightType))
-		{
-			height = null;
-			return false;
-		}
-
-		if (heightOrHeightType == "Mempool")
-		{
-			height = Mempool;
-			return true;
-		}
-
-		if (heightOrHeightType == "Unknown")
-		{
-			height = Unknown;
-			return true;
-		}
-
-		if (uint.TryParse(heightOrHeightType, out var h))
-		{
-			height = new ChainHeight(h);
-			return true;
-		}
-
-		height = null;
-		return false;
-	}
-
 	public sealed override string? ToString() =>
 		this switch
 		{
@@ -90,4 +57,3 @@ public abstract record Height : IComparable<Height>
 			_ => throw new ArgumentOutOfRangeException()
 		};
 }
-
