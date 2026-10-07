@@ -650,6 +650,8 @@ public sealed class MainActivity : Activity
 		var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
 		var generation = _uiGeneration;
 		var wallet = await Task.Run(() => session.CreateAsync(name, password, mnemonic, recover));
+		// Once saved, setup no longer needs a plaintext backup/password draft.
+		ClearCreationDraft();
 		if (!_foreground || Session != session || generation != _uiGeneration)
 		{ session.Lock(); throw new System.OperationCanceledException("Return to Wasabi and unlock the saved wallet."); }
 		await EnsureDeviceUnlockAsync(session, wallet, password);
