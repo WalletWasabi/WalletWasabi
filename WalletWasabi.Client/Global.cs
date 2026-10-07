@@ -94,7 +94,7 @@ public class Global
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
-		_p2pConnectionManager = ConfigureNodeConnectionManager();
+		_p2pConnectionManager = ConfigureP2pConnectionManager();
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(_p2pConnectionManager, fileSystemBlockRepository);
@@ -205,7 +205,7 @@ public class Global
 		}
 	}
 
-	private P2pConnectionManager ConfigureNodeConnectionManager()
+	private P2pConnectionManager ConfigureP2pConnectionManager()
 	{
 		if (Network == Network.Main)
 		{
