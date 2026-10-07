@@ -49,6 +49,7 @@ public sealed class MainActivity : Activity
 	private bool _externalFlow;
 	private bool _uiLocked = true;
 	private bool _authenticating;
+	private bool _deviceEnrollmentUnavailable;
 	private readonly HashSet<string> _unavailableDeviceKeys = [];
 	private readonly CancellationTokenSource _activityLifetime = new();
 	private string _screen = "wallets";
@@ -364,7 +365,7 @@ public sealed class MainActivity : Activity
 	{
 		var reference = WalletSession.WalletReference(wallet);
 		var vault = Vault;
-		if ((vault.HasWalletPassword(reference) && !_unavailableDeviceKeys.Contains(reference)) || !vault.CanEnrollWalletPassword) { return; }
+		if (_deviceEnrollmentUnavailable || (vault.HasWalletPassword(reference) && !_unavailableDeviceKeys.Contains(reference)) || !vault.CanEnrollWalletPassword) { return; }
 		var generation = _uiGeneration;
 		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_activityLifetime.Token);
 		deadline.CancelAfter(TimeSpan.FromMinutes(1));
@@ -372,8 +373,9 @@ public sealed class MainActivity : Activity
 		try
 		{
 			try { await vault.EnrollWalletPasswordAsync(reference, password, deadline.Token); }
-			catch (Exception error) when (error is System.OperationCanceledException or PlatformNotSupportedException)
+			catch (Exception error) when (error is System.OperationCanceledException or PlatformNotSupportedException or IOException)
 			{
+				if (error is not System.OperationCanceledException) { _deviceEnrollmentUnavailable = true; }
 				// Password access was already verified. A cancelled setup cannot undo a
 				// background lock or give an operation a new authorization generation.
 				if (!_foreground || Session != session || generation != _uiGeneration)
@@ -1149,7 +1151,12 @@ public sealed class MainActivity : Activity
 		_workIndicator.Visibility = ViewStates.Visible;
 		_workGeneration = _uiGeneration;
 		try { await action(); }
-		catch (Exception ex) { if (!IsFinishing && _foreground && _workGeneration == _uiGeneration) { Alert(ex.Message); } }
+		catch (Exception ex)
+		{
+			// Never put exception messages, wallet data or credentials in logcat.
+			global::Android.Util.Log.Warn("WasabiWallet", "Wallet action failed: " + ex.GetType().FullName);
+			if (!IsFinishing && _foreground && _workGeneration == _uiGeneration) { Alert(ex.Message); }
+		}
 		finally
 		{
 			var lockedDuringOperation = _workGeneration != _uiGeneration;

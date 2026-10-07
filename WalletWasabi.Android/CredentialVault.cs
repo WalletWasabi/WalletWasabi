@@ -42,9 +42,11 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 			RequireHardware(key);
 			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
 			cipher.Init(CipherMode.EncryptMode, key);
-			cipher.UpdateAAD(AssociatedData(reference));
 			await AuthenticateAsync(activity, cipher, "Protect wallet access", cancellationToken).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
+			// Even AAD is a KeyMint operation. Sending it before the per-use
+			// grant can cache an authentication failure inside the cipher.
+			cipher.UpdateAAD(AssociatedData(reference));
 			var encrypted = SealSecret(cipher, originalPassword);
 			Envelope? old;
 			try { old = Load(reference); }
@@ -52,6 +54,11 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 			Save(reference, new(alias, Convert.ToBase64String(cipher.GetIV()!), Convert.ToBase64String(encrypted)));
 			committed = true;
 			if (old is not null) { store.DeleteEntry(old.Alias); }
+		}
+		catch (Exception error) when (error is Java.Security.GeneralSecurityException or Java.Security.ProviderException)
+		{
+			if (!committed) { store.DeleteEntry(alias); }
+			throw new PlatformNotSupportedException("Device unlocking is unavailable. Use your original wallet password.", error);
 		}
 		catch { if (!committed) { store.DeleteEntry(alias); } throw; }
 	}
@@ -69,12 +76,12 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 			using var cipher = Cipher.GetInstance("AES/GCM/NoPadding")!;
 			using var parameters = new GCMParameterSpec(128, Convert.FromBase64String(envelope.Iv));
 			cipher.Init(CipherMode.DecryptMode, key, parameters);
-			cipher.UpdateAAD(AssociatedData(reference));
 			await AuthenticateAsync(activity, cipher, purpose, cancellationToken).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
+			cipher.UpdateAAD(AssociatedData(reference));
 			return OpenSecret(cipher, envelope);
 		}
-		catch (Java.Security.GeneralSecurityException)
+		catch (Exception error) when (error is Java.Security.GeneralSecurityException or Java.Security.ProviderException)
 		{
 			throw new InvalidOperationException("Device unlocking is unavailable. Enter the original wallet password; your wallet and backup are unchanged.");
 		}
@@ -195,6 +202,10 @@ internal sealed partial class CredentialVault(Context context, string dataDirect
 			if (result?.CryptoObject?.Cipher is not null) { completion.TrySetResult(); }
 			else { completion.TrySetException(new UnauthorizedAccessException("Authentication did not authorize decryption.")); }
 		}
-		public override void OnAuthenticationError(BiometricErrorCode errorCode, Java.Lang.ICharSequence? errString) => completion.TrySetException(new System.OperationCanceledException("Device authentication was cancelled or unavailable."));
+		public override void OnAuthenticationError(BiometricErrorCode errorCode, Java.Lang.ICharSequence? errString)
+		{
+			global::Android.Util.Log.Warn("WasabiWallet", "Device authentication ended with code " + (int)errorCode);
+			completion.TrySetException(new System.OperationCanceledException("Device authentication was cancelled or unavailable."));
+		}
 	}
 }

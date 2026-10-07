@@ -48,8 +48,9 @@ internal static class WalletRuntime
       var token = _stop.Token;
       _monitor = Task.Run(() => MonitorAsync(context.ApplicationContext!, token));
     }
-    catch (Exception)
+    catch (Exception error)
     {
+      global::Android.Util.Log.Warn("WasabiWallet", "Wallet startup failed: " + error.GetType().FullName);
       Error = "Wallet startup failed. Reopen Wasabi to retry.";
       _lifecycle = RuntimeLifecycle.Failed;
       try { await DisposeCoreAsync().ConfigureAwait(false); }
@@ -129,8 +130,9 @@ internal static class WalletRuntime
           }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-        catch (Exception)
+        catch (Exception error)
         {
+          global::Android.Util.Log.Warn("WasabiWallet", "Wallet reconnect failed: " + error.GetType().FullName);
           Error = "Private connection interrupted. Reopen Wasabi to reconnect.";
           _lifecycle = RuntimeLifecycle.Failed;
           try { await DisposeCoreAsync().ConfigureAwait(false); }

@@ -1,10 +1,18 @@
 # Android personal candidate verification
 
-Updated 2026-10-07 (Asia/Singapore). Version 0.3.14 / version code 19 is a
+Updated 2026-10-07 (Asia/Singapore). Version 0.3.15 / version code 20 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
 This implementing review is not an independent security audit.
+
+Version 20 moves GCM associated-data processing after per-use system
+authentication, including during decryption. Keystore security/provider failures
+remain recoverable through the original wallet password. Optional device-vault
+enrollment does not undo verified password access while the same foreground
+authorization is current. Background locking and cancelled-payment safeguards
+remain enforced. Actual strong-biometric/device-credential checks are required;
+software-Keystore fixtures do not establish hardware compatibility.
 
 Version 19 corrects an architecture-dependent directory-open flag in durable
 file replacement. The value used on x64 denotes `O_DIRECT` on ARM64, causing

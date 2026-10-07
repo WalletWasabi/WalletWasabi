@@ -1,6 +1,6 @@
 # Personal APK phone handoff
 
-**Version 0.3.14 / version code 19: qualification blocked.** Close all uncompleted
+**Version 0.3.15 / version code 20: qualification blocked.** Close all uncompleted
 software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the corrected source-native ARM64 cryptographic, SQLite
@@ -11,6 +11,12 @@ Full handset qualification remains outstanding; no real-bitcoin amount,
 destination or fee budget is authorized. Version 17 was installed in place on
 2026-10-07, with its exact APK hash and retained data-directory identity verified.
 Record each later update separately, preserving the wallet and signing identity.
+
+Version 20 also defers authenticated cipher data until after successful system
+authorization. Devices that cannot enroll a vault key fall back to the verified
+original wallet password; enrollment is retried automatically on a later app
+launch. Cancelling authentication still cannot authorize a payment. Check this
+on the handset; the software Keystore fixture does not qualify hardware prompts.
 
 Version 19 fixes directory persistence on ARM64. The former hardcoded x64
 `O_DIRECTORY` value meant `O_DIRECT` on the phone and could fail after the

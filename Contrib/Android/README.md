@@ -5,7 +5,8 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.13 / version code 18** produces a personally signed APK. This is a
+The personal build produces a personally signed APK. Its exact version and
+source identity are recorded in the delivery's `package-manifest.json`. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
