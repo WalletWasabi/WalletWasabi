@@ -139,9 +139,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			ForeignVirtualOutputsCache ??= ForeignOutputs
-					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
-					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
-					.ToHashSet();
+				.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
+				.Select(g => new ForeignVirtualOutput(g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
+				.ToHashSet();
 			return ForeignVirtualOutputsCache;
 		}
 	}
