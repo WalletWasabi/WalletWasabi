@@ -36,9 +36,8 @@ public class ApplicationStateManager : IMainWindowService
 		UiContext = uiContext;
 		MainViewModel = mainViewModel;
 
-		var activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
-
-		if (activatableLifetime is not null)
+		// The IActivatableLifetime feature is only available on macOS. Linux and Windows will return null.
+		if (Application.Current?.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
 		{
 			if (startInBg)
 			{
@@ -48,7 +47,6 @@ public class ApplicationStateManager : IMainWindowService
 						_activatable = activatableLifetime;
 						activatableLifetime.TryEnterBackground();
 						activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-						activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
 					},
 					DispatcherPriority.Background);
 			}
@@ -56,7 +54,6 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_activatable = activatableLifetime;
 				activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-				activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
 			}
 		}
 
@@ -154,22 +151,6 @@ public class ApplicationStateManager : IMainWindowService
 				if (this is IMainWindowService service)
 				{
 					service.Show();
-				}
-				break;
-		}
-	}
-
-	private void ActivatableLifetimeOnDeactivated(object? sender, ActivatedEventArgs e)
-	{
-		switch (e.Kind)
-		{
-			case ActivationKind.Background:
-				if (this is IMainWindowService service)
-				{
-					if (_lifetime.MainWindow is not null)
-					{
-						service.Hide();
-					}
 				}
 				break;
 		}
