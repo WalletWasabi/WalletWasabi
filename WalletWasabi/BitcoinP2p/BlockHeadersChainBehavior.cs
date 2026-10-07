@@ -1,4 +1,3 @@
-using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Blockchain.Blocks;
