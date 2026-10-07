@@ -1,12 +1,14 @@
 using NBitcoin;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -113,8 +115,8 @@ public class SmartTransactionTests
 		t.Outputs.Add(txout2);
 		SmartTransaction st1 = new(t);
 
-		Assert.Single(st1.ForeignVirtualOutputs);
-		Assert.Equal(2, st1.ForeignVirtualOutputs.First().OutPoints.Count);
+		var walletVirtualOutput = Assert.Single(st1.ForeignVirtualOutputs);
+		Assert.Equal(2, walletVirtualOutput.OutPoints.Count);
 
 		Transaction t2 = Transaction.Create(network);
 
@@ -125,8 +127,8 @@ public class SmartTransactionTests
 		t2.Outputs.Add(txout4);
 		SmartTransaction st2 = new(t2);
 
-		Assert.Single(st2.ForeignVirtualOutputs);
-		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
+		walletVirtualOutput = Assert.Single(st2.ForeignVirtualOutputs);
+		Assert.Equal(2, walletVirtualOutput.OutPoints.Count);
 	}
 
 	[Fact]
@@ -146,8 +148,8 @@ public class SmartTransactionTests
 		st1.TryAddWalletInput(sc);
 		st1.TryAddWalletInput(sc2);
 
-		Assert.Single(st1.WalletVirtualInputs);
-		Assert.Equal(2, st1.WalletVirtualInputs.First().Coins.Count);
+		var walletVirtualInput = Assert.Single(st1.WalletVirtualInputs);
+		Assert.Equal(2, walletVirtualInput.Coins.Count);
 	}
 
 	[Fact]
@@ -167,9 +169,9 @@ public class SmartTransactionTests
 		st1.TryAddWalletOutput(sc);
 		st1.TryAddWalletOutput(sc2);
 
-		Assert.Single(st1.WalletVirtualOutputs);
-		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
-		Assert.Equal(2, st1.WalletVirtualOutputs.First().Coins.Count);
+		var walletVirtualOutput = Assert.Single(st1.WalletVirtualOutputs);
+		Assert.Equal(Money.Coins(3), walletVirtualOutput.Amount);
+		Assert.Equal(2, walletVirtualOutput.Coins.Count);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()
@@ -285,5 +287,59 @@ public class SmartTransactionTests
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCancellation: isCancellation), defaultNetwork };
 		}
+	}
+
+	[Fact]
+	public async Task CrossUpdatesDoNotDeadlockAsync()
+	{
+		var tx = Transaction.Create(Network.Main);
+		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
+		tx.Outputs.Add(Money.Coins(1), new Key());
+
+		// Two instances of the same transaction (e.g. store and broadcast store) updating each other,
+		// which takes their locks in opposite orders if TryUpdate reads the other one under its own lock.
+		var a = new SmartTransaction(tx, new ChainHeight(5), BitcoinFactory.CreateUint256(), blockIndex: 1);
+		var b = new SmartTransaction(tx, Height.Mempool, labels: new LabelsArray("b"));
+
+		var ab = Task.Run(() => { for (var i = 0; i < 20_000; i++) { a.TryUpdate(b); } });
+		var ba = Task.Run(() => { for (var i = 0; i < 20_000; i++) { b.TryUpdate(a); } });
+
+		await Task.WhenAll(ab, ba).WaitAsync(TimeSpan.FromSeconds(10));
+
+		Assert.Equal(new ChainHeight(5), b.Height);
+		Assert.Contains("b", (IEnumerable<string>)a.Labels);
+	}
+
+	/// <summary>
+	/// Make sure that <see cref="SmartTransaction.WalletInputs"/> can be modified while being iterated.
+	/// </summary>
+	/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/issues/14824"/>
+	[Fact]
+	public void WalletInputsCanBeEnumeratedWhileAddingInputs()
+	{
+		var km = ServiceFactory.CreateKeyManager();
+		var coins = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m)).ToArray();
+		var tx = Transaction.Create(Network.Main);
+
+		foreach (var coin in coins)
+		{
+			tx.Inputs.Add(coin.Outpoint);
+		}
+
+		tx.Outputs.Add(Money.Coins(2.9m), new Key());
+		var stx = new SmartTransaction(tx, Height.Mempool);
+
+		Assert.True(stx.TryAddWalletInput(coins[0]));
+		Assert.Equal(2, stx.ForeignInputs.Count);
+
+		// Iterate over "WalletInputs" ...
+		foreach (var _ in stx.WalletInputs)
+		{
+			// ... and add an input to the collection at the same time. Must not throw any exception.
+			Assert.True(stx.TryAddWalletInput(coins[1]));
+		}
+
+		Assert.Equal(2, stx.WalletInputs.Count);
+		Assert.Single(stx.ForeignInputs);
 	}
 }

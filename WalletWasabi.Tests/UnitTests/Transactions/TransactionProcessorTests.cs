@@ -913,13 +913,13 @@ public class TransactionProcessorTests
 
 		// Spend the received coin
 		var tx1 = CreateSpendingTransaction(createdCoin, BitcoinFactory.CreateScript());
-		tx1.Labels = "foo";
+		tx1.SetLabels("foo");
 
 		// Add the transaction to the tx store manually and don't process it.
 		transactionProcessor.TransactionStore.AddOrUpdate(tx1);
 
 		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
-		tx2.Labels = "bar";
+		tx2.SetLabels("bar");
 		transactionProcessor.Process(tx2);
 
 		// Ensure even if only tx2 was processed, the reference of the registered spender is to tx1
