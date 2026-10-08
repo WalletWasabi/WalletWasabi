@@ -361,9 +361,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-		RoundParametersFactory roundParametersFactory = (rate, amount, minInputCountByRound) =>
-			RoundParameters.Create(cfg, rate, amount, minInputCountByRound) with { MaxVsizeAllocationPerAlice = 0 };
-		Round round = WabiSabiFactory.CreateRound(roundParametersFactory(new FeeRate(10m), Money.Zero));
+		RoundParametersFactory roundParametersFactory = (rate, minInputCountByRound) =>
+			RoundParameters.Create(cfg, rate, minInputCountByRound) with { MaxVsizeAllocationPerAlice = 0 };
+		Round round = WabiSabiFactory.CreateRound(roundParametersFactory(new FeeRate(10m)));
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(roundParametersFactory).CreateAndStartAsync(round);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 

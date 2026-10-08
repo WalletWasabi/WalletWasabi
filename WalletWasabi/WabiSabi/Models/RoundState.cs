@@ -1,8 +1,6 @@
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using CredentialIssuerParameters = WabiSabi.Crypto.CredentialIssuerParameters;
 
 namespace WalletWasabi.WabiSabi.Models;
@@ -34,7 +32,7 @@ public record RoundState(uint256 Id,
 		CoinjoinState.Parameters.MaxAmountCredentialValue,
 		CoinjoinState.Parameters.MaxVsizeCredentialValue,
 		CoinjoinState.Parameters.MaxVsizeAllocationPerAlice,
-		CoinjoinState.Parameters.MaxSuggestedAmount,
+		maxSuggestedAmount: CoinjoinState.Parameters.MaxAllowedInputAmount, // For backward compatibility.
 		CoinjoinState.Parameters.CoordinationIdentifier,
 		AmountCredentialIssuerParameters,
 		VsizeCredentialIssuerParameters));

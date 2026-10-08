@@ -1,10 +1,7 @@
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-
 
 public abstract record RoundUpdateMessage
 {
@@ -108,8 +105,7 @@ public static class RoundStateUpdater
 
 		if (newRoundStates.Any(r => !r.IsRoundIdMatching()))
 		{
-			throw new InvalidOperationException(
-				"Coordinator is cheating by creating rounds that do not match the parameters.");
+			throw new InvalidOperationException("Coordinator is cheating by creating rounds that do not match the parameters.");
 		}
 
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
