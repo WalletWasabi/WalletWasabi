@@ -1,34 +1,31 @@
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public record Cluster(IImmutableSet<HdPubKey> Keys)
+public class Cluster(ImmutableHashSet<HdPubKey> keys) : IEquatable<Cluster>
 {
 	private readonly Lock _lock = new();
-	public LabelsArray Labels => LabelsArray.Merge(KeysSet.Select(x => x.Labels));
+	public LabelsArray Labels => LabelsArray.Merge(GetKeys().Select(x => x.Labels));
 
-	private IImmutableSet<HdPubKey> KeysSet
+	private ImmutableHashSet<HdPubKey> _keys = keys;
+
+	private ImmutableHashSet<HdPubKey> GetKeys()
 	{
-		get
+		lock (_lock)
 		{
-			lock (_lock)
-			{
-				return field;
-			}
+			return _keys;
 		}
-
-		set
-		{
-			lock (_lock)
-			{
-				field = value;
-			}
-		}
-	} = Keys;
+	}
 
 	public void Merge(Cluster cluster)
 	{
-		KeysSet = KeysSet.Union(cluster.KeysSet);
+		// Variable is used to avoid locking the other cluster, which could lead to a deadlock.
+		var otherClusterKeys = cluster.GetKeys();
 
-		foreach (var key in cluster.KeysSet)
+		lock (_lock)
+		{
+			_keys = _keys.Union(otherClusterKeys);
+		}
+
+		foreach (var key in otherClusterKeys)
 		{
 			key.Cluster = this;
 		}
@@ -36,15 +33,16 @@ public record Cluster(IImmutableSet<HdPubKey> Keys)
 
 	public override string ToString() => Labels;
 
+	public override bool Equals(object? obj) => Equals(obj as Cluster);
 	public virtual bool Equals(Cluster? other) =>
-		other is not null && KeysSet.SetEquals(other.KeysSet);
+		other is not null && GetKeys().SetEquals(other.GetKeys());
 
 	/// <remarks>Hash code is computed for a set. Therefore, an order-independent hash function must be used (e.g. XOR).</remarks>
 	public override int GetHashCode()
 	{
 		int hash = 0;
 
-		foreach (var key in KeysSet)
+		foreach (var key in GetKeys())
 		{
 			hash ^= key.GetHashCode();
 		}
