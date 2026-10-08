@@ -163,7 +163,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
 
 		// Run the synchronizer until we're caught up
 		while (true)
@@ -180,6 +180,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 				var currentHashAtTip = await RpcClient.GetBlockHashAsync((int)(uint)tip.Header.Height, cancellationToken).ConfigureAwait(false);
 				if (currentHashAtTip == tip.Header.BlockHash)
 				{
+					FilterHeaderChain.SetServerTipHeight((uint)currentHeight);
 					break; // Fully synced and on the right chain
 				}
 			}
@@ -244,7 +245,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			synchronizationState);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
 
 		// Run the synchronizer until we're caught up
 		while (true)
