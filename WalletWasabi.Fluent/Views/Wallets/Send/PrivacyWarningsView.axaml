@@ -219,9 +219,15 @@
         </DataTemplate>
       </ItemsControl.DataTemplates>
     </ItemsControl>
-    <TextBlock Text="Improve this transaction:" HorizontalAlignment="Center"
+
+    <TextBlock Text="Allowed number of additional coins:" HorizontalAlignment="Center"
                Margin="0 10 0 5"
                IsVisible="{Binding !!Suggestions.Count}" />
+
+    <Slider Width="150" Minimum="1" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True"
+            Value="{Binding MaxAdditionalCoins, Mode=TwoWay}" />
+    <TextBlock Text="{Binding MaxAdditionalCoins}" VerticalAlignment="Center" Width="15" />
+
     <ListBox ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion}">
       <Interaction.Behaviors>
         <ListBoxPreviewBehavior PreviewItem="{Binding PreviewSuggestion, Mode=TwoWay}" />

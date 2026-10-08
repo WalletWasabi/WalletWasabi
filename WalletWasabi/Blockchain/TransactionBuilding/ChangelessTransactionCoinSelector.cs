@@ -1,14 +1,6 @@
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -40,11 +32,10 @@ public static class ChangelessTransactionCoinSelector
 
 		StrategyParameters parameters = new(target, inputValues, inputCosts, maxInputCount);
 
-		SelectionStrategy[] strategies = new SelectionStrategy[]
-		{
+		SelectionStrategy[] strategies = [
 			new MoreSelectionStrategy(parameters),
 			new LessSelectionStrategy(parameters)
-		};
+		];
 
 		var tasks = strategies
 			.Select(strategy => Task.Run(
@@ -79,7 +70,11 @@ public static class ChangelessTransactionCoinSelector
 	/// <param name="inputEffectiveValues">Dictionary to map back the effective values to their original SmartCoin. </param>
 	/// <param name="selectedCoins">Out parameter that returns (non-grouped!) coins back.</param>
 	/// <returns><c>true</c> if a solution was found, <c>false</c> otherwise.</returns>
-	internal static bool TryGetCoins(SelectionStrategy strategy, Dictionary<SmartCoin[], long> inputEffectiveValues, [NotNullWhen(true)] out IReadOnlyList<SmartCoin>? selectedCoins, CancellationToken cancellationToken)
+	internal static bool TryGetCoins(
+		SelectionStrategy strategy,
+		Dictionary<SmartCoin[], long> inputEffectiveValues,
+		[NotNullWhen(true)] out IReadOnlyList<SmartCoin>? selectedCoins,
+		CancellationToken cancellationToken)
 	{
 		selectedCoins = null;
 
