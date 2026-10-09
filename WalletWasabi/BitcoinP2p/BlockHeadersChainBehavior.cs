@@ -11,8 +11,6 @@ public class BlockHeadersChainBehavior(
 	EventBus eventBus)
 	: ChainBehavior(blockHeaderChain)
 {
-	private static readonly TimeSpan MaxTipAge = TimeSpan.FromHours(24);
-
 	private int _lastPublishedHeight;
 
 	protected override void AttachCore()
@@ -40,7 +38,7 @@ public class BlockHeadersChainBehavior(
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
 			}
 			
-			if (tip is { HasHeader: true } && DateTimeOffset.UtcNow - tip.Header.BlockTime < MaxTipAge && currentHeight > filterHeaderChain.ServerTipHeight)
+			if (tip is { HasHeader: true } && currentHeight > filterHeaderChain.ServerTipHeight)
 			{
 				filterHeaderChain.SetServerTipHeight((uint)currentHeight);
 				eventBus.Publish(new NetworkTipHeightChanged((uint)currentHeight));
