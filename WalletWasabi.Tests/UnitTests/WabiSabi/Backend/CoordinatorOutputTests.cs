@@ -102,7 +102,6 @@ public class CoordinatorOutputTests
 		{
 			MinRegistrableAmount = minRegistrableAmount ?? DefaultMinRegistrableAmount,
 			MaxRegistrableAmount = Money.Coins(43_000m),
-			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 		}) with
 		{
 			MiningFeeRate = miningFeeRate ?? DefaultMiningFeeRate

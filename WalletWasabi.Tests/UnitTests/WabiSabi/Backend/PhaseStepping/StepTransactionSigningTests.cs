@@ -34,7 +34,6 @@ public class StepTransactionSigningTests
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 		};
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 

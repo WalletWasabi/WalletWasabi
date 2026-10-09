@@ -73,10 +73,7 @@ public static class WabiSabiFactory
 	}
 
 	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
-		RoundParameters.Create(
-			cfg,
-			new FeeRate(100m),
-			Money.Coins(Constants.MaximumNumberOfBitcoins));
+		RoundParameters.Create(cfg, new FeeRate(100m));
 
 	public static Round CreateRound(RoundParameters parameters) =>
 		new(parameters, InsecureRandom.Instance);
@@ -288,10 +285,7 @@ public static class WabiSabiFactory
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 	{
-		var roundParameters = RoundParameters.Create(
-				cfg,
-				round.Parameters.MiningFeeRate,
-				round.Parameters.MaxSuggestedAmount) with
+		var roundParameters = RoundParameters.Create(cfg, round.Parameters.MiningFeeRate) with
 		{
 			MinInputCountByRound = cfg.MinInputCountByBlameRound
 		};
@@ -350,10 +344,9 @@ public static class WabiSabiFactory
 	}
 
 	public static RoundParametersFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice) =>
-		(rate, maxSuggestedAmount, minInputCountByRound) => CreateRoundParameters(cfg) with
+		(rate, minInputCountByRound) => CreateRoundParameters(cfg) with
 		{
 			MinInputCountByRound = minInputCountByRound ?? cfg.MinInputCountByRound,
-			MaxSuggestedAmount = maxSuggestedAmount,
 			MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 		};
 
@@ -376,7 +369,6 @@ public static class WabiSabiFactory
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
-			MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice),
 
 			DoSSeverity = Money.Coins(1.0m),
 			DoSMinTimeForFailedToVerify = TimeSpan.FromDays(30),
