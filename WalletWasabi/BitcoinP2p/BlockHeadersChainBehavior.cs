@@ -38,7 +38,7 @@ public class BlockHeadersChainBehavior(
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
 			}
 
-			if (currentHeight > filterHeaderChain.ServerTipHeight && tip.HasHeader)
+			if (currentHeight > filterHeaderChain.ServerTipHeight)
 			{
 				filterHeaderChain.SetServerTipHeight((uint)currentHeight);
 				eventBus.Publish(new NetworkTipHeightChanged((uint)currentHeight));
