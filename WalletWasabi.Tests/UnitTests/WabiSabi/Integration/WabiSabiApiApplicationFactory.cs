@@ -63,7 +63,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<RoundParametersFactory>(s =>
 			{
 				var config = s.GetRequiredService<WabiSabiConfig>();
-				return (feeRate, maxSuggestedAmount, minInputCountByRound) => RoundParameters.Create(config, feeRate, maxSuggestedAmount);
+				return (feeRate, minInputCountByRound) => RoundParameters.Create(config, feeRate);
 			});
 			services.AddSingleton(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddSingleton(s => new CoinJoinScriptStore());
