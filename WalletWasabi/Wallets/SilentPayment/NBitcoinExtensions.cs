@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
-using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
-using NNostr.Client;
 
 namespace WalletWasabi.Wallets.SilentPayment;
 
@@ -48,7 +46,17 @@ public static class NBitcoinExtensions
 
 		// Apply tweak and return new key
 		using var tweakedKey = workingKey.TweakAdd(tweakHash);
-		return new Key(tweakedKey.ToBytes());
+		return new Key(tweakedKey.ToByteArray());
+	}
+
+	/// <summary>
+	/// Extension method to convert ECPrivKey to byte array.
+	/// </summary>
+	public static byte[] ToByteArray(this ECPrivKey key)
+	{
+		var bytes = new byte[32];
+		key.WriteToSpan(bytes);
+		return bytes;
 	}
 }
 
