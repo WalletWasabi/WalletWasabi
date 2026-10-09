@@ -86,11 +86,10 @@ public partial class Arena : PeriodicRunner
 
 	private void SetRoundStates()
 	{
-		// Order rounds ascending by max suggested amount, then ascending by input count.
+		// Order rounds ascending by input count.
 		// This will make sure WW2.0.1 clients register according to our desired order.
 		var rounds = Rounds
-			.OrderBy(x => x.Parameters.MaxSuggestedAmount)
-			.ThenBy(x => x.InputCount)
+			.OrderBy(x => x.InputCount)
 			.ToList();
 
 		_roundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableList();
@@ -121,7 +120,7 @@ public partial class Arena : PeriodicRunner
 					}
 
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.", round);
+					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}).", round);
 				}
 				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
@@ -474,7 +473,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
+			Logger.LogInfo("Created new round.", r);
 		}
 	}
 
