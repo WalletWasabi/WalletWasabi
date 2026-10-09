@@ -12,7 +12,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(NetPackagesVersion)" />
-    <PackageVersion Include="NNostr.Client" Version="0.0.55" />
+    <PackageVersion Include="Nostra.CSharp" Version="0.0.5" />
     <PackageVersion Include="SkiaSharp" Version="3.119.4" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.4" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
