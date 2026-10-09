@@ -180,6 +180,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 				var currentHashAtTip = await RpcClient.GetBlockHashAsync((int)(uint)tip.Header.Height, cancellationToken).ConfigureAwait(false);
 				if (currentHashAtTip == tip.Header.BlockHash)
 				{
+					FilterHeaderChain.SetServerTipHeight((uint)currentHeight);
 					break; // Fully synced and on the right chain
 				}
 			}

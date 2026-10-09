@@ -1,4 +1,3 @@
-using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Blockchain.Blocks;
@@ -17,41 +16,32 @@ public class BlockHeadersChainBehavior(
 	protected override void AttachCore()
 	{
 		base.AttachCore();
-		AttachedNode.StateChanged += AttachedNodeOnStateChanged;
 		AttachedNode.MessageReceived += AttachedNodeOnMessageReceived;
 		_lastPublishedHeight = Chain.Tip?.Height ?? 0;
 	}
 
 	protected override void DetachCore()
 	{
-		AttachedNode.StateChanged -= AttachedNodeOnStateChanged;
 		AttachedNode.MessageReceived -= AttachedNodeOnMessageReceived;
 		base.DetachCore();
 	}
 
-	private void AttachedNodeOnStateChanged(Node node, NodeState oldState)
-	{
-		if (node.State == NodeState.HandShaked)
-		{
-			var myBestFilterHeight = filterHeaderChain.ServerTipHeight;
-			var theirBestFilterHeight = AttachedNode.PeerVersion.StartHeight;
-			if (theirBestFilterHeight > myBestFilterHeight)
-			{
-				filterHeaderChain.SetServerTipHeight((uint)theirBestFilterHeight);
-				eventBus.Publish(new NetworkTipHeightChanged((uint)theirBestFilterHeight));
-			}
-		}
-	}
-
 	private void AttachedNodeOnMessageReceived(Node node, IncomingMessage message)
 	{
-		if (message.Message.Payload is HeadersPayload)
+		// At this point, (valid) headers are already processed by the base ChainBehavior.
+		if (message.Message.Payload is HeadersPayload && Chain.Tip is { } tip)
 		{
-			var currentHeight = Chain.Tip?.Height ?? 0;
+			var currentHeight = tip.Height;
 			if (currentHeight > _lastPublishedHeight)
 			{
 				_lastPublishedHeight = currentHeight;
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
+			}
+
+			if (currentHeight > filterHeaderChain.ServerTipHeight)
+			{
+				filterHeaderChain.SetServerTipHeight((uint)currentHeight);
+				eventBus.Publish(new NetworkTipHeightChanged((uint)currentHeight));
 			}
 		}
 	}

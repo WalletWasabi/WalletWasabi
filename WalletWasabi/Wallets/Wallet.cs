@@ -357,7 +357,7 @@ public class Wallet : BackgroundService
 			var lastFilterProcess = _lastFilterProcess;
 			var serverTipHeight = FilterHeaderChain.ServerTipHeight;
 
-			if (lastFilterProcess >= serverTipHeight)
+			if (serverTipHeight > ChainHeight.Genesis && lastFilterProcess >= serverTipHeight)
 			{
 				break;
 			}
