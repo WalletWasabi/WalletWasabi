@@ -293,7 +293,7 @@ public class Global
 
 		if (!Config.BlockOnlyMode)
 		{
-			manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus));
+			manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, EventBus));
 			manager.AddBehavior(new P2pBehavior(_mempoolService));
 		}
 
@@ -417,7 +417,7 @@ public class Global
 
 
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
 
 		if (supportsBlockFiltersResult.IsOk)
 		{

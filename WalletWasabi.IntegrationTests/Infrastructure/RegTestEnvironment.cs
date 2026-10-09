@@ -163,7 +163,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)
@@ -180,7 +180,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 				var currentHashAtTip = await RpcClient.GetBlockHashAsync((int)(uint)tip.Header.Height, cancellationToken).ConfigureAwait(false);
 				if (currentHashAtTip == tip.Header.BlockHash)
 				{
-					FilterHeaderChain.SetServerTipHeight((uint)currentHeight);
 					break; // Fully synced and on the right chain
 				}
 			}
@@ -207,7 +206,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
 
 		// Add behaviors for syncing block headers and compact filters
-		node.Behaviors.Add(new BlockHeadersChainBehavior(blockHeaderChain, FilterHeaderChain, EventBus));
+		node.Behaviors.Add(new BlockHeadersChainBehavior(blockHeaderChain, EventBus));
 		node.Behaviors.Add(new CompactFilterBehavior(synchronizationState, blockHeaderChain, EventBus));
 
 		// Start emitting tick events to drive the sync process
@@ -245,7 +244,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			synchronizationState);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)

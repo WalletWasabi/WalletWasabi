@@ -256,10 +256,10 @@ public static class FilterProviders
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain) =>
-		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, filterHeaderChain, cancellationToken);
+	public static MessageHandler<Unit> CreateFilterGenerator(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
+		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, filterHeaderChain, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		// Don't attempt synchronization without a valid tip hash
 		if (filterHeaderChain.TipHash is null)
@@ -278,7 +278,7 @@ public static class Synchronizer
 
 		if (response.IsOk)
 		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain).ConfigureAwait(false);
+			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
@@ -292,12 +292,15 @@ public static class Synchronizer
 		return Unit.Instance;
 	}
 
-	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain)
+	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		switch (response)
 		{
 			case FiltersResponse.AlreadyOnBestBlock:
 				// Already synchronized. Nothing to do.
+				var tip = filterHeaderChain.TipHeight;
+				filterHeaderChain.SetServerTipHeight(tip);
+				eventBus.Publish(new NetworkTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
@@ -308,6 +311,9 @@ public static class Synchronizer
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
 				var localTipHeight = filterStore.GetTip()?.Header.Height ?? 0;
+
+				filterHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
+				eventBus.Publish(new NetworkTipHeightChanged(newFiltersAvailable.BestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;
 				var newFilters = downloadedFilters.Where(x => localTipHeight < x.Header.Height).ToArray();
