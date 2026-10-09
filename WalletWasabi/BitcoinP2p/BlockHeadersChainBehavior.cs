@@ -1,14 +1,18 @@
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinP2p;
 
 public class BlockHeadersChainBehavior(
 	ConcurrentChain blockHeaderChain,
+	FilterHeaderChain filterHeaderChain,
 	EventBus eventBus)
 	: ChainBehavior(blockHeaderChain)
 {
+	private static readonly TimeSpan MaxTipAge = TimeSpan.FromHours(24);
+
 	private int _lastPublishedHeight;
 
 	protected override void AttachCore()
@@ -28,17 +32,24 @@ public class BlockHeadersChainBehavior(
 	{
 		if (message.Message.Payload is HeadersPayload)
 		{
-			var currentHeight = Chain.Tip?.Height ?? 0;
+			var tip = Chain.Tip;
+			var currentHeight = tip?.Height ?? 0;
 			if (currentHeight > _lastPublishedHeight)
 			{
 				_lastPublishedHeight = currentHeight;
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
+			}
+			
+			if (tip is { HasHeader: true } && DateTimeOffset.UtcNow - tip.Header.BlockTime < MaxTipAge && currentHeight > filterHeaderChain.ServerTipHeight)
+			{
+				filterHeaderChain.SetServerTipHeight((uint)currentHeight);
+				eventBus.Publish(new NetworkTipHeightChanged((uint)currentHeight));
 			}
 		}
 	}
 
 	public override object Clone()
 	{
-		return new BlockHeadersChainBehavior(Chain, eventBus);
+		return new BlockHeadersChainBehavior(Chain, filterHeaderChain, eventBus);
 	}
 }
