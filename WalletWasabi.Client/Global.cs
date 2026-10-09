@@ -417,7 +417,7 @@ public class Global
 
 
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
 
 		if (supportsBlockFiltersResult.IsOk)
 		{

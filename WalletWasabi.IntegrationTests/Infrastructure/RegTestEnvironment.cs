@@ -163,7 +163,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)
@@ -245,7 +245,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			synchronizationState);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)
