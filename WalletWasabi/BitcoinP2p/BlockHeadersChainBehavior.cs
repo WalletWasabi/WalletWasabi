@@ -28,17 +28,17 @@ public class BlockHeadersChainBehavior(
 
 	private void AttachedNodeOnMessageReceived(Node node, IncomingMessage message)
 	{
-		if (message.Message.Payload is HeadersPayload)
+		// At this point, (valid) headers are already processed by the base ChainBehavior.
+		if (message.Message.Payload is HeadersPayload && Chain.Tip is { } tip)
 		{
-			var tip = Chain.Tip;
-			var currentHeight = tip?.Height ?? 0;
+			var currentHeight = tip.Height;
 			if (currentHeight > _lastPublishedHeight)
 			{
 				_lastPublishedHeight = currentHeight;
 				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
 			}
-			
-			if (tip is { HasHeader: true } && currentHeight > filterHeaderChain.ServerTipHeight)
+
+			if (currentHeight > filterHeaderChain.ServerTipHeight && tip.HasHeader)
 			{
 				filterHeaderChain.SetServerTipHeight((uint)currentHeight);
 				eventBus.Publish(new NetworkTipHeightChanged((uint)currentHeight));
