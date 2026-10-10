@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using WalletWasabi.Services.Terminate;
 
@@ -57,11 +58,12 @@ public class JsonRpcServer : BackgroundService
 
 				if (request.HttpMethod == "POST")
 				{
-					using var reader = new StreamReader(request.InputStream);
-					string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
-
+					// Credentials are checked before the body is read, so an unauthenticated client cannot make the server buffer it.
 					if (IsAuthorized(context))
 					{
+						using var reader = new StreamReader(request.InputStream);
+						string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
+
 						var path = request.Url?.LocalPath ?? string.Empty;
 						string jsonResponse = string.Empty;
 
@@ -133,18 +135,19 @@ public class JsonRpcServer : BackgroundService
 		}
 	}
 
-	private bool IsAuthorized(HttpListenerContext context)
+	private bool IsAuthorized(HttpListenerContext context) =>
+		context.User?.Identity is HttpListenerBasicIdentity identity
+		&& CredentialsMatch(identity.Name, identity.Password, _config.JsonRpcUser, _config.JsonRpcPassword);
+
+	/// <summary>Compares SHA-256 digests in fixed time, so neither the content nor the length of a credential leaks through timing.</summary>
+	internal static bool CredentialsMatch(string? user, string? password, string? expectedUser, string? expectedPassword)
 	{
-		var user = context.User;
-		if (user is null)
-		{
-			return false;
-		}
+		// Single & on purpose: both comparisons always run.
+		return Matches(user, expectedUser) & Matches(password, expectedPassword);
 
-		var identity = (HttpListenerBasicIdentity?)user.Identity;
-		return CheckValidCredentials(identity);
+		static bool Matches(string? actual, string? expected) =>
+			CryptographicOperations.FixedTimeEquals(
+				SHA256.HashData(Encoding.UTF8.GetBytes(actual ?? "")),
+				SHA256.HashData(Encoding.UTF8.GetBytes(expected ?? "")));
 	}
-
-	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity) =>
-		identity is not null && identity.Name == _config.JsonRpcUser && identity.Password == _config.JsonRpcPassword;
 }
