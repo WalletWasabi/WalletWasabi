@@ -48,7 +48,7 @@ public class HwiEnumerateEntry
 			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => WalletType.Ledger,
 			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => WalletType.Trezor,
 			HardwareWalletModels.Jade => WalletType.Jade,
-			HardwareWalletModels.BitBox02_BTCOnly => WalletType.BitBox,
+			HardwareWalletModels.BitBox02_BTCOnly or HardwareWalletModels.BitBox02_Multi or HardwareWalletModels.BitBox02_Nova_BTCOnly or HardwareWalletModels.BitBox02_Nova_Multi => WalletType.BitBox,
 			_ => WalletType.Hardware
 		};
 
