@@ -119,7 +119,7 @@ public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record NetworkTipHeightChanged(uint Height);
 public record ClientTipHeightChanged(uint Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
-public record NewSoftwareVersionInstallerAvailable(string InstallerPath);
+public record NewSoftwareVersionInstallerAvailable(string InstallerPath, string InstallerSha256);
 
 public record InstallOnClosedPreferenceChanged(bool InstallOnClose);
 public record TorConnectionStateChanged(bool IsTorRunning);

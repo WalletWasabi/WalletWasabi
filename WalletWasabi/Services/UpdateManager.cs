@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using NBitcoin.Crypto;
 using NNostr.Client;
 using WalletWasabi.BundledApps;
@@ -95,17 +96,19 @@ public static class ReleaseDownloader
 {
 	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker();
 
-	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
-		ForOfficiallySupportedOSes(httpClientFactory, eventBus, GetInstallerName);
+	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus, string installersDirectory) =>
+		ForOfficiallySupportedOSes(httpClientFactory, eventBus, installersDirectory, GetInstallerName);
 
 	internal static AsyncReleaseDownloader ForOfficiallySupportedOSes(
 		IHttpClientFactory httpClientFactory,
 		EventBus eventBus,
+		string installersDirectory,
 		Func<Version, string> getInstallerName) =>
 		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(
 			httpClientFactory,
 			eventBus,
 			releaseInfo,
+			installersDirectory,
 			getInstallerName(releaseInfo.Version),
 			cancellationToken);
 
@@ -123,139 +126,193 @@ public static class ReleaseDownloader
 			return Task.CompletedTask;
 		};
 
+	private const string SignedSha256SumsFileName = "SHA256SUMS.asc";
+	private const string WasabiSignatureFileName = "SHA256SUMS.wasabisig";
+
 	// Downloads and verifies a new Wasabi release version
 	private static async Task DownloadNewWasabiReleaseVersionAsync(
 		IHttpClientFactory httpClientFactory,
 		EventBus eventBus,
 		ReleaseInfo releaseInfo,
+		string installersDirectory,
 		string installerFileName,
 		CancellationToken cancellationToken)
 	{
-		var installDirectory = GetInstallDirectory(releaseInfo);
+		foreach (var assetName in new[] { SignedSha256SumsFileName, WasabiSignatureFileName, installerFileName })
+		{
+			if (!releaseInfo.Assets.TryGetValue(assetName, out var uri))
+			{
+				Logger.LogError($"Release {releaseInfo.Version} has no '{assetName}' asset.");
+				return;
+			}
 
-		// Download signature files in parallel
-		var sha256SumsTask    = DownloadFileAsync(releaseInfo.Assets["SHA256SUMS"]);
-		var sha256SumsAscTask = DownloadFileAsync(releaseInfo.Assets["SHA256SUMS.asc"]);
-		var sha256SumsWasTask = DownloadFileAsync(releaseInfo.Assets["SHA256SUMS.wasabisig"]);
-		await Task.WhenAll(sha256SumsTask, sha256SumsAscTask, sha256SumsWasTask).ConfigureAwait(false);
+			if (uri.Scheme is not ("http" or "https"))
+			{
+				Logger.LogError($"Can't download '{assetName}' from '{uri}'. Only http urls are supported.");
+				return;
+			}
+		}
 
-		// Verify signatures
-		await VerifySha256SumsFileAsync(sha256SumsAscTask.Result, sha256SumsWasTask.Result, cancellationToken).ConfigureAwait(false);
+		var installDirectory = GetInstallDirectory(installersDirectory, releaseInfo);
+
+		// Download and check the signed hash list before downloading the installer. A list that fails the check is
+		// removed so that it is fetched again next time.
+		await Task.WhenAll(DownloadFileAsync(SignedSha256SumsFileName), DownloadFileAsync(WasabiSignatureFileName)).ConfigureAwait(false);
+		string[] sha256Sums;
+		try
+		{
+			sha256Sums = await ReadVerifiedSha256SumsAsync(installDirectory, cancellationToken).ConfigureAwait(false);
+		}
+		catch (Exception e) when (e is not OperationCanceledException)
+		{
+			TryDelete(Path.Combine(installDirectory, SignedSha256SumsFileName));
+			TryDelete(Path.Combine(installDirectory, WasabiSignatureFileName));
+			throw;
+		}
+
+		var expectedHash = GetExpectedHash(sha256Sums, installerFileName);
 
 		Logger.LogInfo("Trying to download new version.");
 
-		// Find appropriate installer for current platform
-		var installerUriResult = GetInstallerUri(installerFileName);
-		if (!installerUriResult.IsOk)
-		{
-			Logger.LogError(installerUriResult.Error);
-			installDirectory.Delete(true);
-			return;
-		}
-
-		var installerUri = installerUriResult.Value;
-
-		if (!installerUri.Scheme.StartsWith("http") || !installerUri.IsAbsoluteUri)
-		{
-			Logger.LogError($"Can't download installer file '{installerFileName}' from '{installerUri}'. Only absolute http url are supported.");
-			installDirectory.Delete(true);
-			return;
-		}
-
-		var installerFilePath = await DownloadFileAsync(installerUri).ConfigureAwait(false);
+		var installerFilePath = await DownloadFileAsync(installerFileName).ConfigureAwait(false);
 
 		Logger.LogInfo($"Installer downloaded to: {installerFilePath}");
 
-		// Verify installer hash match the expected one
-		var installerHash = await GetExpectedInstallerHashAsync().ConfigureAwait(false);
+		if (await HashFileAsync(installerFilePath, cancellationToken).ConfigureAwait(false) != expectedHash)
+		{
+			throw new InvalidOperationException("Downloaded file hash doesn't match expected hash.");
+		}
 
-		await VerifyInstallerHashAsync(installerFilePath, installerHash, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo("Installer verified successfully");
 
 		// Notify UI that there is an installer ready.
 		var updateStatus = new UpdateStatus(ClientVersion: releaseInfo.Version, ClientUpToDate: false, IsReadyToInstall: true);
 		eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
 
-		// Set installer file path, so on exit we can launch the installer.
-		eventBus.Publish(new NewSoftwareVersionInstallerAvailable(installerFilePath));
-		return;
+		// Set installer file path and hash, so on exit we can check and launch the installer.
+		eventBus.Publish(new NewSoftwareVersionInstallerAvailable(installerFilePath, expectedHash));
 
-		Task<string> DownloadFileAsync(Uri uri)
+		// Only the verified installer is kept; earlier downloads are no longer needed.
+		foreach (var otherDirectory in Directory.GetDirectories(installersDirectory).Where(d => d != installDirectory))
 		{
-			var filePath = Path.Combine(installDirectory.FullName, uri.Segments[^1]);
-			return File.Exists(filePath)
-				? Task.FromResult(filePath)
-				: DownloadAsync(httpClientFactory, uri, filePath, cancellationToken);
+			await IoHelpers.TryDeleteDirectoryAsync(otherDirectory).ConfigureAwait(false);
 		}
 
-		Result<Uri, string> GetInstallerUri(string filename) =>
-			releaseInfo.Assets.TryGetValue(filename, out var uri)
-			? uri
-			: Result<Uri, string>.Fail($"There is no file '{filename}'.");
+		return;
 
-		async Task<string> GetExpectedInstallerHashAsync()
+		Task<string> DownloadFileAsync(string assetName)
 		{
-			var lines = await File.ReadAllLinesAsync(sha256SumsAscTask.Result, cancellationToken).ConfigureAwait(false);
-			var s = lines.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-				.Where(a => a.Length == 2)
-				.Select(a => (Hash: a[0], FileName: a[1]))
-				.FirstOrDefault(a => a.FileName == installerFileName)
-				.Hash ?? throw new InvalidOperationException($"{installerFileName} was not found.");
-			return s;
+			var filePath = Path.Combine(installDirectory, assetName);
+			return File.Exists(filePath)
+				? Task.FromResult(filePath)
+				: DownloadAsync(httpClientFactory, releaseInfo.Assets[assetName], filePath, cancellationToken);
 		}
 	}
 
-	private static DirectoryInfo GetInstallDirectory(ReleaseInfo releaseInfo)
+	private static string GetInstallDirectory(string installersDirectory, ReleaseInfo releaseInfo)
 	{
-		var installDirectoryPath = Path.Combine(Path.GetTempPath(), $"wasabi-installer-{releaseInfo.Version}");
-		var installDirectory = Directory.CreateDirectory(installDirectoryPath);
+		var installDirectory = Path.Combine(installersDirectory, releaseInfo.Version.ToString());
+
+		if (OperatingSystem.IsWindows())
+		{
+			// Windows inherits the per-user profile ACLs.
+			Directory.CreateDirectory(installDirectory);
+			return installDirectory;
+		}
+
+		// Owner-only on Unix: the installer runs on exit, long after it was verified, so nobody else may be able to
+		// write here. New directories get the mode in one step; pre-existing ones are tightened explicitly.
+		var ownerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+		Directory.CreateDirectory(installDirectory, ownerOnly);
+		File.SetUnixFileMode(installersDirectory, ownerOnly);
+		File.SetUnixFileMode(installDirectory, ownerOnly);
 		return installDirectory;
+	}
+
+	/// <summary>Removes the installers of versions that are not newer than the running one.</summary>
+	public static async Task DeleteObsoleteInstallersAsync(string installersDirectory, Version currentVersion)
+	{
+		if (!Directory.Exists(installersDirectory))
+		{
+			return;
+		}
+
+		foreach (var directory in Directory.GetDirectories(installersDirectory))
+		{
+			if (Version.TryParse(Path.GetFileName(directory), out var version)
+				&& version <= currentVersion
+				&& !await IoHelpers.TryDeleteDirectoryAsync(directory).ConfigureAwait(false))
+			{
+				Logger.LogWarning($"Could not delete the obsolete installer directory '{directory}'.");
+			}
+		}
 	}
 
 	private static async Task<string> DownloadAsync(IHttpClientFactory httpClientFactory, Uri uri, string filePath, CancellationToken cancellationToken)
 	{
-		File.Delete(filePath);
-		var httpClient = httpClientFactory.CreateClient($"{uri.Host}-installers");
-		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UserAgentGetter());
-		using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-		var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-		response.EnsureSuccessStatusCode();
-		var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-		using var fileStream = new FileStream(filePath, FileMode.Create);
-		await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
+		// Download to a temporary name so an interrupted download is never taken for a complete file.
+		var partialFilePath = filePath + ".part";
+		try
+		{
+			var httpClient = httpClientFactory.CreateClient($"{uri.Host}-installers");
+			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UserAgentGetter());
+			using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+			using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			response.EnsureSuccessStatusCode();
+			var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+			using (var fileStream = new FileStream(partialFilePath, FileMode.Create))
+			{
+				await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
+			}
+
+			File.Move(partialFilePath, filePath, overwrite: true);
+		}
+		catch
+		{
+			TryDelete(partialFilePath);
+			throw;
+		}
+
 		return filePath;
 	}
 
-	private static async Task VerifySha256SumsFileAsync(string sha256SumsAscFilePath, string wasabiSignatureFilePath,
-		CancellationToken cancellationToken)
+	/// <summary>Returns the lines of SHA256SUMS.asc after checking the Wasabi signature over the same bytes.</summary>
+	private static async Task<string[]> ReadVerifiedSha256SumsAsync(string installDirectory, CancellationToken cancellationToken)
 	{
-		// Read the content file
-		byte[] bytes = await File.ReadAllBytesAsync(sha256SumsAscFilePath, cancellationToken).ConfigureAwait(false);
-		var computedHash = new uint256(SHA256.HashData(bytes));
+		byte[] bytes = await File.ReadAllBytesAsync(Path.Combine(installDirectory, SignedSha256SumsFileName), cancellationToken).ConfigureAwait(false);
+		var signatureText = await File.ReadAllTextAsync(Path.Combine(installDirectory, WasabiSignatureFileName), cancellationToken).ConfigureAwait(false);
+		var wasabiSignature = ECDSASignature.FromDER(Convert.FromBase64String(signatureText));
 
-		// Read the signature file
-		var signatureText = await File.ReadAllTextAsync(wasabiSignatureFilePath, cancellationToken).ConfigureAwait(false);
-		var signatureBytes = Convert.FromBase64String(signatureText);
-
-		var wasabiSignature = ECDSASignature.FromDER(signatureBytes);
-
-		var pubKey = new PubKey(Constants.WasabiPubKey);
-
-		if (!pubKey.Verify(computedHash, wasabiSignature))
+		if (!new PubKey(Constants.WasabiPubKey).Verify(new uint256(SHA256.HashData(bytes)), wasabiSignature))
 		{
 			throw new InvalidOperationException("Invalid wasabi signature.");
 		}
+
+		return Encoding.UTF8.GetString(bytes).Split('\n');
 	}
 
-	private static async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash, CancellationToken cancellationToken)
-	{
-		var bytes1 = await File.ReadAllBytesAsync(installerFilePath, cancellationToken).ConfigureAwait(false);
-		var computedHash = SHA256.HashData(bytes1);
-		var downloadedHash = Convert.ToHexString(computedHash).ToLower();
+	private static string GetExpectedHash(string[] sha256Sums, string installerFileName) =>
+		sha256Sums
+			.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+			.Where(a => a.Length == 2)
+			.FirstOrDefault(a => a[1] == installerFileName)?[0]
+			?? throw new InvalidOperationException($"{installerFileName} was not found.");
 
-		if (expectedHash != downloadedHash)
+	internal static async Task<string> HashFileAsync(string filePath, CancellationToken cancellationToken)
+	{
+		using var stream = File.OpenRead(filePath);
+		return Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false));
+	}
+
+	private static void TryDelete(string filePath)
+	{
+		try
 		{
-			throw new InvalidOperationException("Downloaded file hash doesn't match expected hash.");
+			File.Delete(filePath);
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			// Best effort; the next download overwrites it anyway.
 		}
 	}
 
@@ -281,7 +338,7 @@ public static class ReleaseDownloader
 
 public static class Installer
 {
-	public static void StartInstallingNewVersion(string installerPath)
+	public static void StartInstallingNewVersion(string installerPath, string expectedSha256)
 	{
 		try
 		{
@@ -289,6 +346,14 @@ public static class Installer
 			if (!File.Exists(installerPath))
 			{
 				throw new FileNotFoundException(installerPath);
+			}
+
+			// Verified at download time, but that may have been hours ago. Defence in depth: check again before running it.
+			if (!IsInstallerIntact(installerPath, expectedSha256))
+			{
+				Logger.LogError($"Installer '{installerPath}' no longer matches the hash it was verified with and will not be run. Deleting it.");
+				IoHelpers.TryDeleteDirectoryAsync(Path.GetDirectoryName(installerPath)!).GetAwaiter().GetResult();
+				return;
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
@@ -324,4 +389,7 @@ public static class Installer
 			Logger.LogError("Failed to install latest release. File might be corrupted.", ex);
 		}
 	}
+
+	public static bool IsInstallerIntact(string installerPath, string expectedSha256) =>
+		ReleaseDownloader.HashFileAsync(installerPath, CancellationToken.None).GetAwaiter().GetResult() == expectedSha256;
 }

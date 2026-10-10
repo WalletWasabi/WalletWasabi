@@ -503,6 +503,11 @@ public class Global
 
 	private void ConfigureWasabiUpdater(CancellationToken cancellationToken)
 	{
+		var installersDirectory = Path.Combine(DataDir, "Installers");
+
+		// The installers of this and any older version have done their job.
+		_ = ReleaseDownloader.DeleteObsoleteInstallersAsync(installersDirectory, Constants.ClientVersion);
+
 		if (Config.UseTor is TorMode.Disabled)
 		{
 			Logger.LogInfo("Update manager requires Tor. Aborting...");
@@ -517,7 +522,7 @@ public class Global
 			? ReleaseDownloader.AutoDownloadOff()
 			: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
 				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
-				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
+				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus, installersDirectory);
 
 		var wasabiVersionUpdater = Spawn("UpdateManager",
 			Service("Wasabi Version AutoUpdater",
