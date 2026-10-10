@@ -98,16 +98,16 @@ public static class EnvironmentHelpers
 	/// Executes a command with Bourne shell.
 	/// https://stackoverflow.com/a/47918132/2061103
 	/// </summary>
-	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
-		=> await ShellExecAndGetResultAsync(cmd, waitForExit, false).ConfigureAwait(false);
+	public static async Task ShellExecAsync(string cmd)
+		=> await ShellExecAndGetResultAsync(cmd, readResult: false).ConfigureAwait(false);
 
 	public static async Task<string> ShellExecAndGetResultAsync(string cmd)
-		=> await ShellExecAndGetResultAsync(cmd, true, true).ConfigureAwait(false);
+		=> await ShellExecAndGetResultAsync(cmd, readResult: true).ConfigureAwait(false);
 
 	/// <summary>
 	/// Executes a command with Bourne shell and returns Standard Output.
 	/// </summary>
-	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
+	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool readResult)
 	{
 		var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -122,35 +122,19 @@ public static class EnvironmentHelpers
 			WindowStyle = ProcessWindowStyle.Hidden
 		};
 
-		if (readResult)
+		using var process = new Process()
 		{
-			waitForExit = true;
-		}
-		string output = "";
+			StartInfo = startInfo
+		};
 
-		if (waitForExit)
+		process.StartWithExceptionLogging();
+
+		string output = readResult ? process.StandardOutput.ReadToEnd() : "";
+
+		await process.GracefulWaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+		if (process.ExitCode != 0)
 		{
-			using var process = new Process()
-			{
-				StartInfo = startInfo
-			};
-
-			process.StartWithExceptionLogging();
-
-			if (readResult)
-			{
-				output = process.StandardOutput.ReadToEnd();
-			}
-
-			await process.GracefulWaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-			if (process.ExitCode != 0)
-			{
-				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
-			}
-		}
-		else
-		{
-			using var process = Process.Start(startInfo);
+			Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
 		}
 
 		return output;

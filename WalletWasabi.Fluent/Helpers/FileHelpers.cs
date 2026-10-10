@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class FileHelpers
 {
-	public static async Task OpenFileInTextEditorAsync(string filePath)
+	public static Task OpenFileInTextEditorAsync(string filePath)
 	{
 		if (!File.Exists(filePath))
 		{
@@ -18,47 +18,34 @@ public static class FileHelpers
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			// If no associated application/json MimeType is found xdg-open opens return error
-			// but it tries to open it anyway using the console editor (nano, vim, other..)
-			await EnvironmentHelpers.ShellExecAsync($"which gedit &> /dev/null && gedit {filePath} || xdg-open {filePath}", waitForExit: false).ConfigureAwait(false);
+			using var process = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { filePath }, UseShellExecute = false });
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			using var process = Process.Start(new ProcessStartInfo("open") { ArgumentList = { "-e", filePath }, UseShellExecute = false });
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
+
+			try
+			{
+				openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated(Path.GetExtension(filePath));
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			using var process = openWithNotepad
+				? Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { filePath }, UseShellExecute = false })
+				: Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
 		}
 		else
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
-
-				try
-				{
-					openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated("json");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
-
-				if (openWithNotepad)
-				{
-					// Open file using Notepad.
-					using var notepadProcess = Process.Start(new ProcessStartInfo
-					{
-						FileName = "notepad.exe",
-						Arguments = filePath,
-						CreateNoWindow = true,
-						UseShellExecute = false
-					});
-					return; // Opened with notepad, return.
-				}
-			}
-
-			// Open file with the default editor.
-			using var defaultEditorProcess = Process.Start(new ProcessStartInfo
-			{
-				FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
-				Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
-				CreateNoWindow = true,
-				UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-			});
+			throw new PlatformNotSupportedException("Cannot open a text editor on this platform.");
 		}
+
+		return Task.CompletedTask;
 	}
 }
