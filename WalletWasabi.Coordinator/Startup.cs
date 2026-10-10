@@ -40,6 +40,7 @@ public class Startup(IConfiguration configuration)
 	public void ConfigureServices(IServiceCollection services)
 	{
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Coordinator"));
+		EnvironmentHelpers.CreateOwnerOnlyDirectory(dataDir);
 		Logger.Configure(Path.Combine(dataDir, "Logs.txt"));
 
 		services.AddMemoryCache();

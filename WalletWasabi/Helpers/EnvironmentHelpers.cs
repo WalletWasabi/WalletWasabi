@@ -53,16 +53,42 @@ public static class EnvironmentHelpers
 			}
 		}
 
-		if (Directory.Exists(directory))
-		{
-			DataDirDict.TryAdd(appName, directory);
-			return directory;
-		}
-
-		Directory.CreateDirectory(directory);
+		CreateOwnerOnlyDirectory(directory);
 
 		DataDirDict.TryAdd(appName, directory);
 		return directory;
+	}
+
+	/// <summary>
+	/// Creates a directory that only its owner can enter (mode 0700 on Unix). An existing directory only loses its
+	/// world-access bits, so a mode an operator widened on purpose, such as group access, is kept.
+	/// </summary>
+	/// <remarks>Runs before the logger is configured, so a file system without POSIX modes is tolerated silently.</remarks>
+	public static void CreateOwnerOnlyDirectory(string directory)
+	{
+		if (OperatingSystem.IsWindows())
+		{
+			Directory.CreateDirectory(directory);
+			return;
+		}
+
+		const UnixFileMode WorldAccess = UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute;
+
+		try
+		{
+			if (!Directory.Exists(directory))
+			{
+				Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+			}
+			else if ((File.GetUnixFileMode(directory) & WorldAccess) != UnixFileMode.None)
+			{
+				File.SetUnixFileMode(directory, File.GetUnixFileMode(directory) & ~WorldAccess);
+			}
+		}
+		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+		{
+			Directory.CreateDirectory(directory);
+		}
 	}
 
 
