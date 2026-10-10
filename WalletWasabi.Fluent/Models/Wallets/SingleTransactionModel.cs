@@ -20,4 +20,7 @@ public abstract class SingleTransactionModel : TransactionModel
 	public required IReadOnlyCollection<SmartCoin> WalletOutputs { get; init; }
 
 	public FeeRate? FeeRate { get; init; }
+
+	/// <summary>Estimated when the history was built; <c>null</c> when confirmed or unknown.</summary>
+	public TimeSpan? ConfirmationTime { get; init; }
 }

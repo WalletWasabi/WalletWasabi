@@ -29,20 +29,25 @@ public static class TransactionFeeHelper
 			[1008] = new( 1m)
 		});
 
-	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations? feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations? feeRateEstimations, Network network, TransactionSummary tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
 	{
-		if (TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
-		{
-			return estimate;
-		}
-
-		if (feeEstimates is null)
+		if (!TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates))
 		{
 			return null;
 		}
 
+		if (tx.Height is Height.ChainHeight)
+		{
+			return TimeSpan.Zero;
+		}
+
+		if (tx.UnconfirmedChainFeeRate is { } unconfirmedChainFeeRate && feeEstimates.TryEstimateConfirmationTime(unconfirmedChainFeeRate, out var estimate))
+		{
+			return estimate;
+		}
+
 		var availableCpfpInfo = await cpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
-		if (availableCpfpInfo.FirstOrDefault(x => x.Transaction.GetHash() == tx.Transaction.GetHash()) is not { } entry)
+		if (availableCpfpInfo.FirstOrDefault(x => x.Transaction.GetHash() == tx.GetHash()) is not { } entry)
 		{
 			return null;
 		}
