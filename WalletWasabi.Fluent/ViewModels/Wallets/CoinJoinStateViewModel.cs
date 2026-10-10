@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -151,9 +152,19 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Random.Shared.Next(60, 180)) };
 		_autoCoinJoinStartTimer.Tick += async (_, _) =>
 		{
-			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: false, false);
-
-			_autoCoinJoinStartTimer.Stop();
+			// async void on the UI thread: an exception here would take the whole app down.
+			try
+			{
+				await walletCoinjoinModel.StartAsync(stopWhenAllMixed: false, false);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError("Failed to start coinjoin automatically.", ex);
+			}
+			finally
+			{
+				_autoCoinJoinStartTimer.Stop();
+			}
 		};
 
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
