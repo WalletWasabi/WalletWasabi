@@ -3,7 +3,6 @@ using System.IO;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -136,12 +135,6 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddStartupTask<StartupTask>();
 		services.AddResponseCompression();
-		services.AddRequestTimeouts(options =>
-			options.DefaultPolicy =
-				new RequestTimeoutPolicy
-				{
-					Timeout = TimeSpan.FromSeconds(5)
-				});
 
 		if (config.PublishAsOnionService)
 		{
@@ -155,6 +148,5 @@ public class Startup(IConfiguration configuration)
 		app.UseRouting();
 		app.UseResponseCompression();
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
-		app.UseRequestTimeouts();
 	}
 }
