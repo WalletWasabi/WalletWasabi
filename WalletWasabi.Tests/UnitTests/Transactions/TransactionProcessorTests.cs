@@ -341,7 +341,7 @@ public class TransactionProcessorTests
 		int doubleSpendReceived = 0;
 		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 		{
-			var doubleSpentCoins = e.Result.SuccessfullyDoubleSpentCoins;
+			var doubleSpentCoins = e.Result.ReplacedCoins;
 			if (doubleSpentCoins.Count != 0)
 			{
 				var coin = Assert.Single(doubleSpentCoins);
@@ -400,6 +400,34 @@ public class TransactionProcessorTests
 		// Unconfirmed transaction must be removed from the mempool because there is confirmed tx now
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 		Assert.Empty(mempool);
+	}
+
+	[Fact]
+	public async Task ConfirmedDoubleSpendRestoresCoinsItDidNotSpendAsync()
+	{
+		// --tx0---> (A) --+-- tx2 (unconfirmed) ---> (someone else)
+		// --tx1---> (B) --+
+		//
+		// (A) --tx3 (confirmed)---> (someone else)   { tx2 is invalid now, so (B) is unspent again }
+		using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+
+		var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
+		var tx1 = CreateCreditingTransaction(transactionProcessor.NewKey("B").P2wpkhScript, Money.Coins(1.0m), height: 54321);
+		transactionProcessor.Process(tx0, tx1);
+		var coinA = tx0.Transaction.Outputs.AsCoins().First();
+		var coinB = tx1.Transaction.Outputs.AsCoins().First();
+
+		var tx2 = CreateSpendingTransaction([coinA, coinB], BitcoinFactory.CreateScript(), BitcoinFactory.CreateScript());
+		transactionProcessor.Process(tx2);
+		Assert.Empty(transactionProcessor.Coins);
+
+		var tx3 = CreateSpendingTransaction(coinA, BitcoinFactory.CreateScript(), height: 54322);
+		transactionProcessor.Process(tx3);
+
+		var unspent = Assert.Single(transactionProcessor.Coins);
+		Assert.Equal(coinB.Outpoint, unspent.Outpoint);
+		Assert.Empty(transactionProcessor.TransactionStore.MempoolStore.GetTransactions());
 	}
 
 	[Fact]
@@ -880,7 +908,7 @@ public class TransactionProcessorTests
 
 		transactionProcessor.Process(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		var relevant = transactionProcessor.Process(tx2);
 
 		Assert.False(relevant.IsNews);
@@ -918,7 +946,7 @@ public class TransactionProcessorTests
 		// Add the transaction to the tx store manually and don't process it.
 		transactionProcessor.TransactionStore.AddOrUpdate(tx1);
 
-		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsReplacement, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
+		var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Labels, tx1.IsSpeedup, tx1.IsCancellation, tx1.FirstSeen);
 		tx2.Labels = "bar";
 		transactionProcessor.Process(tx2);
 

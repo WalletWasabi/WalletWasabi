@@ -18,7 +18,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		uint256? blockHash = null,
 		int blockIndex = 0, // FIXME: unconfirmed/unknown txs are not in the genesis block
 		LabelsArray? labels = null,
-		bool isReplacement = false,
 		bool isSpeedup = false,
 		bool isCancellation = false,
 		DateTimeOffset firstSeen = default)
@@ -36,7 +35,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
-		IsReplacement = isReplacement;
 		IsSpeedup = isSpeedup;
 		IsCancellation = isCancellation;
 		_walletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
@@ -157,8 +155,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public LabelsArray Labels { get; set; }
 
 	public DateTimeOffset FirstSeen { get; private set; }
-
-	public bool IsReplacement { get; private set; }
 
 	public bool IsSpeedup { get; private set; }
 
@@ -348,11 +344,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		// If we have a flag set on the other, then we make sure it is set on this as well.
-		if (IsReplacement is false && tx.IsReplacement is true)
-		{
-			IsReplacement = true;
-			updated = true;
-		}
 		if (IsSpeedup is false && tx.IsSpeedup is true)
 		{
 			IsSpeedup = true;
@@ -378,11 +369,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 
 		return updated;
-	}
-
-	public void SetReplacement()
-	{
-		IsReplacement = true;
 	}
 
 	public void SetSpeedup()
