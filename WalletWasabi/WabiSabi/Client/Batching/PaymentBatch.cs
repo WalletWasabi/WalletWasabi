@@ -149,8 +149,19 @@ public class PaymentBatch(CoinsRegistry coins)
 
 	public bool AreThereUncertainPayments => SignedPayments.Any();
 
-	private bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
-		payment.SignedAttempts.Where(CanStillConfirm).All(attempt => attempt.Inputs.Any(inputs.Contains));
+	public ImmutableArray<Payment> GetPendingPayments()
+	{
+		lock (_syncObj)
+		{
+			return [.. PendingPayments];
+		}
+	}
+
+	public ImmutableArray<ImmutableArray<OutPoint>> GetFailedAttemptInputSets(Payment payment) =>
+		[.. payment.SignedAttempts.Where(CanStillConfirm).Select(attempt => attempt.Inputs)];
+
+	public bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
+		GetFailedAttemptInputSets(payment).All(attemptInputs => attemptInputs.Any(inputs.Contains));
 
 	private bool CanStillConfirm(SignedUnknownPayment attempt) =>
 		!attempt.Inputs.Any(input =>

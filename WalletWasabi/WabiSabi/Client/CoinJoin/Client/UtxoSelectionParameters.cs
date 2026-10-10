@@ -9,6 +9,11 @@ public record UtxoSelectionParameters(
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
+	public bool Allows(SmartCoin coin) =>
+		AllowedInputAmounts.Contains(coin.Amount)
+		&& AllowedInputScriptTypes.Contains(coin.ScriptType)
+		&& coin.EffectiveValue(MiningFeeRate) > Money.Zero;
+
 	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
