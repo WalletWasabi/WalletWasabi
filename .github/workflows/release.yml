@@ -8,17 +8,17 @@ on:
 
 jobs:
   debian-package-and-zips:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Run bash script
         run: sudo bash -x ./Contrib/release.sh debian
 
       - name: Upload debian package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: packages-for-debian
           path: ./packages/*.deb  # Adjust the path to your generated files
@@ -26,7 +26,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip & tar package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: packages-zip-tar
           path: |
@@ -36,22 +36,22 @@ jobs:
           if-no-files-found: error
 
   installer-for-windows:
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
 
     - name: Install WiX Toolset
       run: |
         choco install wixtoolset --version=3.14.1 --force
-        choco install 7zip.commandline
+        choco install 7zip.commandline --version=16.02.0.20170209
 
     - name: Install AzureSignTool
-      run: dotnet tool install --global AzureSignTool
+      run: dotnet tool install --global AzureSignTool --version 7.0.1
 
     - name: Build Windows Installer
       shell: bash
@@ -64,24 +64,24 @@ jobs:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
 
     - name: Upload windows installer
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: packages-for-windows
         path: ./packages/*  # Adjust the path to your generated files
         compression-level: 0
         if-no-files-found: error
   appimage-package:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Build AppImage
         run: sudo bash -x ./Contrib/release.sh appimage
 
       - name: Upload AppImage packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: packages-appimage
           path: ./packages/*.AppImage
@@ -89,11 +89,11 @@ jobs:
           if-no-files-found: error
 
   macos-packages-and-zips:
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Set up environment
         shell: bash
@@ -116,7 +116,7 @@ jobs:
           MAC_P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
 
       - name: Upload zip & dmg package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: packages-zip-dmg
           path: ./packages/*
@@ -126,38 +126,38 @@ jobs:
   sign-all-packages:
     permissions:
       contents: write # to create GitHub release (softprops/action-gh-release)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [debian-package-and-zips, appimage-package, installer-for-windows, macos-packages-and-zips]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Download package for Debian
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packages-for-debian
           path: ./packages
       - name: Download compressed packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packages-zip-tar
           path: ./packages
       - name: Download AppImage packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packages-appimage
           path: ./packages
       - name: Download windows packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packages-for-windows
           path: ./packages
       - name: Download zip & dmg packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: packages-zip-dmg
           path: ./packages
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v7
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
           gpg_private_key: ${{ secrets.SIGNING_PGP_KEY }}
           passphrase: ${{ secrets.SIGNING_PGP_PASSPHRASE }}
@@ -171,7 +171,7 @@ jobs:
       - name: Create release note
         run: bash -x ./Contrib/release.sh releasenote > ReleaseNote.md
       - name: Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           name: Wasabi Wallet ${{ github.ref_name }}
           files: ./packages/*
