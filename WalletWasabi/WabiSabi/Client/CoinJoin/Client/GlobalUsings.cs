@@ -6,3 +6,5 @@ global using WalletWasabi.WabiSabi.Coordinator.Models;
 global using WalletWasabi.WabiSabi.Coordinator.Rounds;
 global using WalletWasabi.WabiSabi.Models;
 global using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+global using WabiSabiClient = WabiSabi.Native.WabiSabiClient;
+global using CredentialIssuerParameters = WabiSabi.Crypto.CredentialIssuerParameters;

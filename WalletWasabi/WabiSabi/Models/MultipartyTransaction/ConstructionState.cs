@@ -12,7 +12,7 @@ public record ConstructionState : MultipartyTransactionState
 	{
 		var prevout = coin.TxOut;
 
-		if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+		if (!OwnershipProofProvider.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 		}

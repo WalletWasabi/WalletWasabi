@@ -110,7 +110,7 @@ public class SerializationTests
 	[Fact]
 	public void CredentialResponseSerialization()
 	{
-		var rnd = new InsecureRandom(1234);
+		var rnd = RandomnessProviders.CreateSeeded(1234).ToWasabiRandom();
 		var points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 		var scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
 		var issuerKey = new CredentialIssuerSecretKey(rnd);
@@ -134,7 +134,7 @@ public class SerializationTests
 	[Fact]
 	public void RegistrationMessageSerialization()
 	{
-		SecureRandom rnd = SecureRandom.Instance;
+		var rnd = RandomnessProviders.Secure.ToWasabiRandom();
 		var sk = new CredentialIssuerSecretKey(rnd);
 
 		var issuer = new CredentialIssuer(sk, rnd, 4_300_000_000_000);

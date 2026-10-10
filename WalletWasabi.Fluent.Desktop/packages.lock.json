@@ -750,7 +750,7 @@
           "NBitcoin": "[10.0.13, )",
           "NNostr.Client": "[0.0.55, )",
           "System.Linq.Async": "[7.0.1, )",
-          "WabiSabi": "[1.3.1, )"
+          "WabiSabi": "[1.4.3, )"
         }
       },
       "walletwasabi.client": {
@@ -1004,9 +1004,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -1287,9 +1287,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -1554,9 +1554,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -1821,9 +1821,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -2088,9 +2088,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -2334,9 +2334,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.3, )",
+        "resolved": "1.4.3",
+        "contentHash": "uh0dGW1YJXEdYy0qrB8H4JkfPyDkkEuJ801yx1hwlf46YBNeLkumDWsVoTZYW8C/tlzKdQAnuMYubyZVfS+gzQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }

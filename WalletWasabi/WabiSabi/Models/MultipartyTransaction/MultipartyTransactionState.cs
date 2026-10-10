@@ -57,7 +57,7 @@ public abstract record MultipartyTransactionState
 	{
 		var coinJoinInputCommitData = new CoinJoinInputCommitmentData(state.Parameters.CoordinationIdentifier, roundId);
 		var anyInvalidInput =
-			events.OfType<InputAdded>().Any(x => !OwnershipProof.VerifyCoinJoinInputProof(x.OwnershipProof, x.Coin.ScriptPubKey, coinJoinInputCommitData));
+			events.OfType<InputAdded>().Any(x => !OwnershipProofProvider.VerifyCoinJoinInputProof(x.OwnershipProof, x.Coin.ScriptPubKey, coinJoinInputCommitData));
 
 		if (anyInvalidInput)
 		{

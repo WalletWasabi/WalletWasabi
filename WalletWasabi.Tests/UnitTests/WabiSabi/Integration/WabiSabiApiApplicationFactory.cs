@@ -92,8 +92,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		while (round is null);
 
 		var arenaClient = new ArenaClient(
-			round.CreateAmountCredentialClient(InsecureRandom.Instance),
-			round.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			round.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			round.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			round.CoinjoinState.Parameters.CoordinationIdentifier,
 			wabiSabiHttpApiClient);
 		return arenaClient;
