@@ -365,25 +365,43 @@ fi
 #------------------------------------------------------------------------------------#
 if [ "$CREATE_APPIMAGE" = "yes" ]; then
 
-# Download appimagetool if not present
+# appimagetool for x86_64 (used to build both x64 and arm64 AppImages) and the AppImage runtime for each
+# architecture. Both are pinned to a release and hash checked on every run; the "continuous" tags they would
+# otherwise come from are mutable.
+# Hashes: gh api repos/<owner>/<repo>/releases/tags/<tag> --jq '.assets[] | "\(.name) \(.digest)"'
+APPIMAGETOOL_VERSION="1.9.1"
+APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+APPIMAGE_RUNTIME_VERSION="20251108"
+APPIMAGE_RUNTIME_X86_64_SHA256="2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d"
+APPIMAGE_RUNTIME_AARCH64_SHA256="00cbdfcf917cc6c0ff6d3347d59e0ca1f7f45a6df1a428a0d6d8a78664d87444"
 APPIMAGETOOL_DIR="$BUILD_DIR/appimagetool"
+
+# download_verified <destination> <url> <sha256>
+download_verified() {
+  curl -fL --retry 3 --retry-delay 2 --retry-all-errors -o "$1" "$2"
+  echo "$3  $1" | sha256sum -c -
+}
+
+rm -rf "$BUILD_DIR"/appimagetool*
 mkdir -p "$APPIMAGETOOL_DIR"
+download_verified "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage" \
+  "https://github.com/AppImage/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-x86_64.AppImage" \
+  "$APPIMAGETOOL_SHA256"
+download_verified "$APPIMAGETOOL_DIR/runtime-x86_64" \
+  "https://github.com/AppImage/type2-runtime/releases/download/$APPIMAGE_RUNTIME_VERSION/runtime-x86_64" \
+  "$APPIMAGE_RUNTIME_X86_64_SHA256"
+download_verified "$APPIMAGETOOL_DIR/runtime-aarch64" \
+  "https://github.com/AppImage/type2-runtime/releases/download/$APPIMAGE_RUNTIME_VERSION/runtime-aarch64" \
+  "$APPIMAGE_RUNTIME_AARCH64_SHA256"
+chmod +x "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage"
 
-# Download appimagetool for x86_64 (used to build both x64 and arm64 AppImages)
-if [ ! -x "$APPIMAGETOOL_DIR/appimagetool" ]; then
-  echo "Downloading appimagetool..."
-  curl -L -o "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage" \
-    "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
-  chmod +x "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage"
-
-  # Extract appimagetool (needed for environments without FUSE like Docker/CI)
-  pushd "$APPIMAGETOOL_DIR" || exit
-  ./appimagetool-x86_64.AppImage --appimage-extract > /dev/null 2>&1
-  mv squashfs-root/AppRun appimagetool
-  mv squashfs-root/usr .
-  rm -rf squashfs-root appimagetool-x86_64.AppImage
-  popd || exit
-fi
+# Extract appimagetool (needed for environments without FUSE like Docker/CI)
+pushd "$APPIMAGETOOL_DIR" || exit
+./appimagetool-x86_64.AppImage --appimage-extract > /dev/null
+mv squashfs-root/AppRun appimagetool
+mv squashfs-root/usr .
+rm -rf squashfs-root appimagetool-x86_64.AppImage
+popd || exit
 
 APPIMAGETOOL="$APPIMAGETOOL_DIR/appimagetool"
 
@@ -475,7 +493,7 @@ fi
 
 # Build the AppImage
 APPIMAGE_FILE_NAME="${PACKAGE_FILE_NAME_PREFIX}${APPIMAGE_ARCH_NAME}.AppImage"
-ARCH="$APPIMAGE_ARCH" "$APPIMAGETOOL" "$APPDIR" "$PACKAGES_DIR/$APPIMAGE_FILE_NAME"
+ARCH="$APPIMAGE_ARCH" "$APPIMAGETOOL" --runtime-file "$APPIMAGETOOL_DIR/runtime-$APPIMAGE_ARCH" "$APPDIR" "$PACKAGES_DIR/$APPIMAGE_FILE_NAME"
 
 done
 fi
