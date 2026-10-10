@@ -123,7 +123,8 @@ public class TransactionStore : IDisposable
 
 			if (result)
 			{
-				if (_sqliteStorage.BulkInsert(new SmartTransaction[] { tx }, upsert: true) == 0)
+				// Persist the tracked instance: when the transaction was already known, the merge happened on it, not on tx.
+				if (_sqliteStorage.BulkInsert(new SmartTransaction[] { Transactions[tx.GetHash()] }, upsert: true) == 0)
 				{
 					throw new UnreachableException($"Transaction '{tx.GetHash()}' was update in memory but not in database.");
 				}
@@ -145,7 +146,8 @@ public class TransactionStore : IDisposable
 				{
 					updated = true;
 
-					if (_sqliteStorage.BulkUpdate(tx) == 0)
+					// Persist the merged instance: the incoming one lacks the labels, first seen time and confirmation it was merged with.
+					if (_sqliteStorage.BulkUpdate(foundTx) == 0)
 					{
 						throw new UnreachableException($"Transaction '{tx.GetHash()}' was update in memory but not in database.");
 					}
