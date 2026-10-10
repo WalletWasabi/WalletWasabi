@@ -26,7 +26,7 @@ public class WasabiApplication
 		AppConfig = wasabiAppBuilder;
 
 		CheckVersionAndHelp();
-		Directory.CreateDirectory(Config.DataDir);
+		EnvironmentHelpers.CreateOwnerOnlyDirectory(Config.DataDir);
 		SetupLogger();
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
