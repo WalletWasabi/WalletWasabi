@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
@@ -21,7 +20,7 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public async Task LoginAsync(string password)
 	{
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password));
 		if (!isPasswordCorrect)
 		{
 			throw new InvalidOperationException("Incorrect passphrase.");
@@ -30,19 +29,15 @@ public partial class WalletAuthModel : ReactiveObject
 		CompleteLogin();
 	}
 
-	public async Task<WalletLoginResult> TryLoginAsync(string password)
+	public async Task<bool> TryLoginAsync(string password)
 	{
-		string? compatibilityPassword = null;
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
-
-		var compatibilityPasswordUsed = compatibilityPassword is { };
-
-		return new(isPasswordCorrect, compatibilityPasswordUsed);
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password));
+		return isPasswordCorrect;
 	}
 
 	public async Task<bool> TryPasswordAsync(string password)
 	{
-		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password, out _));
+		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password));
 	}
 
 	public void CompleteLogin()
