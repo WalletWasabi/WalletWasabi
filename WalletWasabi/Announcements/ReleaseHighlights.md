@@ -1,39 +1,34 @@
 ## Release Highlights
 
-#### 🌳 Taproot support for Payjoin
-#### 🔐 Stricter security controls across the wallet
-#### 🛡️ Enhanced coinjoin blame round protection
+#### ✅ Only use private funds for coinjoin payments
+#### 🛡️ Copy URLs before opening browser
+#### ⏪ Set gap limit in resync tool
+#### 📊 Extended coinjoin transaction fee details
+#### ⚙️ Bug fixes
 
 ## Release Summary
-Wasabi Wallet v2.8.3 adds Taproot support for Payjoin transactions, implements stricter security controls throughout the wallet, and strengthens verification of coinjoin blame rounds.
+Wasabi Wallet v2.8.4 includes extra privacy features, UX improvements, and bug fixes.
 
-### Deprecation of compatibility password feature
+### Deprecation of compatibility passphrase feature
 Please create a new wallet if you see the following message while logging in to your wallet:
 *Compatibility passphrase was used! Please consider generating a new wallet to ensure recoverability!*
 
-Five years ago, because of a clipboard bug on macOS (OSX) in the Avalonia UI framework, users who created wallets by pasting complex passwords (with non-ASCII characters) got their password silently truncated and corrupted. Wallets created with the buggy passwords would be unrecoverable using standard BIP39 tools.
+Five years ago, because of a clipboard bug on macOS in the Avalonia UI framework, users who created wallets by pasting complex passwords (with non-ASCII characters) got their passphrase silently truncated and corrupted. Wallets created with the buggy passphrase would be unrecoverable using standard BIP39 tools. The mechanism for working around that issue will soon be removed.
 
-The mechanism for working around that issue will soon be removed.
+### ✅ Only use private funds for coinjoin payments
+A new option was added to the coinjoin settings to hold batched payments if any participating input is below the anonymity score target. This safeguard prevents nonprivate/semiprivate inputs and coinjoin payment outputs from appearing in the same round.
 
-### 🌳 Payjoin now supports Taproot addresses
-Payjoin transactions now work with Taproot (P2TR) addresses. Payjoins are two-party collaborative transactions that improve fungibility.
+### 🛡️ Copy URLs before opening browser
+Menu options that navigate to external links now ask before launching your default browser. Pasting the URL into Tor Browser helps protect your IP address like Wasabi does.
 
-### 🔐 Stricter security controls
-Multiple security hardening measures have been implemented:
-- Payjoin now requires Tor to be enabled for enhanced privacy
-- Improved validation of compact block filters
-- Better network diversity by connecting to nodes in different net groups
-- Fixed value-conservation checks for Payjoin sender
+### ⏪ Set gap limit in resync tool
+Bitcoin wallets can generate an unlimited number of new addresses. During wallet recovery, only a limited number of consecutive unused addresses are scanned before the software assumes all of the coins are found. If a gap between addresses that received coins exceeded that limit, funds might not be detected. The resync tool now supports increasing the gap limit to help recover funds that are buried under many unused addresses.
 
-### 🛡️ Enhanced coinjoin blame round protection
-Improved coinjoin reliability and security:
-- Clients now verify blame round inputs match the original round
-- Fixed payment stalling when only non-private coins are temporarily banned
-- Wallet no longer participates in blame rounds when it didn't sign in the original round
+### 📊 Extended coinjoin transaction fee details
+Coinjoin transaction details previously showed a single value for the fee paid to miners, dust that couldn't fit into private outputs, and outgoing payments. These individual costs are now broken down and easy to audit.
 
-### 🎵 Music box always visible
-The coinjoin "music box" is now always visible in the UI for easier access to coinjoin status and controls.
-
-### 🐛 Bug fixes
-- Fixed blockchain info exchange rate provider
-- Improved handling of missing Windows startup registry key
+### ⚙️ Bug fixes
+- Exchange rates and fee rates no longer get stuck
+- Coinjoin payments now return from "in progress" to the queue and are attempted again once a previous signature is invalidated
+- Synchronization now ignores block headers from forks
+- Upgraded to Tor 0.4.9.13
