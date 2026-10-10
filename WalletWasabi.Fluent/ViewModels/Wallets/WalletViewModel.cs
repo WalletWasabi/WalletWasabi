@@ -35,9 +35,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isDonateButtonVisible;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinJoinButtonVisible;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isCoinjoinActive;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasMusicBoxBeenDisplayed;
 	[AutoNotify] private bool _isMusicBoxFlyoutDisplayed;
 
@@ -91,36 +92,27 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 this.WhenAnyValue(x => x.IsSendButtonVisible)
 			 .Subscribe(_ => IsDonateButtonVisible = IsSendButtonVisible && WalletModel.Network == Network.Main);
 
-		 WalletModel.Privacy.IsWalletPrivate
-			 .BindTo(this, x => x.AreAllCoinsPrivate);
-
 		 IsMusicBoxVisible = this.WhenAnyValue(
 			 x => x.HasMusicBoxBeenDisplayed,
 			 x => x.IsSelected,
-			 x => x.IsWalletBalanceZero,
-			 x => x.AreAllCoinsPrivate,
 			 x => x.IsPointerOver,
 			 x => x.IsMusicBoxFlyoutDisplayed,
-			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
+			 x => x.IsCoinjoinActive,
+			 (hasBeenDisplayed, isSelected, isPointerOver, isMusicBoxFlyoutDisplayed, isCoinjoinActive) =>
 			 {
-				 if (!hasBeenDisplayed)
+				 if (!WalletModel.IsCoinJoinEnabled)
 				 {
-					 if (!WalletModel.IsCoinJoinEnabled)
+					 if (!hasBeenDisplayed)
 					 {
 						 // If there is no coordinator configured and it's the first time, display MusicBox even without pointer over
 						 Task.Run(() => DelaySwitchHasMusicBoxBeenDisplayedAsync(CancellationToken.None));
-						 return isSelected && !WalletModel.IsCoinJoinEnabled;
+						 return isSelected;
 					 }
 
-					 HasMusicBoxBeenDisplayed = true;
+					 return isSelected && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 if (!WalletModel.IsCoinJoinEnabled)
-				 {
-					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
-				 }
-
-				 return isSelected && !hasNoBalance && !WalletModel.IsWatchOnlyWallet;
+				 return isSelected && isCoinjoinActive && !WalletModel.IsWatchOnlyWallet;
 			 });
 
 
@@ -174,6 +166,16 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			? new CoinJoinStateViewModel(uiContext, WalletModel, Wallet, WalletModel.Coinjoin!, Settings)
 			: null;
 
+		CoinJoinStateViewModel?.WhenAnyValue(x => x.IsCoinjoinActive)
+			.BindTo(this, x => x.IsCoinjoinActive);
+
+		// Coinjoin is not available for watch-only and hardware wallets, see CoinJoinStateViewModel.
+		IsCoinJoinButtonVisible = !WalletModel.IsWatchOnlyWallet && !WalletModel.IsHardwareWallet;
+
+		CoinJoinCommand = ReactiveCommand.Create(
+			() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinDialog(WalletModel, Wallet, CoinJoinStateViewModel, Settings.WalletCoinJoinSettings),
+			Observable.Return(IsCoinJoinButtonVisible));
+
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel, Wallet));
 
 		if (WalletModel.IsCoinJoinEnabled)
@@ -183,6 +185,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 				.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(coinjoinPaymentsSearchItem, shouldDisplay))
 				.Subscribe();
 		}
+
+		var coinjoinSearchItem = CreateCoinJoinItem();
+		this.WhenAnyValue(x => x.IsCoinJoinButtonVisible, x => x.IsSelected, (x, y) => x && y)
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(coinjoinSearchItem, shouldAdd))
+			.Subscribe();
 
 		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -246,6 +253,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand WalletCoinsCommand { get; private set; }
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	public ICommand CoinJoinCommand { get; private set; }
 
 	public ICommand CoinJoinPaymentsCommand { get; private set; }
 
@@ -315,6 +324,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		return new ActionableItem("Donate", "Donate to The Wasabi Wallet Developers", () => { DonateCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", "Donate" }) { Icon = "gift", IsDefault = true, Priority = 4 };
 	}
 
+	private ISearchItem CreateCoinJoinItem()
+	{
+		return new ActionableItem("Coinjoin", "Start a coinjoin, queue payments and pick coins", () => { CoinJoinCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Privacy", "Mix", "Action" }) { Icon = "wallet_action_coinjoin", IsDefault = true, Priority = 2 };
+	}
+
 	private ISearchItem CreateCoinJoinPaymentsItem()
 	{
 		return new ActionableItem("Coinjoin Payments", "Manage queued coinjoin payments", () => { CoinJoinPaymentsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Payments", "Send", "Batch" }) { Icon = "embedded_payment", IsDefault = true, Priority = 3 };
@@ -323,11 +337,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
-
-		if (!IsWatchOnly)
-		{
-			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
-		}
 
 		yield return new BtcPriceTileViewModel(UiContext, UiContext.AmountProvider);
 	}
