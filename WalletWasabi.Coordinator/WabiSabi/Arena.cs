@@ -43,7 +43,6 @@ public partial class Arena : PeriodicRunner
 		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParametersFactory = roundParametersFactory;
 		_feeRateProvider = feeRateProvider;
-		_maxSuggestedAmountProvider = new(_config);
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -56,7 +55,6 @@ public partial class Arena : PeriodicRunner
 	private readonly CoinJoinScriptStore? _coinJoinScriptStore;
 	private readonly RoundParametersFactory _roundParametersFactory;
 	private readonly FeeRateProvider _feeRateProvider;
-	private readonly MaxSuggestedAmountProvider _maxSuggestedAmountProvider;
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
@@ -91,7 +89,7 @@ public partial class Arena : PeriodicRunner
 		// Order rounds ascending by max suggested amount, then ascending by input count.
 		// This will make sure WW2.0.1 clients register according to our desired order.
 		var rounds = Rounds
-			.OrderBy(x => x.Parameters.MaxSuggestedAmount)
+			.OrderBy(x => x.Parameters.MaxAllowedInputAmount)
 			.ThenBy(x => x.InputCount)
 			.ToList();
 
@@ -122,13 +120,11 @@ public partial class Arena : PeriodicRunner
 						continue;
 					}
 
-					_maxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.", round);
+					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxAllowedInputAmount)} was '{round.Parameters.MaxAllowedInputAmount}' BTC.", round);
 				}
 				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
-					_maxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
 				}
 			}
@@ -460,7 +456,7 @@ public partial class Arena : PeriodicRunner
 			.Where(x => !_prison.IsBanned(x, _config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
-		RoundParameters parameters = _roundParametersFactory(feeRate, round.Parameters.MaxSuggestedAmount, _config.MinInputCountByBlameRound);
+		RoundParameters parameters = _roundParametersFactory(feeRate, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
@@ -474,11 +470,11 @@ public partial class Arena : PeriodicRunner
 		for (int i = 0; i < roundsToCreate; i++)
 		{
 			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-			RoundParameters parameters = _roundParametersFactory(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
+			RoundParameters parameters = _roundParametersFactory(feeRate);
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
+			Logger.LogInfo("Created new round.", r);
 		}
 	}
 

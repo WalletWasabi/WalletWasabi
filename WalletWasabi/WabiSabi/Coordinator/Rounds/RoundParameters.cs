@@ -2,14 +2,13 @@ using NBitcoin.Policy;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
-public delegate RoundParameters RoundParametersFactory(FeeRate feeRate, Money maxSuggestedAmount, int? minInputCountByRound = null);
+public delegate RoundParameters RoundParametersFactory(FeeRate feeRate, int? minInputCountByRound = null);
 
 public record RoundParameters
 {
 	public RoundParameters(
 		Network network,
 		FeeRate miningFeeRate,
-		Money maxSuggestedAmount,
 		int minInputCountByRound,
 		int maxInputCountByRound,
 		MoneyRange allowedInputAmounts,
@@ -26,7 +25,6 @@ public record RoundParameters
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
-		MaxSuggestedAmount = maxSuggestedAmount;
 		MinInputCountByRound = minInputCountByRound;
 		MaxInputCountByRound = maxInputCountByRound;
 		AllowedInputAmounts = allowedInputAmounts;
@@ -51,8 +49,7 @@ public record RoundParameters
 	/// <summary>Minimum required fee rate for the finalized coinjoin transaction of this round.</summary>
 	public FeeRate MiningFeeRate { get; init; }
 
-	/// <summary>Maximum suggested amount for a single input in this coinjoin round.</summary>
-	public Money MaxSuggestedAmount { get; init; }
+	public Money MaxAllowedInputAmount => AllowedInputAmounts.Max;
 	public int MinInputCountByRound { get; init; }
 	public int MaxInputCountByRound { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
@@ -87,13 +84,11 @@ public record RoundParameters
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		FeeRate miningFeeRate,
-		Money maxSuggestedAmount,
 		int? minInputCountByRound = null)
 	{
 		return new RoundParameters(
 			wabiSabiConfig.Network,
 			miningFeeRate,
-			maxSuggestedAmount,
 			minInputCountByRound ?? wabiSabiConfig.MinInputCountByRound,
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
