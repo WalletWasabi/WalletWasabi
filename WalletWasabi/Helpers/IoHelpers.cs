@@ -98,7 +98,7 @@ public static class IoHelpers
 						: (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
 							? "open"
 							: "xdg-open"),
-					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
+					ArgumentList = { dirPath },
 					CreateNoWindow = true
 				});
 			}
