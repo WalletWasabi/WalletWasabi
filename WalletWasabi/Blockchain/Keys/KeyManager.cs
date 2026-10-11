@@ -529,7 +529,7 @@ public class KeyManager
 	public bool CanAddCoinJoinAccount => IsHardwareWallet && TaprootExtPubKey is null;
 
 	public KeyPath? TryGetKeyPath(Script scriptPubKey) =>
-		GetKeys(key => key.ContainsScript(scriptPubKey)).FirstOrDefault()?.FullKeyPath;
+		TryGetKeyForScriptPubKey(scriptPubKey, out var hdPubKey) ? hdPubKey.FullKeyPath : null;
 
 	/// <summary>Adopts a SLIP-25 coinjoin account as this hardware wallet's taproot account and persists it.</summary>
 	public void SetCoinJoinAccount(KeyPath coinJoinAccountKeyPath, ExtPubKey coinJoinExtPubKey)
