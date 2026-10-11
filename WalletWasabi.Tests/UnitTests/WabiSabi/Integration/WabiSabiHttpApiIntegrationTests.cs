@@ -283,12 +283,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager3 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		// There are three participants. The second participant will fail to register outputs and will enforce a blame round.
+		// There are three participants. The second participant will not sign and will enforce a blame round.
 		var participant1Coins = GenerateSmartCoins(keyManager1, satAmounts1, inputCount);
 		var participant2CoinsBad = GenerateSmartCoins(keyManager2, satAmounts2, inputCount);
 		var participant3Coins = GenerateSmartCoins(keyManager3, satAmounts3, inputCount);
 
-		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		await using var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
 				Enumerable.Concat(participant1Coins, participant2CoinsBad).Concat(participant3Coins).ToImmutableList(),
 				rpc =>
@@ -313,15 +313,15 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
+				//
+				// Only the signing phase has to time out, because the second participant never signs. The other
+				// phases keep their defaults, each ends as soon as every participant has acted. A short window
+				// would drop slow participants, and one below a minute opens a new round on every tick.
 				services.AddSingleton(s => new WabiSabiConfig
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
 					MaxInputCountByRound = 3 * inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
@@ -391,7 +391,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
-		// Only coins of the first and the third participant are expected here. The second one failed to register outputs and was blamed.
+		// Only coins of the first and the third participant are expected here. The second one did not sign and was blamed.
 		var expectedInputs = participant1Coins.Concat(participant3Coins)
 			.Select(x => x.Coin.Outpoint.ToString())
 			.Order()
