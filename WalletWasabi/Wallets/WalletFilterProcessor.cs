@@ -164,7 +164,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.invalidBlockHash, e.invalidBlockHeight));
+		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.InvalidBlockHash, e.InvalidBlockHeight));
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
