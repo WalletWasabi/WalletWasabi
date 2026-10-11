@@ -737,7 +737,7 @@ public class KeyManager
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentSpendExtPubKey", Encode.Optional(keyManager.SilentPaymentSpendExtPubKey, Encode.ExtPubKey)),
-			("MinGapLimit", Encode.Int(keyManager.MinGapLimit)),
+			("MinGapLimit", Encode.Int(Math.Max(keyManager.MinGapLimit, Math.Max(keyManager.SegwitExternalKeyGenerator.MinGapLimit, keyManager.TaprootExternalKeyGenerator?.MinGapLimit ?? 0)))),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
 			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),

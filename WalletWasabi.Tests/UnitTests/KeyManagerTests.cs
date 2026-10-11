@@ -99,6 +99,25 @@ public class KeyManagerTests
 	}
 
 	[Fact]
+	public void CanGetReceiveKeyAfterReloadingAWalletBeyondItsGapLimit()
+	{
+		var filePath = "wallet-beyond-gap-limit.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		var labels = new LabelsArray("who-knows");
+		for (var i = 0; i <= manager.MinGapLimit; i++)
+		{
+			manager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+		}
+
+		var sameManager = KeyManager.FromFile(filePath);
+		var key = sameManager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+
+		Assert.Equal(manager.MinGapLimit + 1, key.Index);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
 	public void OnlyUsePrivateFundsForPaymentsIsOffByDefault()
 	{
 		Assert.False(KeyManager.CreateNew(out _, "", Network.Main).OnlyUsePrivateFundsForPayments);
