@@ -58,34 +58,30 @@ public class KeyManager
 		_blockchainState = blockchainState;
 
 		SegwitAccountKeyPath = segwitAccountKeyPath ?? GetAccountKeyPath(_blockchainState.Network, ScriptPubKeyType.Segwit);
-		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
-		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
+		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0));
+		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1));
 
 		TaprootAccountKeyPath = taprootAccountKeyPath ?? GetAccountKeyPath(_blockchainState.Network, ScriptPubKeyType.TaprootBIP86);
-		if (TaprootExtPubKey is { })
+		if (TaprootExtPubKey is not null)
 		{
-			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
-			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
+			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0));
+			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1));
 		}
 
-		if (SilentPaymentScanExtPubKey is { })
+		if (SilentPaymentScanExtPubKey is not null)
 		{
-			_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan), MinGapLimit);
+			_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan));
 		}
 
-		if (SilentPaymentSpendExtPubKey is { })
+		if (SilentPaymentSpendExtPubKey is not null)
 		{
-			_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend), MinGapLimit);
+			_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend));
 		}
 
 		SetFilePath(filePath);
 
 		ToFile();
 	}
-
-	/// <remarks>Note that <see cref="GetNextReceiveKey(HdPubKeyGenerator)"/> can increase the minimum gap limit value.</remarks>
-	private int GetEffectiveMinGapLimit() =>
-		Math.Max(MinGapLimit, Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0));
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		GetAccountKeyPath(network, new KeyPurpose.LoudPaymentKey(scriptPubKeyType));
@@ -198,9 +194,9 @@ public class KeyManager
 
 	#endregion Properties
 
-	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; }
 	private readonly HdPubKeyGenerator _segwitInternalKeyGenerator;
-	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
+	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; }
 	private readonly HdPubKeyGenerator? _taprootInternalKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentScanKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentSpendKeyGenerator;
@@ -339,23 +335,19 @@ public class KeyManager
 	{
 		lock (_criticalStateLock)
 		{
-			var (generator, generatorSetter) = purpose switch
+			var hdPubKeyGenerator = purpose switch
 			{
-				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => (SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator>)(g => SegwitExternalKeyGenerator = g)),
-				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, (g => TaprootExternalKeyGenerator = g)),
-				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
-				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),
+				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => SegwitExternalKeyGenerator,
+				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => TaprootExternalKeyGenerator,
+				KeyPurpose.SilentPaymentKey.ScanKey => _silentPaymentScanKeyGenerator,
+				KeyPurpose.SilentPaymentKey.SpendKey => _silentPaymentSpendKeyGenerator,
 				KeyPurpose.LoudPaymentKey(var scriptPubKeyType) => throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported."),
 				_ => throw new NotSupportedException("Key purpose is unknown.")
-			};
+			} ?? throw new NotSupportedException("Taproot is not supported in this wallet.");
 
-			if (generator is null)
-			{
-				throw new NotSupportedException("Taproot is not supported in this wallet.");
-			}
+			var (newKey, newlyGeneratedKeySet, newMinGapLimit) = GetNextReceiveKeyNoLock(hdPubKeyGenerator);
+			MinGapLimit = newMinGapLimit;
 
-			var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(generator);
-			generatorSetter(newHdPubKeyGenerator);
 			_hdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
 			newKey.SetLabel(labels);
 			ToFileNoLock();
@@ -363,26 +355,19 @@ public class KeyManager
 		}
 	}
 
-	private (HdPubKey, HdPubKey[], HdPubKeyGenerator) GetNextReceiveKey(HdPubKeyGenerator hdPubKeyGenerator)
+	private (HdPubKey, HdPubKey[], int) GetNextReceiveKeyNoLock(HdPubKeyGenerator hdPubKeyGenerator)
 	{
 		// Find the next clean external key with an empty label.
-		HdPubKeyPathView externalView;
-
-		lock (_criticalStateLock)
-		{
-			externalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
-		}
+		HdPubKeyPathView externalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
 
 		if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is { } cachedKey)
 		{
-			return (cachedKey, [], hdPubKeyGenerator);
+			return (cachedKey, [], MinGapLimit);
 		}
 
-		var newHdPubKeyGenerator = hdPubKeyGenerator with { MinGapLimit = hdPubKeyGenerator.MinGapLimit + 1 };
-		var newHdPubKeys = newHdPubKeyGenerator.AssertCleanKeysIndexed(externalView).Select(CreateHdPubKey).ToArray();
-
+		var newHdPubKeys = hdPubKeyGenerator.AssertCleanKeysIndexed(externalView, MinGapLimit + 1).Select(CreateHdPubKey).ToArray();
 		var newKey = newHdPubKeys.First();
-		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
+		return (newKey, newHdPubKeys, MinGapLimit + 1);
 	}
 
 	public HdPubKey GetNextChangeKey() =>
@@ -530,7 +515,7 @@ public class KeyManager
 				lock (_criticalStateLock)
 				{
 					var view = _hdPubKeyCache.GetView(keySource.KeyPath);
-					var keys = keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey);
+					var keys = keySource.AssertCleanKeysIndexed(view, MinGapLimit).Select(CreateHdPubKey);
 					_hdPubKeyCache.AddRangeKeys(keys);
 				}
 			}
@@ -551,8 +536,8 @@ public class KeyManager
 	{
 		SilentPaymentScanExtPubKey ??= extKey.Derive(GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan)).Neuter();
 		SilentPaymentSpendExtPubKey ??= extKey.Derive(GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend)).Neuter();
-		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan), MinGapLimit);
-		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend), MinGapLimit);
+		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan));
+		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend));
 
 		var defaultSilentPaymentAddress = new SilentPaymentAddress(0, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Scan).PubKey, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Spend).PubKey);
 		Logger.LogDebug($"Default Silent Payment Address: {defaultSilentPaymentAddress.ToWip(_blockchainState.Network)} ");
@@ -577,7 +562,7 @@ public class KeyManager
 				TaprootExternalKeyGenerator
 			}
 			.Where(x => x is not null)
-			.SelectMany(gen => gen!.AssertCleanKeysIndexed(_hdPubKeyCache.GetView(gen.KeyPath)))
+			.SelectMany(gen => gen!.AssertCleanKeysIndexed(_hdPubKeyCache.GetView(gen.KeyPath), MinGapLimit))
 			.Select(CreateHdPubKey);
 
 		_hdPubKeyCache.AddRangeKeys(keys);
@@ -605,12 +590,12 @@ public class KeyManager
 			_ => _segwitInternalKeyGenerator
 		};
 
-		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, hdPubKeyGenerator.MinGapLimit);
+		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, MinGapLimit);
 		var internalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
 		var lockedKeyCount = internalView.LockedKeys.Count();
 		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
 
-		_hdPubKeyCache.AddRangeKeys(hdPubKeyGenerator.AssertCleanKeysIndexed(internalView).Select(CreateHdPubKey));
+		_hdPubKeyCache.AddRangeKeys(hdPubKeyGenerator.AssertCleanKeysIndexed(internalView, MinGapLimit).Select(CreateHdPubKey));
 
 		var availableCandidates = _hdPubKeyCache
 			.GetView(hdPubKeyGenerator.KeyPath)
@@ -741,7 +726,7 @@ public class KeyManager
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentSpendExtPubKey", Encode.Optional(keyManager.SilentPaymentSpendExtPubKey, Encode.ExtPubKey)),
-			("MinGapLimit", Encode.Int(keyManager.GetEffectiveMinGapLimit())),
+			("MinGapLimit", Encode.Int(keyManager.MinGapLimit)),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
 			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),
