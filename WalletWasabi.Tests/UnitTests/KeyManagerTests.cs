@@ -98,21 +98,33 @@ public class KeyManagerTests
 		Assert.Equal(manager.MinGapLimit, newLastKey.Index - lastKey.Index);
 	}
 
-	[Fact]
-	public void CanGetReceiveKeyAfterReloadingAWalletBeyondItsGapLimit()
+	[Theory]
+	[InlineData(ScriptPubKeyType.Segwit)]
+	[InlineData(ScriptPubKeyType.TaprootBIP86)]
+	public void CanGetReceiveKeyAfterReloadingAWalletBeyondItsGapLimit(ScriptPubKeyType scriptPubKeyType)
 	{
 		var filePath = "wallet-beyond-gap-limit.json";
-		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
 		var labels = new LabelsArray("who-knows");
-		for (var i = 0; i <= manager.MinGapLimit; i++)
+		int minGapLimit;
+
+		// Create keys beyond the gap limit, and save the wallet to disk.
 		{
-			manager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+			var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+			minGapLimit = manager.MinGapLimit;
+
+			for (var i = 0; i <= minGapLimit; i++)
+			{
+				// Each call leads to storing the new key in the file.
+				manager.GetNextReceiveKey(labels, scriptPubKeyType);
+			}
 		}
 
-		var sameManager = KeyManager.FromFile(filePath);
-		var key = sameManager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
-
-		Assert.Equal(manager.MinGapLimit + 1, key.Index);
+		// Deserialize the wallet. Then generate a new key beyond the gap limit, it should not crash.
+		{
+			var sameManager = KeyManager.FromFile(filePath);
+			var key = sameManager.GetNextReceiveKey(labels, scriptPubKeyType);
+			Assert.Equal(minGapLimit + 1, key.Index);
+		}
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
