@@ -300,6 +300,7 @@ public class HardwareWalletService : IDisposable
 			keyChain = null;
 		}
 
+		bool acquiredHere = keyChain is null;
 		if (keyChain is null)
 		{
 			var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
@@ -307,9 +308,19 @@ public class HardwareWalletService : IDisposable
 			_coinJoinDevices[keyManager.MasterFingerprint!.Value] = device;
 		}
 
-		await keyChain.Device
-			.AuthorizeCoinJoinAsync(coordinatorIdentifier, maxRounds, maxMiningFeeRate, keyManager.TaprootAccountKeyPath, _network, cancellationToken)
-			.ConfigureAwait(false);
+		try
+		{
+			await keyChain.Device
+				.AuthorizeCoinJoinAsync(coordinatorIdentifier, maxRounds, maxMiningFeeRate, keyManager.TaprootAccountKeyPath, _network, cancellationToken)
+				.ConfigureAwait(false);
+		}
+		catch when (acquiredHere)
+		{
+			// The wallet never gets this key chain, so nothing else would release the session it holds.
+			_coinJoinDevices.TryRemove(keyManager.MasterFingerprint!.Value, out _);
+			keyChain.Dispose();
+			throw;
+		}
 
 		keyChain.MaxMiningFeeRate = maxMiningFeeRate;
 		keyChain.NeedsAuthorization = false;
