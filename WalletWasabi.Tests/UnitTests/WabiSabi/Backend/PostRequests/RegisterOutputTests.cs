@@ -31,6 +31,46 @@ public class RegisterOutputTests
 	}
 
 	[Fact]
+	public async Task InputScriptOfAnotherRoundAsync()
+	{
+		WabiSabiConfig cfg = new();
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
+
+		var otherRound = WabiSabiFactory.CreateRound(cfg);
+		var otherAlice = WabiSabiFactory.CreateAlice(otherRound);
+		otherRound.Alices.Add(otherAlice);
+
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round, otherRound);
+
+		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, otherAlice.Coin.ScriptPubKey);
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
+		Assert.Equal(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, ex.ErrorCode);
+		Assert.Empty(round.Bobs);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
+	public async Task InputScriptOfSameRoundAsync()
+	{
+		WabiSabiConfig cfg = new();
+		var round = WabiSabiFactory.CreateRound(cfg);
+		round.SetPhase(Phase.OutputRegistration);
+		var alice = WabiSabiFactory.CreateAlice(round);
+		round.Alices.Add(alice);
+		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
+
+		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, alice.Coin.ScriptPubKey);
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
+		Assert.Equal(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, ex.ErrorCode);
+		Assert.Empty(round.Bobs);
+
+		await arena.StopAsync(CancellationToken.None);
+	}
+
+	[Fact]
 	public async Task LegacyOutputsSuccessAsync()
 	{
 		WabiSabiConfig cfg = new() { AllowP2pkhOutputs = true, AllowP2shOutputs = true };
