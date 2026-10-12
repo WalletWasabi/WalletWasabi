@@ -401,7 +401,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		int eventInvokedAlready = 0;
 
@@ -551,12 +551,12 @@ public class CoinJoinClient
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		Logger.LogDebug(FormatLog($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.", roundState));
+		Logger.LogDebug(FormatLog($"Inputs({smartCoins.Count}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.", roundState));
 
 		// Decrease the available time, so the clients hurry up.
 		var safetyBuffer = TimeSpan.FromMinutes(1);
 		var registrationDeadline = roundState.InputRegistrationEnd - safetyBuffer;
-		var scheduledDates = GetScheduledDates(smartCoins.Count(), DateTimeOffset.UtcNow, registrationDeadline, TimeSpan.MaxValue);
+		var scheduledDates = GetScheduledDates(smartCoins.Count, DateTimeOffset.UtcNow, registrationDeadline, TimeSpan.MaxValue);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
