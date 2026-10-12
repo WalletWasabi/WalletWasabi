@@ -135,4 +135,11 @@ public class RpcTests
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
 	}
+
+	[Fact]
+	public void RenameWalletRequiresAName()
+	{
+		var service = new WasabiJsonRpcService(null!);
+		Assert.Throws<ArgumentException>(() => service.RenameWallet(" "));
+	}
 }

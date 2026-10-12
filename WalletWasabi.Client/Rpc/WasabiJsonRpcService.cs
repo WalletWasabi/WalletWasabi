@@ -113,6 +113,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		SelectWallet(walletName, ensureLoaded: true);
 	}
 
+	[JsonRpcMethod("renamewallet")]
+	public void RenameWallet(string newWalletName)
+	{
+		newWalletName = Guard.NotNullOrEmptyOrWhitespace(nameof(newWalletName), newWalletName);
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		Global.WalletManager.RenameWallet(activeWallet, newWalletName);
+	}
+
 	[JsonRpcMethod("getwalletinfo")]
 	public JsonRpcResult WalletInfo()
 	{
