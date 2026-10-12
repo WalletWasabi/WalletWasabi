@@ -100,10 +100,11 @@ public partial class Arena : PeriodicRunner
 
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 	{
-		foreach (var round in Rounds.Where(x =>
-			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
-			.ToArray())
+		var roundsToCheck = Rounds
+			.Where(x => x.Phase == Phase.InputRegistration && x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
+			.ToArray();
+
+		foreach (var round in roundsToCheck)
 		{
 			try
 			{
