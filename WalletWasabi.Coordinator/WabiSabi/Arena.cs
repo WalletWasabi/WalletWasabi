@@ -137,8 +137,7 @@ public partial class Arena : PeriodicRunner
 			catch (Exception ex)
 			{
 				EndRound(round, EndRoundState.AbortedWithError);
-				Logger.LogError(FormatLog(ex.Message, round));
-				Logger.LogError(ex);
+				Logger.LogError(FormatLog(ex.ToString(), round));
 			}
 		}
 	}
@@ -222,7 +221,7 @@ public partial class Arena : PeriodicRunner
 			catch (Exception ex)
 			{
 				EndRound(round, EndRoundState.AbortedWithError);
-				Logger.LogError(FormatLog(ex.Message, round));
+				Logger.LogError(FormatLog(ex.ToString(), round));
 			}
 		}
 	}
@@ -262,7 +261,7 @@ public partial class Arena : PeriodicRunner
 			catch (Exception ex)
 			{
 				EndRound(round, EndRoundState.AbortedWithError);
-				Logger.LogError(FormatLog(ex.Message, round));
+				Logger.LogError(FormatLog(ex.ToString(), round));
 			}
 		}
 	}
@@ -464,7 +463,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = _roundParametersFactory(feeRate, round.Parameters.MaxSuggestedAmount, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
-		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
+		Logger.LogInfo(FormatLog($"Created from round {round.Id}.", blameRound));
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -582,7 +581,7 @@ public partial class Arena : PeriodicRunner
 			var roundOrNull = Rounds.FirstOrDefault(x => x.Id == disruptedRoundId);
 			if (roundOrNull is { } nonNullRound)
 			{
-				Logger.LogInfo("Round aborted because it was disrupted by double spenders.", nonNullRound);
+				Logger.LogInfo(FormatLog("Round aborted because it was disrupted by double spenders.", nonNullRound));
 				nonNullRound.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
 			}
 		}

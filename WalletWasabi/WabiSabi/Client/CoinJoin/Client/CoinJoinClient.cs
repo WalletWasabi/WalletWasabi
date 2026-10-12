@@ -904,7 +904,7 @@ public class CoinJoinClient
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
-			Logger.LogInfo("I am the only one in that coinjoin.", roundState);
+			Logger.LogInfo(FormatLog("I am the only one in that coinjoin.", roundState));
 		}
 
 		var hasTooFewInputs = actualInputCount < _coinJoinConfiguration.AbsoluteMinInputCount;
