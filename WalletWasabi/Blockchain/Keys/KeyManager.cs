@@ -681,11 +681,12 @@ public class KeyManager
 		}
 	}
 
-	public void SetResyncParameters(ChainHeight newStartingHeight, int newMinGapLimit)
+	/// <summary>The wallet file stores the height minus <see cref="Constants.ResyncHeightMargin"/>, so the next start rescans the blocks above <paramref name="newStartingHeight"/>.</summary>
+	public void SetResyncParameters(uint newStartingHeight, int newMinGapLimit)
 	{
 		lock (_criticalStateLock)
 		{
-			_blockchainState.Height = newStartingHeight;
+			_blockchainState.Height = newStartingHeight + (uint)Constants.ResyncHeightMargin;
 			MinGapLimit = newMinGapLimit;
 			ToFileNoLock();
 		}

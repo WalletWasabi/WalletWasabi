@@ -5,6 +5,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoinProfiles;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -360,5 +361,16 @@ public class KeyManagerTests
 				Directory.Delete(dir);
 			}
 		}
+	}
+
+	[Fact]
+	public void SetResyncParametersCompensatesTheStoredHeightMargin()
+	{
+		var manager = KeyManager.CreateNew(out _, "", Network.Main);
+
+		manager.SetResyncParameters(900_000, manager.MinGapLimit + 10);
+
+		Assert.Equal(900_000u + Constants.ResyncHeightMargin, manager.GetBestHeight().Height);
+		Assert.Equal(KeyManager.AbsoluteMinGapLimit + 10, manager.MinGapLimit);
 	}
 }

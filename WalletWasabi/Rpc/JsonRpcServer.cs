@@ -13,6 +13,7 @@ public class JsonRpcServer : BackgroundService
 	{
 		_config = config;
 		_terminateService = terminateService;
+		_service = service;
 		_requestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service, config.Network);
 
 		_listener = new HttpListener();
@@ -25,6 +26,7 @@ public class JsonRpcServer : BackgroundService
 	}
 
 	private readonly TerminateService _terminateService;
+	private readonly IJsonRpcService _service;
 	private readonly HttpListener _listener;
 	private readonly JsonRpcRequestHandler<IJsonRpcService> _requestHandler;
 	private readonly JsonRpcServerConfiguration _config;
@@ -88,6 +90,7 @@ public class JsonRpcServer : BackgroundService
 							if (requestsToProcess.Length > 0)
 							{
 								jsonResponse = await _requestHandler.HandleRequestsAsync(path, requestsToProcess, isBatch, stoppingToken).ConfigureAwait(false);
+								stopRpcRequestReceived |= _service.StopRequested;
 							}
 						}
 

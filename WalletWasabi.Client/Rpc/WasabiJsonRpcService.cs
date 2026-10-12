@@ -33,6 +33,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private Global Global { get; }
 	private Wallet? ActiveWallet { get; set; }
+	public bool StopRequested { get; private set; }
 
 	[JsonRpcMethod("listunspentcoins")]
 	public JsonRpcResultList GetUnspentCoinList()
@@ -111,6 +112,39 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public void LoadWallet(string walletName)
 	{
 		SelectWallet(walletName, ensureLoaded: true);
+	}
+
+	[JsonRpcMethod("rescanwallet")]
+	public async Task RescanWalletAsync(uint startingHeight, int? minGapLimit = null)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		var km = activeWallet.KeyManager;
+		var gapLimit = minGapLimit ?? km.MinGapLimit;
+		if (gapLimit < km.MinGapLimit || gapLimit > KeyManager.MaxGapLimit)
+		{
+			throw new ArgumentException($"{nameof(minGapLimit)} must be between {km.MinGapLimit} and {KeyManager.MaxGapLimit}.");
+		}
+
+		if (startingHeight > Global.FilterHeaders.ServerTipHeight)
+		{
+			throw new ArgumentException($"{nameof(startingHeight)} is above the network tip {Global.FilterHeaders.ServerTipHeight}.");
+		}
+
+		if (Global.HostedServices.GetOrDefault<CoinJoinManager>()?.HighestCoinJoinClientState is CoinJoinClientState.InCriticalPhase)
+		{
+			throw new InvalidOperationException("A wallet is in a critical coinjoin phase, try again later.");
+		}
+
+		if (activeWallet.Loaded)
+		{
+			// A running wallet keeps processing filters and writes its own height back; stop it before changing the height.
+			await activeWallet.StopAsync(CancellationToken.None).ConfigureAwait(false);
+		}
+
+		km.SetResyncParameters(startingHeight, gapLimit);
+
+		// The wallet is reloaded from its file on the next start, so the daemon stops once this response is sent, like the GUI restarts.
+		StopRequested = true;
 	}
 
 	[JsonRpcMethod("getwalletinfo")]

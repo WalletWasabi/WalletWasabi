@@ -71,6 +71,12 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
 ```
 
 ```bash
+$ ./wcli.sh -wallet=MyWallet rescanwallet 800000 200
+```
+
+Rescans the blocks above the given height, optionally with a larger gap limit (it cannot be lowered). The daemon stops once the response is sent, like the GUI restarts; start it again and the wallet rescans.
+
+```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address
