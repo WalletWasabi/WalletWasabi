@@ -642,7 +642,7 @@ public class CoinJoinClient
 	}
 
 	private async Task SignTransactionAsync(
-		IEnumerable<AliceClient> aliceClients,
+		ImmutableArray<AliceClient> aliceClients,
 		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
 		DateTimeOffset signingStartTime,
 		DateTimeOffset signingEndTime,
@@ -651,7 +651,7 @@ public class CoinJoinClient
 		// Maximum signing request delay is 50 seconds, because
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), signingStartTime, signingEndTime, maximumSigningRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Length, signingStartTime, signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
@@ -676,9 +676,9 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
+	private async Task ReadyToSignAsync(ImmutableArray<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Length, DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
