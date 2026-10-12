@@ -128,8 +128,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Coins were created successfully");
 
 		await using var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder.AddMockRpcClient(
-				coins,
+			builder.AddMockRpcClient(coins,
 				rpc =>
 
 					// Make the coordinator believe that the transaction is being
@@ -142,7 +141,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						return tx.GetHash();
 					})
 			.ConfigureServices(services =>
-			{
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddSingleton(s => new WabiSabiConfig
@@ -153,8 +151,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
-			}));
+				})));
 
 		using var httpClient = coordinatorApp.CreateClient();
 
@@ -317,17 +314,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				})
 			.ConfigureServices(services =>
 
-				// Instruct the coordinator DI container to use this scoped
-				// services to build everything (WabiSabi controller, arena, etc)
+				// Instruct the coordinator DI container to use this scoped services to build everything (WabiSabi controller, arena, etc)
 				//
-				// Only the signing phase has to time out, because the second participant never signs. The other
-				// phases keep their defaults, each ends as soon as every participant has acted. A short window
-				// would drop slow participants, and one below a minute opens a new round on every tick.
+				// Only the signing phase has to time out, because the second participant never signs. The other coinjoin phases (such as input
+				// registration, connection confirmation, etc.) keep their defaults, each ends as soon as every participant has acted. A short
+				// window would drop slow participants, and one below a minute opens a new round on every tick.
 				services.AddSingleton(s => new WabiSabiConfig
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
-					MaxInputCountByRound = 3 * inputCount,
+					MaxInputCountByRound = 3 * inputCount, // To make the input phase end as early as all inputs are registered.
 					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
@@ -343,7 +339,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		using var httpClient = coordinatorApp.CreateClient();
 
-		// Creates a mocked HttpClient that says everything is okay when a signature is sent but it doesn't really send it.
+		// Creates a mocked HttpClient that forwards all HTTP requests except for the transaction signature request, which is answered with 200 OK without being sent!
 		using var nonSigningHttpClientMock = new MockHttpClient()
 		{
 			BaseAddress = httpClient.BaseAddress,
@@ -399,7 +395,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
-		// Only coins of the first and the third participant are expected here. The second one did not sign and was blamed.
+		// Only coins of the honest participants (the first one and the third one) are expected here. The second participant did not sign and was blamed.
 		var expectedInputs = participant1Coins.Concat(participant3Coins)
 			.Select(x => x.Coin.Outpoint.ToString())
 			.Order()
