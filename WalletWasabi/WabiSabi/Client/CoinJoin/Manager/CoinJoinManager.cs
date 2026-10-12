@@ -38,6 +38,7 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
+	private readonly ConcurrentDictionary<WalletId, StatusChangedEventArgs> _lastStatus = new();
 
 	private readonly ManagerState _state;
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase => _state.CoinsInCriticalPhase;
@@ -82,6 +83,8 @@ public class CoinJoinManager : BackgroundService
 	{
 		_mailboxProcessor.Post(new StopCoinJoinCommand(wallet));
 	}
+
+	public StatusChangedEventArgs? GetLastStatus(WalletId walletId) => _lastStatus.GetValueOrDefault(walletId);
 
 	public CoinJoinClientState GetCoinjoinClientState(WalletId walletId)
 	{
@@ -647,16 +650,16 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	private void NotifyWalletStartedCoinJoin(Wallet openedWallet) =>
-		StatusChanged.SafeInvoke(this, new WalletStartedCoinJoinEventArgs(openedWallet));
+		Notify(new WalletStartedCoinJoinEventArgs(openedWallet));
 
 	private void NotifyWalletStoppedCoinJoin(Wallet openedWallet) =>
-	StatusChanged.SafeInvoke(this, new WalletStoppedCoinJoinEventArgs(openedWallet));
+		Notify(new WalletStoppedCoinJoinEventArgs(openedWallet));
 
 	private void NotifyCoinJoinStarted(Wallet openedWallet, TimeSpan registrationTimeout) =>
-		StatusChanged.SafeInvoke(this, new StartedEventArgs(openedWallet, registrationTimeout));
+		Notify(new StartedEventArgs(openedWallet, registrationTimeout));
 
 	private void NotifyCoinJoinStartError(Wallet openedWallet, CoinjoinError error) =>
-		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
+		Notify(new StartErrorEventArgs(openedWallet, error));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin)
 	{
@@ -669,13 +672,17 @@ public class CoinJoinManager : BackgroundService
 		};
 
 		CompletedEventArgs e = new(finishedCoinJoin.Wallet, status);
-		StatusChanged.SafeInvoke(this, e);
+		Notify(e);
 	}
 
 	private void NotifyCoinJoinStatusChanged(Wallet wallet, CoinJoinProgressEventArgs coinJoinProgressEventArgs) =>
-		StatusChanged.SafeInvoke(
-			this,
-			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
+		Notify(new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
+
+	private void Notify(StatusChangedEventArgs e)
+	{
+		_lastStatus[e.Wallet.WalletId] = e;
+		StatusChanged.SafeInvoke(this, e);
+	}
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{

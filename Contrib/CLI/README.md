@@ -77,6 +77,31 @@ $ ./wcli.sh -wallet=MyWallet setlabel tb1qgvnht40a08gumw32kp05hs8mny95hvatgk39sv
 Replaces the label of one of the wallet's own addresses, and so of the coins on it. Labels are separated by commas and stored trimmed, deduplicated and sorted (see `listkeys`). A label is required, like for `getnewaddress`.
 
 ```bash
+$ ./wcli.sh -wallet=MyWallet getcoinjoinstatus
+
+{
+  "status": "In progress",
+  "lastEvent": {
+    "event": "EnteringOutputRegistrationPhase",
+    "round": {
+      "id": "5f0bd5f6c0c0a8a8f3e4f1b2a2d5c4e9c2b6a3d1b7e8f9a0c1d2e3f4a5b6c7d8",
+      "isBlame": false,
+      "phase": "OutputRegistration",
+      "endRoundState": "None",
+      "inputRegistrationEnd": "2026-10-12T20:05:11+00:00",
+      "inputCount": 212,
+      "inputAmount": 1548203311,
+      "outputCount": 0,
+      "maxAmountCredentialValue": 4300000000,
+      "miningFeeRate": 3.0
+    },
+    "timeoutAt": "2026-10-12T20:06:11+00:00"
+  }
+}
+```
+`lastEvent` is the latest coinjoin status event for the wallet, `null` until the first one. `event` is one of `WalletStartedCoinJoin`, `Started`, `StartError` (with `error`, for example `NoConfirmedCoinsEligibleToMix` or `AllCoinsPrivate`), `WaitingForRound`, one of `EnteringInputRegistrationPhase`, `EnteringConnectionConfirmationPhase`, `EnteringOutputRegistrationPhase` or `EnteringSigningPhase` (each with `round` and `timeoutAt`; the first two carry the round as seen at input registration), `EnteringCriticalPhase`, `LeavingCriticalPhase`, `TransactionSigned` (with `txid`), `RoundEnded` (with `round`, see its `endRoundState`), `WaitingForBlameRound` (with `timeoutAt`), `CoinBanned` (with `coin` and `banUntilUtc`), `Completed` (with `completionStatus`) or `WalletStoppedCoinJoin`.
+
+```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address
