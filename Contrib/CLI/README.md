@@ -71,6 +71,37 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
 ```
 
 ```bash
+$ ./wcli.sh -wallet=MyWallet gettransaction 0f6be8f1ab3b7b2c8e5a1f4e9d2c3b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d0c
+
+{
+  "txid": "0f6be8f1ab3b7b2c8e5a1f4e9d2c3b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d0c",
+  "hex": "02000000000101...",
+  "height": "2432201",
+  "blockHash": "0000000000000012a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80910",
+  "blockIndex": 42,
+  "confirmations": 18,
+  "firstSeen": "2026-10-12T19:41:03+00:00",
+  "amount": -17110,
+  "fee": 2110,
+  "feeRate": 15.0,
+  "label": "David",
+  "isCoinjoin": false,
+  "isCancellation": false,
+  "isSpeedup": false,
+  "isCpfp": false,
+  "inputs": [
+    { "txid": "a5a0b4d2...", "index": 0, "amount": 100000, "own": true }
+  ],
+  "outputs": [
+    { "index": 0, "amount": 15000, "address": "tb1qgvnht40a08gumw32kp05hs8mny95hvatgk39sv", "own": false },
+    { "index": 1, "amount": 82890, "address": "tb1q3n9mtvs0f42dkclm88yjfuxjwlvlgrs0qx9ztj", "own": true }
+  ]
+}
+```
+
+Details of one of the wallet's transactions. `amount` is the wallet's balance change including the fee; `fee`, `feeRate` and the input `amount` are `null` when the input is not the wallet's; `blockHash` and `blockIndex` are `null` while unconfirmed.
+
+```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address

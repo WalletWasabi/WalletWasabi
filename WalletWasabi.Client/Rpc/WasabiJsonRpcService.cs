@@ -440,6 +440,60 @@ public class WasabiJsonRpcService : IJsonRpcService
 			}).ToImmutableArray();
 	}
 
+	[JsonRpcMethod("gettransaction")]
+	public JsonRpcResult GetTransaction(uint256 txid)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		var km = activeWallet.KeyManager;
+
+		if (!Global.TransactionStore.TryGetTransaction(txid, out var tx))
+		{
+			throw new NotSupportedException($"Unknown transaction {txid}");
+		}
+
+		// The store holds the transactions of every loaded wallet, so ownership is checked against this wallet's keys.
+		var walletInputs = tx.GetWalletInputs(km).ToDictionary(x => x.Outpoint);
+		var walletOutputs = tx.GetWalletOutputs(km).ToArray();
+		if (walletInputs.Count == 0 && walletOutputs.Length == 0)
+		{
+			throw new NotSupportedException($"Transaction {txid} is not in the wallet.");
+		}
+
+		return new JsonRpcResult
+		{
+			["txid"] = txid.ToString(),
+			["hex"] = tx.Transaction.ToHex(),
+			["height"] = tx.Height.ToString(),
+			["blockHash"] = tx.BlockHash?.ToString(),
+			["blockIndex"] = tx.Confirmed ? tx.BlockIndex : null,
+			["confirmations"] = tx.GetConfirmations(Global.FilterHeaders.ServerTipHeight),
+			["firstSeen"] = tx.FirstSeen,
+			["amount"] = walletOutputs.Sum(x => x.Amount.Satoshi) - walletInputs.Values.Sum(x => x.Amount.Satoshi),
+			["fee"] = tx.TryGetFee(out var fee) ? fee.Satoshi : null,
+			["feeRate"] = tx.TryGetFeeRate(out var feeRate) ? feeRate.SatoshiPerByte : null,
+			["label"] = tx.Labels.ToString(),
+			["isCoinjoin"] = tx.IsOwnCoinjoin(),
+			["isCancellation"] = tx.IsCancellation,
+			["isSpeedup"] = tx.IsSpeedup,
+			["isCpfp"] = tx.IsCPFP,
+			["inputs"] = tx.Transaction.Inputs.Select(x => new JsonRpcResult
+			{
+				["txid"] = x.PrevOut.Hash.ToString(),
+				["index"] = x.PrevOut.N,
+				["amount"] = walletInputs.TryGetValue(x.PrevOut, out var coin) ? coin.Amount.Satoshi : null,
+				["own"] = coin is not null
+			}).ToArray(),
+			["outputs"] = tx.Transaction.Outputs.Select((x, i) => new JsonRpcResult
+			{
+				["index"] = i,
+				["amount"] = x.Value.Satoshi,
+				["address"] = x.ScriptPubKey.GetDestinationAddress(Global.Network)?.ToString(),
+				["own"] = walletOutputs.Any(o => o.Index == i)
+			}).ToArray()
+		};
+	}
+
 	[JsonRpcMethod("excludefromcoinjoin")]
 	public void ExcludeCoinsFromCoinjoin(uint256 transactionId, int n, bool exclude = true)
 	{
