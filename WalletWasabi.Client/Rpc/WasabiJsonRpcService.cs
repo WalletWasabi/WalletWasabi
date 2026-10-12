@@ -187,6 +187,27 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
+	[JsonRpcMethod("setlabel")]
+	public void SetLabel(BitcoinAddress address, string label)
+	{
+		// An unused address without a label goes back into the getnewaddress pool, so a label is required like there.
+		var labels = new LabelsArray(label);
+		if (labels.IsEmpty)
+		{
+			throw new ArgumentException($"{nameof(label)} must not be empty.");
+		}
+
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+		var km = activeWallet.KeyManager;
+		if (!km.TryGetKeyForScriptPubKey(address.ScriptPubKey, out var hdPubKey))
+		{
+			throw new ArgumentException($"Address {address} does not belong to the wallet.");
+		}
+
+		hdPubKey.SetLabel(labels, km);
+	}
+
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
