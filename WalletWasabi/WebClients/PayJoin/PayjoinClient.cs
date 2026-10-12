@@ -138,6 +138,7 @@ public class PayjoinClient : IPayjoinClient
 			{
 				newInput.UpdateFrom(input);
 				newInput.PartialSigs.Clear();
+				newInput.TaprootKeySignature = null;
 			}
 		}
 

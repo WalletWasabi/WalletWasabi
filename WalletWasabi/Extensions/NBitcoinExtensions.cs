@@ -231,6 +231,11 @@ public static class NBitcoinExtensions
 			return ScriptPubKeyType.Segwit;
 		}
 
+		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.Taproot))
+		{
+			return ScriptPubKeyType.TaprootBIP86;
+		}
+
 		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
 			i.FinalScriptWitness is { } witness &&
 			witness.ToScript().IsScriptType(ScriptType.P2WPKH))
