@@ -284,12 +284,7 @@ public class Global
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
-		var manager = new P2pConnectionManager(
-			Network,
-			EventBus,
-			dnsResolver,
-			TimeSpan.FromSeconds(15),
-			torSocks5: torEndpoint);
+		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15));
 
 		if (!Config.BlockOnlyMode)
 		{
@@ -595,7 +590,7 @@ public class Global
 				.ConfigureAwait(false);
 
 			// Bitcoin P2P network can be started after filters are initialized.
-			_p2pConnectionManager.Start(linkedCtsToken);
+			_p2pConnectionManager.Start(torSocks5: _torManager?.CurrentSettings.SocksEndpoint, linkedCtsToken);
 
 			await ConfigureSynchronizerAsync(linkedCtsToken).ConfigureAwait(false);
 
@@ -673,7 +668,7 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			TorProcessManager processManager = new(TorSettings, EventBus);
+			TorProcessManager processManager = new(EventBus);
 			_torManager = new TorManager(TorSettings, processManager);
 			_torManager.DisposeUsing(_asyncDisposables);
 			await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);

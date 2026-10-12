@@ -9,7 +9,7 @@ namespace WalletWasabi.Tor;
 /// <summary>
 /// All Tor-related settings.
 /// </summary>
-public class TorSettings
+public record TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
 	public const string TorBinaryFileName = "tor";
@@ -32,6 +32,7 @@ public class TorSettings
 		int? owningProcessId = null,
 		bool log = true)
 	{
+		DataDir = dataDir;
 		IsCustomTorFolder = torFolder is not null;
 
 		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
@@ -57,14 +58,10 @@ public class TorSettings
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
-		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
-		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+		SocksPort = socksPort;
+		ControlPort = controlPort;
 		Bridges = bridges ?? [];
 		OwningProcessId = owningProcessId;
-
-		CookieAuthFilePath = defaultWasabiTorPorts
-			? Path.Combine(dataDir, $"control_auth_cookie")
-			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort}_{controlPort}");
 
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
@@ -76,7 +73,7 @@ public class TorSettings
 		}
 
 		TorMode = torMode;
-		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
+		TerminateOnExit = TorMode != TorMode.EnabledOnlyRunning && terminateOnExit;
 
 		Log = log;
 		_geoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
@@ -87,6 +84,8 @@ public class TorSettings
 
 	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
 	public bool IsCustomTorFolder { get; }
+
+	private string DataDir { get; }
 
 	/// <summary>Full directory path where Tor binaries are placed.</summary>
 	public string TorBinaryDir { get; }
@@ -123,13 +122,25 @@ public class TorSettings
 	public string TorBinaryFilePath { get; }
 
 	/// <summary>Full path to Tor cookie file.</summary>
-	public string CookieAuthFilePath { get; }
+	/// <remarks>The value is computed on each access to work well with Wasabi port scanning.</remarks>
+	public string CookieAuthFilePath => Path.Combine(DataDir, $"control_auth_cookie_{SocksPort}_{ControlPort}");
+
+	/// <summary>Tor SOCKS5 endpoint's port.</summary>
+	/// <remarks>0 means to select a port automatically.</remarks>
+	public int SocksPort { get; init; }
+
+	/// <summary>Tor control endpoint's port.</summary>
+	/// <remarks>0 means to select a port automatically.</remarks>
+	public int ControlPort { get; init; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public EndPoint SocksEndpoint { get; }
+	/// <remarks>The value is computed on each access to work well with Wasabi port scanning.</remarks>
+	public EndPoint SocksEndpoint => new IPEndPoint(IPAddress.Loopback, SocksPort);
 
 	/// <summary>Tor control endpoint.</summary>
-	public EndPoint ControlEndpoint { get; }
+	/// <remarks>The value is computed on each access to work well with Wasabi port scanning.</remarks>
+	public EndPoint ControlEndpoint => new IPEndPoint(IPAddress.Loopback, ControlPort);
+
 	private readonly string _geoIpPath;
 	private readonly string _geoIp6Path;
 
