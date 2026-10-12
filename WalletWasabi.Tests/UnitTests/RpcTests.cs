@@ -10,6 +10,18 @@ namespace WalletWasabi.Tests.UnitTests;
 
 public class RpcTests
 {
+	[Theory]
+	[InlineData("user", "pass", true)]
+	[InlineData("user", "pas", false)]
+	[InlineData("user", "pass2", false)]
+	[InlineData("User", "pass", false)]
+	[InlineData("", "", false)]
+	[InlineData(null, null, false)]
+	public void CredentialsMatch(string? user, string? password, bool expected)
+	{
+		Assert.Equal(expected, JsonRpcServer.CredentialsMatch(user, password, "user", "pass"));
+	}
+
 	public static TheoryData<string, string> RequestResponse
 	{
 		get
