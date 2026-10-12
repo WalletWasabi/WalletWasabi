@@ -141,6 +141,7 @@ listunspentcoins
 listcoins
 createwallet
 getwalletinfo
+buildpsbt
 getnewaddress
 getstatus
 gethistory

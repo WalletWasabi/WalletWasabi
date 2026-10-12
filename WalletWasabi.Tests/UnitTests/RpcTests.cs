@@ -134,5 +134,8 @@ public class RpcTests
 		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20, feeTarget: 8));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
+
+		// buildpsbt shares the fee checks.
+		Assert.Throws<ArgumentException>(() => service.BuildPsbt(new[] { paymentInfo }, [], feeRate: 20, feeTarget: 8));
 	}
 }

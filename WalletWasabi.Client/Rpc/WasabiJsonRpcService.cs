@@ -219,36 +219,35 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
-	{
-		Guard.NotNull(nameof(payments), payments);
-		Guard.NotNull(nameof(coins), coins);
-		password = Guard.Correct(password);
-
-		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
-
-		AssertWalletIsLoaded();
-		var payment = new PaymentIntent(
-			payments.Select(
-				p =>
-				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var result = ActiveWallet!.BuildTransaction(
-			password,
-			payment,
-			feeStrategy,
-			allowUnconfirmed: true,
-			allowedInputs: coins);
-		var smartTx = result.Transaction;
-
-		return smartTx.Transaction.ToHex();
-	}
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null) =>
+		Build(payments, coins, feeTarget, feeRate, password).Transaction.Transaction.ToHex();
 
 	/// <summary>
 	/// Unsafe, because no matter how big fee the user chooses, Wasabi will build the transaction.
 	/// Potentially, the user can burn his money using this method, so be careful!
 	/// </summary>
 	[JsonRpcMethod("buildunsafetransaction")]
-	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	public string BuildUnsafeTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null) =>
+		Build(payments, coins, feeTarget, feeRate, password, overrideFeeOverpaymentProtection: true).Transaction.Transaction.ToHex();
+
+	/// <summary>Builds the transaction without signing it; the PSBT carries the key paths and previous transactions an external signer needs.</summary>
+	[JsonRpcMethod("buildpsbt")]
+	public JsonRpcResult BuildPsbt(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null)
+	{
+		var result = Build(payments, coins, feeTarget, feeRate, password: null, tryToSign: false);
+		if (ActiveWallet!.KeyManager.MasterFingerprint is null)
+		{
+			throw new InvalidOperationException("The wallet has no master fingerprint, so the PSBT would carry no key paths for a signer.");
+		}
+
+		return new JsonRpcResult
+		{
+			["psbt"] = result.Psbt.ToBase64(),
+			["fee"] = result.Fee.Satoshi
+		};
+	}
+
+	private BuildTransactionResult Build(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget, decimal? feeRate, string? password, bool tryToSign = true, bool overrideFeeOverpaymentProtection = false)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
@@ -261,15 +260,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var result = ActiveWallet!.BuildTransactionWithoutOverpaymentProtection(
+		return ActiveWallet!.BuildTransaction(
 			password,
 			payment,
 			feeStrategy,
 			allowUnconfirmed: true,
-			allowedInputs: coins);
-		var smartTx = result.Transaction;
-
-		return smartTx.Transaction.ToHex();
+			allowedInputs: coins,
+			tryToSign: tryToSign,
+			overrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 	}
 
 	[JsonRpcMethod("payincoinjoin")]
