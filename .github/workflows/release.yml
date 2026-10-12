@@ -18,7 +18,7 @@ jobs:
         run: sudo bash -x ./Contrib/release.sh debian
 
       - name: Upload debian package
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-for-debian
           path: ./packages/*.deb  # Adjust the path to your generated files
@@ -26,7 +26,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip & tar package
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-zip-tar
           path: |
@@ -64,7 +64,7 @@ jobs:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
 
     - name: Upload windows installer
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: packages-for-windows
         path: ./packages/*  # Adjust the path to your generated files
@@ -81,7 +81,7 @@ jobs:
         run: sudo bash -x ./Contrib/release.sh appimage
 
       - name: Upload AppImage packages
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-appimage
           path: ./packages/*.AppImage
@@ -116,7 +116,7 @@ jobs:
           MAC_P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
 
       - name: Upload zip & dmg package
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-zip-dmg
           path: ./packages/*
