@@ -63,7 +63,7 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton(config);
 
 		var torSetting = new TorSettings(dataDir,
-			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			wasabiInstallationFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
 			true, TorMode.Enabled, 37155, 37156);
 
 		services.AddSingleton(torSetting);
