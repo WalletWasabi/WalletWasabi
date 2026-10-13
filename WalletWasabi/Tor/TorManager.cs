@@ -300,6 +300,7 @@ public class TorManager : IAsyncDisposable
 				}
 				else
 				{
+					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
 					bool killAttempt = _processManager.KillBundledRunningTorProcesses(_settings, out var torProcesses);
 
 					// Tor was started by another user and we can't kill it.
