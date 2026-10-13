@@ -284,12 +284,7 @@ public class Global
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
-		var manager = new P2pConnectionManager(
-			Network,
-			EventBus,
-			dnsResolver,
-			TimeSpan.FromSeconds(15),
-			torSocks5: torEndpoint);
+		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 
 		if (!Config.BlockOnlyMode)
 		{
