@@ -11,7 +11,7 @@ using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor;
 
-public class TorProcessManager
+public class TorProcessManager(TorSettings settings, EventBus eventBus)
 {
 	private static readonly byte[] NoAuthHandshakeMsg = [
 		0x05, // Version
@@ -19,14 +19,8 @@ public class TorProcessManager
 		0x00, // No authentication
 	];
 
-	public TorProcessManager(TorSettings settings, EventBus eventBus)
-	{
-		_settings = settings;
-		_eventBus = eventBus;
-	}
-
-	private readonly TorSettings _settings;
-	private readonly EventBus _eventBus;
+	private readonly TorSettings _settings = settings;
+	private readonly EventBus _eventBus = eventBus;
 
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
 	public virtual Process StartProcess(string arguments)
@@ -70,7 +64,7 @@ public class TorProcessManager
 		await process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual void KillProcess(Process process)
+	public void KillProcess(Process process)
 	{
 		process.Kill();
 	}
