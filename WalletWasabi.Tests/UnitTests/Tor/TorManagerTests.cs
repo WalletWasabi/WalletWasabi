@@ -11,18 +11,18 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
 
-/// <summary>Tests for <see cref="TorManager"/> class.</summary>
+/// <summary>
+/// Tests for <see cref="TorManager"/> class.
+/// </summary>
 public class TorManagerTests
 {
 	/// <summary>
 	/// Simulates: Tor OS process is fully started. The process crashes after 2 seconds.
 	/// Then we simulate then user asked to cancel TorManager as the application shuts down.
 	/// </summary>
-	[Fact]
+	[Fact(Timeout = 120_000)]
 	public async Task StartProcessAsync()
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
-
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
@@ -34,22 +34,23 @@ public class TorManagerTests
 			WaitForTorProcessDelay = TimeSpan.FromSeconds(2),
 			IsTorRunningAsyncResult = false,
 			EnsureRunningAsyncResult = true,
-			InitTorControlAsyncResult = new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)  // (1)
+			InitTorControlAsyncResult = new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer) // (1)
 		};
 
 		await using (TorManager manager = new(settings, processManager))
 		{
 			// No exception is expected here.
-			(CancellationToken ct1, TorControlClient? client1) = await manager.StartAsync(timeoutCts.Token);
+			(CancellationToken ct1, TorControlClient? client1) = await manager.StartAsync(TestContext.Current.CancellationToken);
 
 			// Wait for the Tor process crash (see (1)).
-			await ct1.WhenCanceled().WaitAsync(timeoutCts.Token);
+			await ct1.WhenCanceled().WaitAsync(TestContext.Current.CancellationToken);
 
 			// On second attempt, InitTorControlAsync should throw.
 			processManager.InitTorControlAsyncException = new OperationCanceledException(); // (2)
 
 			// Wait until TorProcessManager is stopped (see (2)).
-			await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await manager.WaitForNextAttemptAsync(timeoutCts.Token).ConfigureAwait(false));
+			await Assert.ThrowsAnyAsync<OperationCanceledException>(
+				async () => await manager.WaitForNextAttemptAsync(TestContext.Current.CancellationToken).ConfigureAwait(false));
 		}
 
 		Assert.Equal(2, processManager.StartProcessCallCount);
@@ -59,13 +60,11 @@ public class TorManagerTests
 	/// Simulates: Tor OS process is started but by a different OS user. We should throw an exception
 	/// in this case as it is an unsupported scenario at the moment.
 	/// </summary>
-	[Theory]
+	[Theory(Timeout = 120_000)]
 	[InlineData(0)] // No process is returned as Tor is running under a different user (on linux/mac you can's see processes of other users)
 	[InlineData(1)] // Single dummy Tor process is found but cannot be killed
 	public async Task TorProcessStartedByDifferentUserAsync(int runningTorOsProcesses)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
-
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
@@ -83,7 +82,7 @@ public class TorManagerTests
 		await using TorManager torManager = new(settings, processManager);
 
 		NotSupportedException ex = await Assert.ThrowsAsync<NotSupportedException>(
-			async () => await torManager.StartAsync(timeoutCts.Token).ConfigureAwait(false));
+			async () => await torManager.StartAsync(TestContext.Current.CancellationToken).ConfigureAwait(false));
 		Assert.Equal(TorManager.TorProcessStartedByDifferentUser, ex.Message);
 	}
 
