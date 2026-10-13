@@ -119,7 +119,10 @@ public record TorSettings
 	public string TorBinaryFilePath { get; }
 
 	/// <summary>Full path to Tor cookie file.</summary>
-	public string CookieAuthFilePath => Path.Combine(DataDir, $"control_auth_cookie_{SocksPort}_{ControlPort}");
+	/// <remarks>The default port pair keeps the historical file name so that a Tor instance left running by a previous Wasabi version can still be used after an upgrade.</remarks>
+	public string CookieAuthFilePath => SocksPort == DefaultSocksPort && ControlPort == DefaultControlPort
+		? Path.Combine(DataDir, "control_auth_cookie")
+		: Path.Combine(DataDir, $"control_auth_cookie_{SocksPort}_{ControlPort}");
 
 	/// <summary>Tor SOCKS5 endpoint's port.</summary>
 	public int SocksPort { get; init; }
