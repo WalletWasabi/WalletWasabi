@@ -1,8 +1,11 @@
 using NBitcoin;
 using System.Threading.Tasks;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
 using System.Net.Http;
@@ -297,6 +300,54 @@ public class PayjoinTests
 		// No payjoin was involved
 		Assert.Equal(amountToPay, outerOutput.Amount);
 		Assert.Equal(allowedCoins[0].Amount - amountToPay - tx.Fee, innerOutput.Amount);
+	}
+
+	[Theory]
+	[InlineData(new[] { ScriptPubKeyType.TaprootBIP86 }, ScriptPubKeyType.TaprootBIP86)]
+	[InlineData(new[] { ScriptPubKeyType.Segwit, ScriptPubKeyType.TaprootBIP86 }, ScriptPubKeyType.Segwit)]
+	public void HonestPayjoinServerWithTaprootInputsTest(ScriptPubKeyType[] walletInputTypes, ScriptPubKeyType serverInputType)
+	{
+		// Every wallet coin is needed to pay this amount.
+		var amountToPay = Money.Coins(0.1m * walletInputTypes.Length - 0.05m);
+
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
+			{
+				var clientTx = psbt.ExtractTransaction();
+				foreach (var input in clientTx.Inputs)
+				{
+					input.WitScript = WitScript.Empty;
+				}
+				using var serverCoinKey = new Key();
+				var serverCoin = Coin(0.345m, serverCoinKey.PubKey.GetScriptPubKey(serverInputType));
+				clientTx.Inputs.Add(serverCoin.Outpoint);
+				clientTx.Outputs.First(x => x.Value == amountToPay).Value += (Money)serverCoin.Amount;
+
+				// Taproot signatures commit to every spent output, so the server needs ours too.
+				var newPsbt = PSBT.FromTransaction(clientTx, Network.Main)
+					.AddCoins([.. psbt.Inputs.Select(x => x.GetCoin()), serverCoin]);
+				var serverCoinToSign = newPsbt.Inputs.FindIndexedInput(serverCoin.Outpoint)!;
+				serverCoinToSign.Sign(serverCoinKey);
+				serverCoinToSign.FinalizeInput();
+				return newPsbt;
+			});
+
+		var keyManager = ServiceFactory.CreateKeyManager("foo", isTaprootAllowed: true);
+		var coins = walletInputTypes
+			.Select(type => BitcoinFactory.CreateSmartCoin(keyManager.GetNextReceiveKey(new LabelsArray("Pablo"), type), 0.1m))
+			.ToArray();
+		using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, new CoinsView(coins), mockTransactionStore, "foo");
+
+		var txParameters = CreateBuilder()
+			.SetPayment(new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay))
+			.SetAllowedInputs(coins.Select(x => x.Outpoint))
+			.Build();
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
+
+		Assert.Equal(walletInputTypes.Length + 1, tx.Transaction.Transaction.Inputs.Count);
+		Assert.Equal(amountToPay + Money.Coins(0.345m), Assert.Single(tx.OuterWalletOutputs).Amount);
 	}
 
 	[Fact]

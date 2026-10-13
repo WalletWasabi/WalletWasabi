@@ -134,7 +134,7 @@ public class PayjoinClient : IPayjoinClient
 		foreach (var input in originalTx.Inputs)
 		{
 			var newInput = newPSBT.Inputs.FindIndexedInput(input.PrevOut);
-			if (newInput is { })
+			if (newInput is not null)
 			{
 				newInput.UpdateFrom(input);
 				newInput.PartialSigs.Clear();

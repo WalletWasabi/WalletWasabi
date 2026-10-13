@@ -223,7 +223,7 @@ public static class NBitcoinExtensions
 	{
 		if (i.WitnessUtxo is null)
 		{
-			throw new ArgumentNullException($"{nameof(i.WitnessUtxo)} was null, can't get it's ScriptPubKey type.");
+			throw new ArgumentNullException($"{nameof(i.WitnessUtxo)} was null, can't get its ScriptPubKey type.");
 		}
 
 		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
