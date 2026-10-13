@@ -644,10 +644,9 @@ public class Global
 
 	private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
 	{
-		// HttpListener doesn't support onion services as prefix and for that reason we have no alternative
-		// other than using
+		// HttpListener cannot listen on an onion address, so the onion service forwards to this loopback port.
 		var prefixes = OnionServiceUri is { }
-			? Config.JsonRpcServerPrefixes.Append($"http://+:37129/").ToArray()
+			? Config.JsonRpcServerPrefixes.Append("http://127.0.0.1:37129/").ToArray()
 			: Config.JsonRpcServerPrefixes;
 
 		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes, Config.Network);
