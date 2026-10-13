@@ -681,16 +681,6 @@ public class KeyManager
 		}
 	}
 
-	/// <summary>Moves the wallet file under the state lock, so a concurrent <see cref="ToFile"/> cannot recreate it under the old name.</summary>
-	public void MoveFileTo(string newFilePath)
-	{
-		lock (_criticalStateLock)
-		{
-			File.Move(Guard.NotNull(nameof(FilePath), FilePath), newFilePath);
-			SetFilePath(newFilePath);
-		}
-	}
-
 	public void SetResyncParameters(ChainHeight newStartingHeight, int newMinGapLimit)
 	{
 		lock (_criticalStateLock)

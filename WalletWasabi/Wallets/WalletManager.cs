@@ -101,10 +101,13 @@ public class WalletManager
 			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
 		}
 
+		var currentWalletFilePath = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
 		var newWalletFilePath = WalletDirectories.GetWalletFilePaths(newWalletName);
 
-		Logger.LogInfo($"Renaming file {wallet.KeyManager.FilePath} to {newWalletFilePath}");
-		wallet.KeyManager.MoveFileTo(newWalletFilePath);
+		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
+		File.Move(currentWalletFilePath, newWalletFilePath);
+
+		wallet.KeyManager.SetFilePath(newWalletFilePath);
 	}
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
