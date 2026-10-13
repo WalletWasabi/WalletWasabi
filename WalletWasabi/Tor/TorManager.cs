@@ -6,7 +6,9 @@ using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor;
 
-/// <summary>Manages lifetime of Tor process.</summary>
+/// <summary>
+/// Manages lifetime of Tor process.
+/// </summary>
 /// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 public class TorManager : IAsyncDisposable
 {
@@ -54,7 +56,9 @@ public class TorManager : IAsyncDisposable
 		return StartAsync(attempts: 1, cancellationToken);
 	}
 
-	/// <summary>Starts loop which makes sure that Tor process is started.</summary>
+	/// <summary>
+	/// Starts loop which makes sure that Tor process is started.
+	/// </summary>
 	/// <param name="cancellationToken">Application lifetime cancellation token.</param>
 	/// <returns>Cancellation token which is canceled once Tor process terminates (either forcefully or gracefully).</returns>
 	/// <remarks>This method must be called exactly once.</remarks>
@@ -91,7 +95,9 @@ public class TorManager : IAsyncDisposable
 		                                    $"Please start Tor before opening Wasabi or set 'UseTor' to 'Enabled' in the configuration file.");
 	}
 
-	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
+	/// <summary>
+	/// Waits until Tor process is fully started or until it is stopped for some reason.
+	/// </summary>
 	/// <returns>Cancellation token which is canceled once Tor process terminates or once <paramref name="cancellationToken"/> is canceled.</returns>
 	/// <remarks>This is useful to set up Tor control monitors that need to be restarted once Tor process is started again.</remarks>
 	public Task<(CancellationToken, TorControlClient?)> WaitForNextAttemptAsync(CancellationToken cancellationToken)
@@ -99,7 +105,9 @@ public class TorManager : IAsyncDisposable
 		return _tcs.Task.WaitAsync(cancellationToken);
 	}
 
-	/// <summary>Keeps starting Tor OS process.</summary>
+	/// <summary>
+	/// Keeps starting Tor OS process.
+	/// </summary>
 	/// <param name="globalCancellationToken">Application lifetime cancellation token.</param>
 	private async Task RestartingLoopAsync(CancellationToken globalCancellationToken)
 	{
