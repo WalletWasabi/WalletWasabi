@@ -38,6 +38,7 @@ public class TorProcessManager
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			RedirectStandardOutput = true,
+			RedirectStandardError = true,
 			WorkingDirectory = _settings.TorBinaryDir
 		};
 
