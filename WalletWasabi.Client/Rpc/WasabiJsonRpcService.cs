@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -32,9 +33,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
+		if (global?.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+		{
+			coinJoinManager.StatusChanged += (_, e) => _lastCoinJoinStatus[e.Wallet.WalletId] = e;
+		}
 	}
 
 	private Global Global { get; }
+	private readonly ConcurrentDictionary<WalletId, StatusChangedEventArgs> _lastCoinJoinStatus = new();
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
@@ -545,7 +551,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return new JsonRpcResult
 		{
 			["status"] = GetCoinjoinStatus(activeWallet),
-			["lastEvent"] = GetCoinJoinManager().GetLastStatus(activeWallet.WalletId) is { } lastEvent ? DescribeCoinJoinEvent(lastEvent) : null
+			["lastEvent"] = _lastCoinJoinStatus.GetValueOrDefault(activeWallet.WalletId) is { } lastEvent ? DescribeCoinJoinEvent(lastEvent) : null
 		};
 	}
 
