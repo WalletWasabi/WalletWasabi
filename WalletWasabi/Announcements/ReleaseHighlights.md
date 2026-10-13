@@ -30,5 +30,5 @@ Coinjoin transaction details previously showed a single value for the fee paid t
 ### ⚙️ Bug fixes
 - Exchange rates and fee rates no longer get stuck
 - Coinjoin payments now return from "in progress" to the queue and are attempted again once a previous signature is invalidated
-- Synchronization now ignores block headers from forks
+- Synchronization now ignores block headers received from longer chains that have less accumulated proof of work
 - Upgraded to Tor 0.4.9.13
