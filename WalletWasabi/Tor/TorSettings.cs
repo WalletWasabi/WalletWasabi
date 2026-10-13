@@ -122,11 +122,9 @@ public record TorSettings
 	public string CookieAuthFilePath => Path.Combine(DataDir, $"control_auth_cookie_{SocksPort}_{ControlPort}");
 
 	/// <summary>Tor SOCKS5 endpoint's port.</summary>
-	/// <remarks>0 means to select a port automatically.</remarks>
 	public int SocksPort { get; init; }
 
 	/// <summary>Tor control endpoint's port.</summary>
-	/// <remarks>0 means to select a port automatically.</remarks>
 	public int ControlPort { get; init; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
