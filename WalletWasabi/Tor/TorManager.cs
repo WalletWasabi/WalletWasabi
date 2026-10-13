@@ -300,27 +300,7 @@ public class TorManager : IAsyncDisposable
 				}
 				else
 				{
-					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
-					Process[] torProcesses = _processManager.GetTorProcesses();
-
-					bool killAttempt = false;
-
-					foreach (Process torProcess in torProcesses)
-					{
-						try
-						{
-							// This throws if we can't access MainModule of an elevated process from a non elevated one.
-							if (torProcess.MainModule?.FileName == _settings.TorBinaryFilePath)
-							{
-								Logger.LogInfo("Kill running Tor process to restart it again.");
-								killAttempt = true;
-								_processManager.KillProcess(torProcess);
-							}
-						}
-						catch
-						{
-						}
-					}
+					bool killAttempt = _processManager.KillBundledRunningTorProcesses(_settings, out var torProcesses);
 
 					// Tor was started by another user and we can't kill it.
 					if (torProcesses.Length == 0 || !killAttempt)
