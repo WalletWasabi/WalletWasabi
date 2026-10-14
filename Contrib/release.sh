@@ -290,7 +290,7 @@ License: Open Source (MIT)
 Installed-Size: ${DEBIAN_PACKAGE_SIZE}
 Recommends: policykit-1
 Description: open-source, non-custodial, privacy focused Bitcoin wallet
-  Built-in Tor, coinjoin, and coin control features."
+  Built-in Tor, coinjoin and coin control features."
 
 echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 

@@ -95,6 +95,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 		clipboardValue = clipboardValue.Trim();
 		var addressParsingResult = AddressParser.Parse(clipboardValue, Services.Instance.GetNetwork());
 
+		// clipboardValue may be a BIP 21 URI whose address is CurrentAddress, so compare the parsed value too.
 		if (clipboardValue != CurrentAddress && addressParsingResult.IsOk && CurrentAddress != addressParsingResult.Value.ToWif(Services.Instance.GetNetwork()))
 		{
 			AssociatedObject.Classes.Add(FlashAnimation);
