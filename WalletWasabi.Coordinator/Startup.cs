@@ -71,39 +71,39 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IRPCClient>(provider =>
 		{
-		    string host;
-		    if (config.Network == Network.Main)
-		    {
-		        host = config.MainNetBitcoinRpcUri;
-		    }
-		    else if (config.Network == Network.TestNet)
-		    {
-		        host = config.TestNetBitcoinRpcUri;
-		    }
-		    else if (config.Network == Network.RegTest)
-		    {
-		        host = config.RegTestBitcoinRpcUri;
-		    }
-		    else
-		    {
-		        throw new NotSupportedException($"Network {config.Network} is not supported");
-		    }
+			string host;
+			if (config.Network == Network.Main)
+			{
+				host = config.MainNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.TestNet)
+			{
+				host = config.TestNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.RegTest)
+			{
+				host = config.RegTestBitcoinRpcUri;
+			}
+			else
+			{
+				throw new NotSupportedException($"Network {config.Network} is not supported");
+			}
 
-		    RPCClient rpcClient = new(
+			RPCClient rpcClient = new(
 				authenticationString: config.BitcoinRpcConnectionString,
 				hostOrUri: host,
 				network: config.Network);
 
-		    IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
-		    CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
-		    return cachedRpc;
+			IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
+			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
+			return cachedRpc;
 		});
 
 		var network = config.Network;
 		services.AddSingleton(_ => network);
 
 		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
+		services.AddBackgroundService<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
 		services.AddSingleton<RoundParametersFactory>(s =>
 		{
 			var config = s.GetRequiredService<WabiSabiConfig>();
