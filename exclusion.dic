@@ -1,4 +1,4 @@
-# Words from URIs (remove/ignore once the spell checker allows it)
+﻿# Words from URIs (remove/ignore once the spell checker allows it)
 cecefcc
 dotnet
 microsoft
@@ -170,7 +170,6 @@ hicolor
 wasabiwallet
 zksnacks
 policykit
-payjoin
 dpkg
 utils
 debian

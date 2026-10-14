@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -21,12 +20,10 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -52,15 +49,12 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private Address? _parsedAddress;
-	private bool _payjoinDisableOutputSubstitution;
 
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
-	[AutoNotify] private bool _isPayJoin;
-	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
@@ -114,9 +108,6 @@ public partial class SendViewModel : RoutableViewModel
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(HandleAddressChange);
 
-		this.WhenAnyValue(x => x.PayJoinEndPoint)
-			.Subscribe(endPoint => IsPayJoin = endPoint is { });
-
 		this.WhenAnyValue(x => x.Balance)
 			.Switch()
 			.ToProperty(this, vm => vm.BalanceLatest, out _balanceLatest);
@@ -144,11 +135,6 @@ public partial class SendViewModel : RoutableViewModel
 		var canAddRecipient = this.WhenAnyValue(x => x.IsBip21)
 			.Select(isBip21 => !isBip21);
 		AddRecipientCommand = ReactiveCommand.Create(OnAddRecipient, canAddRecipient);
-
-		this.WhenAnyValue(x => x.IsPayToMany)
-			.Skip(1)
-			.Where(isPayToMany => isPayToMany)
-			.Subscribe(_ => PayJoinEndPoint = null);
 
 		_additionalRecipients.CollectionChanged += (_, _) =>
 		{
@@ -361,13 +347,12 @@ public partial class SendViewModel : RoutableViewModel
 
 		var primarySubtractFee = isPayToMany
 			? IsPrimarySubtractFee
-			: amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin);
+			: amount == _parameters.AvailableCoins.TotalAmount() && !IsFixedAmount;
 
 		var transactionInfo = new TransactionInfo(destination, _walletModel.Settings.AnonScoreTarget)
 		{
 			Amount = amount,
 			Recipient = label,
-			PayJoinClient = isPayToMany ? null : GetPayjoinClient(PayJoinEndPoint),
 			IsFixedAmount = IsFixedAmount,
 			SubtractFee = primarySubtractFee,
 			AdditionalRecipients = additionalRecipients
@@ -445,35 +430,6 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private IPayjoinClient? GetPayjoinClient(string? endPoint)
-	{
-		if (!string.IsNullOrWhiteSpace(endPoint) &&
-			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
-		{
-			var payjoinEndPointUri = new Uri(endPoint);
-			if (UiContext.Services.GetUseTor() is TorMode.Disabled)
-			{
-				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
-				{
-					Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
-					return null;
-				}
-
-				if (UiContext.ApplicationSettings.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
-				{
-					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
-					return null;
-				}
-			}
-
-			HttpClient httpClient = UiContext.Services.CreateHttpClient(endPoint);
-			httpClient.BaseAddress = new Uri(endPoint);
-			return new PayjoinClient(payjoinEndPointUri, httpClient, _payjoinDisableOutputSubstitution);
-		}
-
-		return null;
-	}
-
 	private async Task ShowQrCameraDialogAsync()
 	{
 		var textContent = await _showQrCodeCameraDialog(this, _walletModel.Network);
@@ -527,11 +483,6 @@ public partial class SendViewModel : RoutableViewModel
 			errors.Add(ErrorSeverity.Error, "Silent payments are not possible with hardware wallets.");
 			return;
 		}
-
-		if (IsPayJoin && _walletModel.IsHardwareWallet)
-		{
-			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
-		}
 	}
 
 	private void HandleAddressChange(string? text)
@@ -547,7 +498,6 @@ public partial class SendViewModel : RoutableViewModel
 		if (string.IsNullOrEmpty(text))
 		{
 			_parsedAddress = null;
-			PayJoinEndPoint = null;
 			IsFixedAmount = false;
 			IsBip21 = false;
 			DisplaySilentPaymentInfo = false;
@@ -555,10 +505,8 @@ public partial class SendViewModel : RoutableViewModel
 		}
 
 		// Reset state for new input
-		PayJoinEndPoint = null;
 		IsFixedAmount = false;
 		IsBip21 = false;
-		_payjoinDisableOutputSubstitution = false;
 
 		var parseResult = AddressParser.Parse(text, _walletModel.Network);
 		if (!parseResult.IsOk)
@@ -592,11 +540,6 @@ public partial class SendViewModel : RoutableViewModel
 						[bip21.Label]);
 				}
 
-				if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
-				{
-					PayJoinEndPoint = bip21.PayjoinEndpoint;
-					_payjoinDisableOutputSubstitution = bip21.PayjoinOutputSubstitution == "0";
-				}
 				DisplaySilentPaymentInfo = false;
 				break;
 
