@@ -39,22 +39,12 @@ public class Startup
 				options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.CoordinatorMessage));
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 			})
-			.ConfigureApplicationPartManager(manager =>
-			{
-				manager.FeatureProviders.Add(new ControllerProvider(Configuration));
-			})
+			.ConfigureApplicationPartManager(manager => manager.FeatureProviders.Add(new ControllerProvider()))
 			.AddApplicationPart(backendAssembly);
 	}
 }
 public class ControllerProvider : ControllerFeatureProvider
 {
-    public readonly IConfiguration _configuration;
-
-    public ControllerProvider(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
     protected override bool IsController(TypeInfo typeInfo)
     {
 	    return typeInfo.Name.Contains(nameof(WabiSabiController));

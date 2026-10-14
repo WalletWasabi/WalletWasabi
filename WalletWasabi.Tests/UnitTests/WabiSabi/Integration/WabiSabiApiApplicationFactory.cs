@@ -79,10 +79,12 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 	{
 		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
+
 		RoundState? round;
 		do
 		{
-			var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, timeout.Token)).RoundStates;
+			var roundStateResponse = await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, timeout.Token);
+			var rounds = roundStateResponse.RoundStates;
 			round = rounds.FirstOrDefault(x => x.CoinjoinState is ConstructionState);
 			if (round is null)
 			{
