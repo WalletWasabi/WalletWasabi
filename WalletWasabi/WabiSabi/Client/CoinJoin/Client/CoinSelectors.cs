@@ -59,15 +59,17 @@ public static class CoinSelectors
 			var paymentsFunding = paymentBatch.GetPendingPayments()
 				.OrderBy(payment => payment.EffectiveCost(feeRate))
 				.Aggregate(
-					(Coins: ImmutableList<SmartCoin>.Empty, Amount: Money.Zero),
+					(Coins: ImmutableList<SmartCoin>.Empty, Payments: ImmutableList<Payment>.Empty),
 					(funding, payment) =>
 					{
-						var amount = funding.Amount + payment.EffectiveCost(feeRate);
+						var payments = funding.Payments.Add(payment);
+						var amount = new PaymentSet(payments, feeRate).TotalAmount;
 						var selection = Fund(paymentBatch.GetFailedAttemptInputSets(payment).Aggregate(funding.Coins, SpendFrom), amount);
-						return selection.Count <= CoinJoinCoinSelector.MaxInputsRegistrableByWallet
+						return payments.Count <= PaymentBatch.MaxPaymentsPerCoinjoin
+							&& selection.Count <= CoinJoinCoinSelector.MaxInputsRegistrableByWallet
 							&& ValueOf(selection) >= amount
 							&& paymentBatch.CanBeRetriedWith(payment, selection.Select(x => x.Outpoint).ToHashSet())
-							? (selection, amount)
+							? (selection, payments)
 							: funding;
 					});
 

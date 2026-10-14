@@ -19,6 +19,9 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // spends an input of each failed attempt that can still confirm, so that it cannot be made twice.
 public class PaymentBatch(CoinsRegistry coins)
 {
+	// Arbitrary number.
+	public const int MaxPaymentsPerCoinjoin = 4;
+
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
@@ -80,8 +83,8 @@ public class PaymentBatch(CoinsRegistry coins)
 		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
 		// Once we know how much money we have registered in the coinjoin, lets see how many payments
-		// we can do we that. Maximum 4 payments in a single coinjoin (arbitrary number)
-		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, 4);
+		// we can do we that.
+		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, MaxPaymentsPerCoinjoin);
 		var bestPaymentSet = allCombinationOfPendingPayments
 			.Select(pendingPaymentSet => new PaymentSet(pendingPaymentSet, roundParameters.MiningFeeRate))
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)

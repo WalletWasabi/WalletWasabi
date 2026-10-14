@@ -78,6 +78,15 @@ public static class WabiSabiFactory
 			new FeeRate(100m),
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
+	public static UtxoSelectionParameters CreateUtxoSelectionParameters() =>
+		UtxoSelectionParameters.FromRoundParameters(
+			CreateRoundParameters(new()
+			{
+				MinRegistrableAmount = Money.Coins(0.0001m),
+				MaxRegistrableAmount = Money.Coins(430)
+			}),
+			[ScriptType.P2WPKH, ScriptType.Taproot]);
+
 	public static Round CreateRound(RoundParameters parameters) =>
 		new(parameters, InsecureRandom.Instance);
 

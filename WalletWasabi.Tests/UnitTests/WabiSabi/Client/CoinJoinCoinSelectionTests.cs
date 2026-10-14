@@ -7,7 +7,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -28,7 +27,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: [],
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -60,7 +59,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Empty(coins);
@@ -166,7 +165,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Contains(smallerAnonCoin, coins);
@@ -191,7 +190,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Single(coins);
@@ -217,7 +216,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Equal(2, coins.Count);
@@ -242,7 +241,7 @@ public class CoinJoinCoinSelectionTests
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: AnonymitySet, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
 			coins: coinsToSelectFrom,
-			CreateUtxoSelectionParameters(),
+			WabiSabiFactory.CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
 		Assert.Equal(2, coins.Count);
@@ -261,7 +260,7 @@ public class CoinJoinCoinSelectionTests
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		var utxoSelectionParameter = CreateUtxoSelectionParameters();
+		var utxoSelectionParameter = WabiSabiFactory.CreateUtxoSelectionParameters();
 		coinsToSelectFrom.Add(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), utxoSelectionParameter.AllowedInputAmounts.Min - Money.Satoshis(1), anonymitySet: AnonymitySet - 1));
 
 		// Make sure the distance from external keys is sufficient.
@@ -298,19 +297,4 @@ public class CoinJoinCoinSelectionTests
 
 		return generator;
 	}
-
-	private static RoundParameters CreateMultipartyTransactionParameters()
-	{
-		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
-		{
-			MinRegistrableAmount = Money.Coins(0.0001m),
-			MaxRegistrableAmount = Money.Coins(430)
-		});
-		return roundParams;
-	}
-
-	private static UtxoSelectionParameters CreateUtxoSelectionParameters() =>
-		UtxoSelectionParameters.FromRoundParameters(
-			CreateMultipartyTransactionParameters(),
-			[ScriptType.P2WPKH, ScriptType.Taproot]);
 }
