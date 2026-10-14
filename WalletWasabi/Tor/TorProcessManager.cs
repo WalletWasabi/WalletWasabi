@@ -41,7 +41,7 @@ public class TorProcessManager
 			WorkingDirectory = _settings.TorBinaryDir
 		};
 
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		if (_settings.TorBackend == TorBackend.CTor && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			var env = startInfo.EnvironmentVariables;
 
@@ -159,7 +159,7 @@ public class TorProcessManager
 
 	public virtual Process[] GetTorProcesses()
 	{
-		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
+		return Process.GetProcessesByName(_settings.TorBinaryFileName);
 	}
 
 	/// <summary>
@@ -169,18 +169,33 @@ public class TorProcessManager
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	public virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
 	{
-		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
-		if (!File.Exists(_settings.CookieAuthFilePath))
-		{
-			throw new TorControlException("Cookie file does not exist.");
-		}
+		string? cookieString = null;
 
-		// Get cookie.
-		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+		if (_settings.CookieAuthFilePath is not null)
+		{
+			// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
+			if (!File.Exists(_settings.CookieAuthFilePath))
+			{
+				throw new TorControlException("Cookie file does not exist.");
+			}
+
+			if (_settings.TorBackend == TorBackend.CTor)
+			{
+				cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+			}
+			else
+			{
+				var cookieBytes = File.ReadAllBytes(_settings.CookieAuthFilePath);
+
+				// See https://gitlab.torproject.org/tpo/core/arti/-/blob/6d9ee5587fdbb6028ed9cfa2a6049e2418ba583a/crates/tor-rpc-connect/src/auth/cookie.rs#L42.
+				var artiPrefix = "====== arti-rpc-cookie-v1 ======";
+				cookieString = Convert.ToHexString(cookieBytes[artiPrefix.Length..]);
+			}
+		}
 
 		// Authenticate.
 		TorControlClientFactory factory = new(RandomnessProviders.Secure);
-		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.TorBackend, _settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
 
 		if (_settings.TerminateOnExit)
 		{
