@@ -93,7 +93,7 @@ public class P2pConnectionManager : IDisposable
 	private readonly IDnsResolver _dnsResolver;
 	private readonly TimeSpan _connectionTimeout;
 	private readonly int _crawlerCount;
-	private readonly EndPoint? _torSocks5;
+	private EndPoint? _torSocks5;
 
 	private readonly ConcurrentDictionary<EndPoint, (Node Node, PeerInfo PeerInfo, DateTimeOffset ConnectedAt)> _connectedNodes = new();
 	private readonly ConcurrentDictionary<EndPoint, DateTimeOffset> _connectionAttempts = new();
@@ -116,15 +116,13 @@ public class P2pConnectionManager : IDisposable
 		EventBus eventBus,
 		IDnsResolver dnsResolver,
 		TimeSpan connectionTimeout,
-		int crawlerCount = DefaultCrawlerCount,
-		EndPoint? torSocks5 = null)
+		int crawlerCount = DefaultCrawlerCount)
 	{
 		_network = network;
 		_eventBus = eventBus;
 		_dnsResolver = dnsResolver;
 		_connectionTimeout = connectionTimeout;
 		_crawlerCount = crawlerCount;
-		_torSocks5 = torSocks5;
 	}
 
 	public ImmutableArray<Node> Nodes => _connectedNodes.Values.Select(x => x.Node).Where(x => x.IsConnected).ToImmutableArray();
@@ -138,8 +136,10 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
-	public void Start(CancellationToken cancellationToken)
+	public void Start(EndPoint? torSocks5, CancellationToken cancellationToken)
 	{
+		_torSocks5 = torSocks5;
+
 		_crawlers = Enumerable
 			.Range(0, _crawlerCount)
 			.Select(n =>

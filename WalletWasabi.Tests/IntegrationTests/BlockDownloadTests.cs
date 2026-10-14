@@ -32,7 +32,7 @@ public class BlockDownloadTests
 
 		var eventBus = new EventBus();
 		using var p2pConnectionManager = new P2pConnectionManager(Network.Main, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
-		p2pConnectionManager.Start(testCts.Token);
+		p2pConnectionManager.Start(torSocks5: null, testCts.Token);
 
 		// Ticks are used by the nodes connection manager to re-evaluate connections.
 		var tickTask = Task.Run(async () =>
