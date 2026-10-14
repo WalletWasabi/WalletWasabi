@@ -71,6 +71,17 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
 ```
 
 ```bash
+$ curl -s --user user:password --data-binary '{"jsonrpc":"2.0","id":"1","method":"buildpsbt","params":{"payments":[{"sendto":"tb1qgvnht40a08gumw32kp05hs8mny95hvatgk39sv","amount":15000,"label":"David"}],"coins":[{"transactionid":"a5a0b4d2c3d1f4e6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0","index":0}],"feeTarget":2}}' http://127.0.0.1:37128/MyWallet
+
+{
+  "psbt": "cHNidP8BAH0CAAAAAb...",
+  "fee": 2110
+}
+```
+
+Takes the payments, coins and fee parameters of `build` (`wcli.sh` cannot pass arrays, hence `curl`), needs no password and does not sign the transaction. The PSBT carries the key paths and previous transactions, so a hardware wallet or any other external signer can sign it; broadcast the finalized transaction with `broadcast`. Works for watch-only wallets.
+
+```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address
