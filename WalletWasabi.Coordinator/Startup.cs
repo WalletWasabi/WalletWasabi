@@ -107,7 +107,7 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<RoundParametersFactory>(s =>
 		{
 			var config = s.GetRequiredService<WabiSabiConfig>();
-			return (feeRate, maxSuggestedAmount, minInputCountByRound) => RoundParameters.Create(config, feeRate, maxSuggestedAmount);
+			return (feeRate, maxSuggestedAmount, minInputCountByRound) => RoundParameters.Create(config, feeRate, maxSuggestedAmount, minInputCountByRound);
 		});
 		services.AddBackgroundService<Arena>();
 
