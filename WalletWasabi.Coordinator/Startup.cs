@@ -22,7 +22,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.Services;
 using WalletWasabi.Tor;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
@@ -104,8 +103,7 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton(_ => network);
 
 		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
-		services.AddHostedService<BackgroundServiceStarter<Warden>>();
+		services.AddBackgroundService<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
 		services.AddSingleton<RoundParametersFactory>(s =>
 		{
 			var config = s.GetRequiredService<WabiSabiConfig>();

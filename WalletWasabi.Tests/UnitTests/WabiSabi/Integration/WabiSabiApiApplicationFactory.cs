@@ -24,6 +24,7 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -54,8 +55,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		// will be called after the `ConfigureServices` from the Startup
 		builder.ConfigureTestServices(services =>
 		{
-			services.AddHostedService<BackgroundServiceStarter<Arena>>();
-			services.AddSingleton<Arena>();
+			services.AddBackgroundService<Arena>();
 			services.AddSingleton(_ => Network.RegTest);
 			services.AddSingleton<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddSingleton<Prison>(_ => WabiSabiFactory.CreatePrison());
