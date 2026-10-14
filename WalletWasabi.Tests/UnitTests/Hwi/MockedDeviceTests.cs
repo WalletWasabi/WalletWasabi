@@ -11,6 +11,7 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
@@ -644,16 +645,17 @@ public class MockedDeviceTests
 	}
 
 	[Theory]
-	[MemberData(nameof(GetDifferentNetworkValues))]
-	public async Task BitBox02BtcOnlyMockTestsAsync(Network network)
+	[MemberData(nameof(GetDifferentNetworkValuesWithBitBox02Models))]
+	public async Task BitBox02MockTestsAsync(Network network, HardwareWalletModels model)
 	{
-		var client = new HwiClient(network, new HwiProcessBridgeMock(HardwareWalletModels.BitBox02_BTCOnly));
+		var client = new HwiClient(network, new HwiProcessBridgeMock(model));
 
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 		IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
 		Assert.Single(enumerate);
 		HwiEnumerateEntry entry = enumerate.Single();
-		Assert.Equal(HardwareWalletModels.BitBox02_BTCOnly, entry.Model);
+		Assert.Equal(model, entry.Model);
+		Assert.Equal(WalletType.BitBox, entry.WalletType);
 		Assert.True(HwiValidationHelper.ValidatePathString(entry.Model, @"\\?\hid#vid_03eb&pid_2403#6&229ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"));
 		Assert.Equal(@"\\?\hid#vid_03eb&pid_2403#6&229ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", entry.Path);
 		Assert.False(entry.NeedsPassphraseSent);
@@ -753,6 +755,17 @@ public class MockedDeviceTests
 			foreach (var trezorSafeModel in new List<HardwareWalletModels>() { HardwareWalletModels.Trezor_Safe_3, HardwareWalletModels.Trezor_Safe_5})
 			{
 				yield return new object[] { network.First(), trezorSafeModel };
+			}
+		}
+	}
+
+	public static IEnumerable<object[]> GetDifferentNetworkValuesWithBitBox02Models()
+	{
+		foreach (var network in GetDifferentNetworkValues())
+		{
+			foreach (var bitBox02Model in new List<HardwareWalletModels>() { HardwareWalletModels.BitBox02_BTCOnly, HardwareWalletModels.BitBox02_Nova_BTCOnly, HardwareWalletModels.BitBox02_Nova_Multi })
+			{
+				yield return new object[] { network.First(), bitBox02Model };
 			}
 		}
 	}

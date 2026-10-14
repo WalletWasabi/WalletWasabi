@@ -61,6 +61,12 @@ public enum HardwareWalletModels
 	[FriendlyName("BitBox")]
 	BitBox02_Multi,
 
+	[FriendlyName("BitBox")]
+	BitBox02_Nova_BTCOnly,
+
+	[FriendlyName("BitBox")]
+	BitBox02_Nova_Multi,
+
 	[FriendlyName("Jade")]
 	Jade,
 }

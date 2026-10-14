@@ -6,6 +6,7 @@ using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using static WalletWasabi.Logging.LoggerTools;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
@@ -254,11 +255,15 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
 			}
 
-			var inputScripts = Rounds.SelectMany(r => round.Alices).Select(a => a.Coin.ScriptPubKey).ToHashSet();
+			// An input of any round may not become an output of another one, so every registered input is checked.
+			var inputScripts = Rounds
+				.SelectMany(r => r.Alices)
+				.Select(a => a.Coin.ScriptPubKey)
+				.ToHashSet();
 			if (inputScripts.Contains(request.Script))
 			{
 				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in some round (input side).");
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script some round.");
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script in some round.");
 			}
 
 			Bob bob = new(request.Script, credentialAmount);
@@ -378,7 +383,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var banningTime = _prison.GetBanTimePeriod(input, _config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
-			Logger.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}", round);
+			Logger.LogInfo(FormatLog($"{input} rejected. Banned until {banningTime.EndTime}", round));
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));
 		}
 	}

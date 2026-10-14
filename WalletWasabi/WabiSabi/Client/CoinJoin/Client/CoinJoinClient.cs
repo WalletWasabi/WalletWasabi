@@ -28,7 +28,7 @@ public class CoinJoinClient
 		RoundStateProvider roundStatusProvider,
 		CoinSelector coinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
-		InputVerifier verifyInputsExistance,
+		InputVerifier verifyInputsExistence,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
 		int minAnonScoreForPayments = 0)
@@ -39,7 +39,7 @@ public class CoinJoinClient
 		_roundStatusProvider = roundStatusProvider;
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
-		_verifyInputsExistance = verifyInputsExistance;
+		_verifyInputsExistence = verifyInputsExistence;
 		_coinSelector = coinSelector;
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -57,7 +57,7 @@ public class CoinJoinClient
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
-	private readonly InputVerifier _verifyInputsExistance;
+	private readonly InputVerifier _verifyInputsExistence;
 	private readonly CoinSelector _coinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly int _minAnonScoreForPayments;
@@ -401,7 +401,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		int eventInvokedAlready = 0;
 
@@ -551,12 +551,12 @@ public class CoinJoinClient
 		// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
 		var remainingTimeForRegistration = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
-		Logger.LogDebug(FormatLog($"Inputs({smartCoins.Count()}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.", roundState));
+		Logger.LogDebug(FormatLog($"Inputs({smartCoins.Count}) registration started - it will end in: {remainingTimeForRegistration:hh\\:mm\\:ss}.", roundState));
 
 		// Decrease the available time, so the clients hurry up.
 		var safetyBuffer = TimeSpan.FromMinutes(1);
-		var remainingTime = roundState.InputRegistrationEnd - safetyBuffer;
-		var scheduledDates = remainingTime.GetScheduledDates(smartCoins.Count());
+		var registrationDeadline = roundState.InputRegistrationEnd - safetyBuffer;
+		var scheduledDates = GetScheduledDates(smartCoins.Count, DateTimeOffset.UtcNow, registrationDeadline, TimeSpan.MaxValue);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -642,7 +642,7 @@ public class CoinJoinClient
 	}
 
 	private async Task SignTransactionAsync(
-		IEnumerable<AliceClient> aliceClients,
+		ImmutableArray<AliceClient> aliceClients,
 		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
 		DateTimeOffset signingStartTime,
 		DateTimeOffset signingEndTime,
@@ -651,7 +651,7 @@ public class CoinJoinClient
 		// Maximum signing request delay is 50 seconds, because
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
-		var scheduledDates = signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Length, signingStartTime, signingEndTime, maximumSigningRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
@@ -676,9 +676,9 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
+	private async Task ReadyToSignAsync(ImmutableArray<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Length, DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
@@ -708,7 +708,13 @@ public class CoinJoinClient
 
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
-		return endTime.GetScheduledDates(howMany, startTime, maximumRequestDelay);
+		var remainingTime = endTime - startTime;
+		if (remainingTime > maximumRequestDelay)
+		{
+			remainingTime = maximumRequestDelay;
+		}
+
+		return remainingTime.SamplePoisson(howMany, startTime);
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
@@ -807,7 +813,7 @@ public class CoinJoinClient
 		}
 
 		// Verify other participants' inputs to detect a malicious coordinator.
-		await _verifyInputsExistance(theirCoins.ToArray(), cancellationToken).ConfigureAwait(false);
+		await _verifyInputsExistence(theirCoins.ToArray(), cancellationToken).ConfigureAwait(false);
 
 		var arePaymentsAllowed = registeredAliceClients.All(x => x.SmartCoin.IsPrivate(_minAnonScoreForPayments));
 
@@ -827,7 +833,7 @@ public class CoinJoinClient
 			// Output registration.
 			Logger.LogDebug(FormatLog($"Output registration started - it will end in: {outputRegistrationEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.", roundState));
 
-			var outputRegistrationScheduledDates = outputRegistrationEndTime.GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, MaximumRequestDelay);
+			var outputRegistrationScheduledDates = GetScheduledDates(outputTxOuts.Length, DateTimeOffset.UtcNow, outputRegistrationEndTime, MaximumRequestDelay);
 			var registrationResult = await scheduler.StartOutputRegistrationsAsync(outputTxOuts, bobClientFactory, outputRegistrationScheduledDates, combinedToken).ConfigureAwait(false);
 			registrationResult.MatchDo(
 				OnOutputRegistrationSuccess,
@@ -898,7 +904,7 @@ public class CoinJoinClient
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
-			Logger.LogInfo("I am the only one in that coinjoin.", roundState);
+			Logger.LogInfo(FormatLog("I am the only one in that coinjoin.", roundState));
 		}
 
 		var hasTooFewInputs = actualInputCount < _coinJoinConfiguration.AbsoluteMinInputCount;

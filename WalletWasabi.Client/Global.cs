@@ -61,7 +61,7 @@ public class Global
 		Config = config;
 		TorSettings = new TorSettings(
 			DataDir,
-			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			wasabiInstallationFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
 			terminateOnExit: Config.TerminateTorOnExit,
 			torMode: Config.UseTor,
 			socksPort: config.TorSocksPort,
@@ -284,12 +284,7 @@ public class Global
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
-		var manager = new P2pConnectionManager(
-			Network,
-			EventBus,
-			dnsResolver,
-			TimeSpan.FromSeconds(15),
-			torSocks5: torEndpoint);
+		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 
 		if (!Config.BlockOnlyMode)
 		{
@@ -644,10 +639,9 @@ public class Global
 
 	private async Task StartRpcServerAsync(TerminateService terminateService, CancellationToken cancel)
 	{
-		// HttpListener doesn't support onion services as prefix and for that reason we have no alternative
-		// other than using
+		// HttpListener cannot listen on an onion address, so the onion service forwards to this loopback port.
 		var prefixes = OnionServiceUri is { }
-			? Config.JsonRpcServerPrefixes.Append($"http://+:37129/").ToArray()
+			? Config.JsonRpcServerPrefixes.Append("http://127.0.0.1:37129/").ToArray()
 			: Config.JsonRpcServerPrefixes;
 
 		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes, Config.Network);
@@ -673,7 +667,7 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			TorProcessManager processManager = new(TorSettings, EventBus);
+			TorProcessManager processManager = new(EventBus);
 			_torManager = new TorManager(TorSettings, processManager);
 			_torManager.DisposeUsing(_asyncDisposables);
 			await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);

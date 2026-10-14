@@ -1,14 +1,15 @@
+using NBitcoin;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
@@ -88,7 +89,6 @@ public partial class SendViewModel : RoutableViewModel
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
-		UiContext.Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 
 		Balance =
 			_parameters.IsManual
@@ -618,6 +618,13 @@ public partial class SendViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
+		// Refresh in case the rate changed while we were not subscribed.
+		ExchangeRate = UiContext.Services.GetUsdExchangeRate();
+
+		UiContext.Services.EventBus
+			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.UsdBtcRate)
+			.DisposeWith(disposables);
+
 		if (!inHistory)
 		{
 			To = "";

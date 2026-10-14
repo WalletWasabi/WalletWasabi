@@ -83,6 +83,10 @@ public class KeyManager
 		ToFile();
 	}
 
+	/// <remarks>Note that <see cref="GetNextReceiveKey(HdPubKeyGenerator)"/> can increase the minimum gap limit value.</remarks>
+	private int GetEffectiveMinGapLimit() =>
+		Math.Max(MinGapLimit, Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0));
+
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		GetAccountKeyPath(network, new KeyPurpose.LoudPaymentKey(scriptPubKeyType));
 
@@ -342,15 +346,15 @@ public class KeyManager
 				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),
 				KeyPurpose.LoudPaymentKey(var scriptPubKeyType) => throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported."),
-				_ => throw new NotSupportedException($"Key purpose is unknown.")
+				_ => throw new NotSupportedException("Key purpose is unknown.")
 			};
 
-			if (generator is not { } nonNullKeyGenerator)
+			if (generator is null)
 			{
 				throw new NotSupportedException("Taproot is not supported in this wallet.");
 			}
 
-			var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(nonNullKeyGenerator);
+			var (newKey, newlyGeneratedKeySet, newHdPubKeyGenerator) = GetNextReceiveKey(generator);
 			generatorSetter(newHdPubKeyGenerator);
 			_hdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
 			newKey.SetLabel(labels);
@@ -737,7 +741,7 @@ public class KeyManager
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentSpendExtPubKey", Encode.Optional(keyManager.SilentPaymentSpendExtPubKey, Encode.ExtPubKey)),
-			("MinGapLimit", Encode.Int(keyManager.MinGapLimit)),
+			("MinGapLimit", Encode.Int(keyManager.GetEffectiveMinGapLimit())),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
 			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),
