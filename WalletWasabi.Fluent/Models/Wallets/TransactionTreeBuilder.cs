@@ -34,18 +34,18 @@ public class TransactionTreeBuilder
 		{
 			var item = summaries[i];
 
-			if (!item.IsOwnCoinjoin())
+			if (!item.IsOwnCoinjoin)
 			{
 				result.Add(await CreateRegularAsync(i, item, cancellationToken));
 			}
 
-			if (item.IsOwnCoinjoin())
+			if (item.IsOwnCoinjoin)
 			{
 				coinjoins.Add(await CreateCoinjoinTransactionAsync(i, item, cancellationToken));
 			}
 
 			if (coinjoins.Count > 0 &&
-				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
+				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin) || // The next item is not CJ so add the group.
 				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
 			{
 				if (coinjoins.Count == 1)
@@ -69,10 +69,10 @@ public class TransactionTreeBuilder
 		// 4. Add the group.
 		foreach (var summary in summaries)
 		{
-			if (summary.Transaction.IsCPFPd)
+			if (summary.IsCPFPd)
 			{
 				// Group creation.
-				var childrenTxs = summary.Transaction.ChildrenPayForThisTx;
+				var childrenTxs = summary.CpfpChildren;
 
 				if (!TryFindHistoryItem(summary.GetHash(), result, out var parent))
 				{
@@ -82,7 +82,7 @@ public class TransactionTreeBuilder
 				var groupItems = new List<TransactionModel> { parent };
 				foreach (var childTx in childrenTxs)
 				{
-					if (TryFindHistoryItem(childTx.GetHash(), result, out var child))
+					if (TryFindHistoryItem(childTx, result, out var child))
 					{
 						groupItems.Add(child);
 					}
@@ -120,6 +120,7 @@ public class TransactionTreeBuilder
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
 		var haveFeeEstimations = _wallet.FeeRateEstimations is not null;
+		var confirmationTime = await EstimateConfirmationTimeAsync(status, transactionSummary, cancellationToken);
 
 		return new RegularTransactionModel(itemType)
 		{
@@ -131,8 +132,8 @@ public class TransactionTreeBuilder
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager) && haveFeeEstimations,
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager) && haveFeeEstimations,
+			CanCancelTransaction = transactionSummary.CanCancel && haveFeeEstimations,
+			CanSpeedUpTransaction = transactionSummary.CanSpeedUp && haveFeeEstimations,
 			Status = status,
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0u, // FIXME: this is wrong. Only confirmed txs have a BlockHeigh
@@ -141,9 +142,10 @@ public class TransactionTreeBuilder
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
 			WalletOutputs = transactionSummary.WalletOutputs,
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
-			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate(),
-			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
+			Fee = transactionSummary.Fee,
+			FeeRate = transactionSummary.FeeRate,
+			ConfirmationTime = confirmationTime,
+			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, confirmationTime),
 		};
 	}
 
@@ -166,10 +168,11 @@ public class TransactionTreeBuilder
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
 			WalletOutputs = transactionSummary.WalletOutputs,
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
+			ConfirmationTime = (parent as SingleTransactionModel)?.ConfirmationTime,
 			ConfirmedTooltip = parent.ConfirmedTooltip,
 			Labels = parent.Labels,
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
+			CanCancelTransaction = transactionSummary.CanCancel,
+			CanSpeedUpTransaction = transactionSummary.CanSpeedUp,
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
@@ -244,6 +247,7 @@ public class TransactionTreeBuilder
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
+		var confirmationTime = await EstimateConfirmationTimeAsync(status, transactionSummary, cancellationToken);
 
 		return new CoinJoinTransactionModel
 		{
@@ -261,15 +265,16 @@ public class TransactionTreeBuilder
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
 			WalletOutputs = transactionSummary.WalletOutputs,
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
-			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
-			FeeRate = transactionSummary.FeeRate(),
+			ConfirmationTime = confirmationTime,
+			ConfirmedTooltip = GetConfirmationToolTip(status, confirmations, confirmationTime),
+			FeeRate = transactionSummary.FeeRate,
 			CoinjoinCosts = _wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(transactionSummary.GetHash())
 		};
 	}
 
 	private TransactionType GetItemType(TransactionSummary transactionSummary)
 	{
-		var isSelfSpend = transactionSummary.Amount == -(transactionSummary.GetFee() ?? Money.Zero);
+		var isSelfSpend = transactionSummary.Amount == -(transactionSummary.Fee ?? Money.Zero);
 		if (!transactionSummary.IsCancellation && !transactionSummary.IsCPFP && isSelfSpend)
 		{
 			return TransactionType.SelfTransferTransaction;
@@ -303,14 +308,21 @@ public class TransactionTreeBuilder
 		return transactionSummary.IsConfirmed(serverHeight) ? TransactionStatus.Confirmed : TransactionStatus.Pending;
 	}
 
-	private async Task<string> GetConfirmationToolTipAsync(TransactionStatus status, uint confirmations, SmartTransaction smartTransaction, CancellationToken cancellationToken)
+	private async Task<TimeSpan?> EstimateConfirmationTimeAsync(TransactionStatus status, TransactionSummary transactionSummary, CancellationToken cancellationToken)
+	{
+		return status == TransactionStatus.Confirmed
+			? null
+			: await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, transactionSummary, _wallet.CpfpInfoProvider, cancellationToken);
+	}
+
+	private static string GetConfirmationToolTip(TransactionStatus status, uint confirmations, TimeSpan? confirmationTime)
 	{
 		if (status == TransactionStatus.Confirmed)
 		{
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
+		var friendlyString = confirmationTime is { } estimate
 			? TextHelpers.TimeSpanToFriendlyString(estimate)
 			: "";
 

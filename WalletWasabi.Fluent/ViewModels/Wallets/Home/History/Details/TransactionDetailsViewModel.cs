@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
@@ -48,12 +46,12 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
 		TransactionHex = model.Hex.Value;
-		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
+		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model).ToArray();
 		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		Task.Run(() => UpdateValuesAsync(model, CancellationToken.None));
+		UpdateValues(model);
 	}
 
 	public InputsCoinListViewModel InputList { get; }
@@ -69,7 +67,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public bool IsFeeVisible { get; }
 
-	private async Task UpdateValuesAsync(RegularTransactionModel model, CancellationToken cancellationToken)
+	private void UpdateValues(RegularTransactionModel model)
 	{
 		DateString = model.DateToolTipString;
 		Labels = model.Labels;
@@ -78,11 +76,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		FeeRate = model.FeeRate;
 		IsFeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
 
-		var confirmationTime = await _wallet.Transactions.TryEstimateConfirmationTimeAsync(model, cancellationToken);
-		if (confirmationTime is { })
-		{
-			ConfirmationTime = confirmationTime;
-		}
+		ConfirmationTime = model.ConfirmationTime;
 
 		IsConfirmed = Confirmations > 0;
 
@@ -112,16 +106,15 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		_wallet.Transactions.Cache
 							.Connect()
-							.DoAsync(async _ => await UpdateCurrentTransactionAsync(CancellationToken.None))
-							.Subscribe()
+							.Subscribe(_ => UpdateCurrentTransaction())
 							.DisposeWith(disposables);
 	}
 
-	private async Task UpdateCurrentTransactionAsync(CancellationToken cancellationToken)
+	private void UpdateCurrentTransaction()
 	{
 		if (_wallet.Transactions.TryGetById<RegularTransactionModel>(TransactionId, out var transaction))
 		{
-			await UpdateValuesAsync(transaction, cancellationToken);
+			UpdateValues(transaction);
 		}
 	}
 }
