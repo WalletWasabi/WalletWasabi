@@ -439,8 +439,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			{
 				IsBusy = true;
 
-				var finalTransaction =
-					await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
+				var finalTransaction = transactionAuthorizationInfo.Transaction;
 				await SendTransactionAsync(finalTransaction);
 				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
@@ -477,25 +476,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	private async Task SendTransactionAsync(SmartTransaction transaction)
 	{
 		await UiContext.Services.SendTransactionAsync(transaction);
-	}
-
-	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
-	{
-		if (transactionInfo.PayJoinClient is { })
-		{
-			try
-			{
-				var payJoinTransaction = await Task.Run(() =>
-					TransactionHelpers.BuildTransaction(_wallet, transactionInfo, isPayJoin: true));
-				return payJoinTransaction.Transaction;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-		}
-
-		return transaction;
 	}
 
 	private void AddToUndoHistory()

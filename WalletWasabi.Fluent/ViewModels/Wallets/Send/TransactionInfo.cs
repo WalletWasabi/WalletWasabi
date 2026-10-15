@@ -1,13 +1,10 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -40,11 +37,7 @@ public partial class TransactionInfo
 
 	public TimeSpan ConfirmationTimeSpan { get; set; }
 
-	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
-
-	public IPayjoinClient? PayJoinClient { get; set; }
-
-	public bool IsPayJoin => PayJoinClient is { };
+	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = [];
 
 	public bool IsOptimized => ChangelessCoins.Any();
 
@@ -58,7 +51,7 @@ public partial class TransactionInfo
 
 	public bool IsFixedAmount { get; init; }
 
-	public IReadOnlyList<RecipientInfo> AdditionalRecipients { get; init; } = ImmutableList<RecipientInfo>.Empty;
+	public IReadOnlyList<RecipientInfo> AdditionalRecipients { get; init; } = [];
 
 	public bool IsPayToMany => AdditionalRecipients.Count > 0;
 
@@ -78,13 +71,13 @@ public partial class TransactionInfo
 
 	private void OnFeeChanged()
 	{
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		ChangelessCoins = [];
 	}
 
 	private void OnCoinsChanged()
 	{
 		MaximumPossibleFeeRate = null;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+		ChangelessCoins = []; // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 	}
 
 	public TransactionInfo Clone()
@@ -99,7 +92,6 @@ public partial class TransactionInfo
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
 			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			ChangelessCoins = ChangelessCoins,
-			PayJoinClient = PayJoinClient,
 			IsCustomFeeUsed = IsCustomFeeUsed,
 			SubtractFee = SubtractFee,
 			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
