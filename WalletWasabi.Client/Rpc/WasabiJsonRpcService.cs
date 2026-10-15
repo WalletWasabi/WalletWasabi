@@ -11,6 +11,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -137,6 +138,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
 			["onlyUsePrivateFundsForPayments"] = activeWallet.KeyManager.OnlyUsePrivateFundsForPayments,
+			["plebStopThreshold"] = activeWallet.KeyManager.PlebStopThreshold.Satoshi,
 			["accounts"] = new[] { segwit }
 		};
 
@@ -164,6 +166,31 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		return info;
+	}
+
+	[JsonRpcMethod("setwalletinfo")]
+	public JsonRpcResult SetWalletInfo(int? anonScoreTarget = null, bool? isAutoCoinjoin = null, bool? isNonPrivateCoinIsolation = null, bool? onlyUsePrivateFundsForPayments = null, Money? plebStopThreshold = null)
+	{
+		if (anonScoreTarget is < PrivacyProfiles.AbsoluteMinAnonScoreTarget or > PrivacyProfiles.AbsoluteMaxAnonScoreTarget)
+		{
+			throw new ArgumentException($"{nameof(anonScoreTarget)} must be between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}.");
+		}
+
+		if (plebStopThreshold?.Satoshi < 0)
+		{
+			throw new ArgumentException($"{nameof(plebStopThreshold)} must not be negative.");
+		}
+
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		var km = activeWallet.KeyManager;
+		km.AnonScoreTarget = anonScoreTarget ?? km.AnonScoreTarget;
+		km.AutoCoinJoin = isAutoCoinjoin ?? km.AutoCoinJoin;
+		km.NonPrivateCoinIsolation = isNonPrivateCoinIsolation ?? km.NonPrivateCoinIsolation;
+		km.OnlyUsePrivateFundsForPayments = onlyUsePrivateFundsForPayments ?? km.OnlyUsePrivateFundsForPayments;
+		km.PlebStopThreshold = plebStopThreshold ?? km.PlebStopThreshold;
+		km.ToFile();
+
+		return WalletInfo();
 	}
 
 	[JsonRpcMethod("getnewaddress")]

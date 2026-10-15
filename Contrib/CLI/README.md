@@ -53,6 +53,7 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
   "isHardwareWallet": false,
   "isAutoCoinjoin": true,
   "isRedCoinIsolation": false,
+  "plebStopThreshold": 500000,
   "accounts": [
     {
       "name": "segwit",
@@ -69,6 +70,11 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
   "coinjoinStatus": "Idle"
 }
 ```
+
+```bash
+$ ./wcli.sh -wallet=MyWallet setwalletinfo 10 true
+```
+Parameters, in order: `anonScoreTarget`, `isAutoCoinjoin`, `isNonPrivateCoinIsolation`, `onlyUsePrivateFundsForPayments`, `plebStopThreshold` (satoshis). Trailing parameters can be omitted and keep their current value; JSON-RPC clients can also pass only the settings to change as named parameters, for example `{"plebStopThreshold": 100000}`. The updated wallet info is returned.
 
 ```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
