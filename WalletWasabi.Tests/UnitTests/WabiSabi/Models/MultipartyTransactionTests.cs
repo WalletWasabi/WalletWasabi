@@ -22,7 +22,6 @@ public class MultipartyTransactionTests
 	{
 		MinRegistrableAmount = DefaultAllowedAmounts.Min,
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
-		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 	}) with
 	{
 		MiningFeeRate = new FeeRate(0m)
@@ -421,7 +420,6 @@ public class MultipartyTransactionTests
 		{
 			MinRegistrableAmount = Money.Zero,
 			MaxRegistrableAmount = Money.Coins(43000m),
-			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 		}) with
 		{
 			MiningFeeRate = feeRate
