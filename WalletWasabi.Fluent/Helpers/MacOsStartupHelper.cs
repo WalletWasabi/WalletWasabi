@@ -7,9 +7,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class MacOsStartupHelper
 {
-	private static readonly string ListCmd = $"""osascript -e 'tell application "System Events" to get the name of every login item'""";
-	private static readonly string DeleteCmd = $"""osascript -e 'tell application "System Events" to delete login item "{Constants.AppName}"'""";
-
 	private static readonly string PlistContent =
 		$"""
 		<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -31,8 +28,6 @@ public static class MacOsStartupHelper
 
 	public static async Task AddOrRemoveStartupItemAsync(bool runOnSystemStartup)
 	{
-		await DeleteLoginItemIfExistsAsync().ConfigureAwait(false);
-
 		string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 		var libraryDir = Path.Combine(homeDir, "Library");
 		var launchAgentsDir = Path.Combine(libraryDir, "LaunchAgents");
@@ -57,18 +52,6 @@ public static class MacOsStartupHelper
 		else if (File.Exists(plistPath))
 		{
 			File.Delete(plistPath);
-		}
-	}
-
-	private static async Task DeleteLoginItemIfExistsAsync()
-	{
-		// From 2.0.6, we use LaunchAgents instead of Login Items to run Wasabi hidden during startup. We need to delete older existing Login Items.
-		// https://github.com/WalletWasabi/WalletWasabi/pull/12772#pullrequestreview-1984574457
-		string result = await EnvironmentHelpers.ShellExecAndGetResultAsync(ListCmd).ConfigureAwait(false);
-		bool loginItemExists = result.Contains(Constants.AppName);
-		if (loginItemExists)
-		{
-			await EnvironmentHelpers.ShellExecAsync(DeleteCmd).ConfigureAwait(false);
 		}
 	}
 }

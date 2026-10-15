@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using WalletWasabi.BundledApps;
 
 namespace WalletWasabi.Helpers;
 
@@ -87,52 +85,6 @@ public static class EnvironmentHelpers
 
 		var fileNameWithoutExtension = fileName.TrimEnd(".cs", StringComparison.InvariantCultureIgnoreCase);
 		return fileNameWithoutExtension;
-	}
-
-	/// <summary>
-	/// Executes a command with Bourne shell.
-	/// https://stackoverflow.com/a/47918132/2061103
-	/// </summary>
-	public static async Task ShellExecAsync(string cmd)
-		=> await ShellExecAndGetResultAsync(cmd, readResult: false).ConfigureAwait(false);
-
-	public static async Task<string> ShellExecAndGetResultAsync(string cmd)
-		=> await ShellExecAndGetResultAsync(cmd, readResult: true).ConfigureAwait(false);
-
-	/// <summary>
-	/// Executes a command with Bourne shell and returns Standard Output.
-	/// </summary>
-	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool readResult)
-	{
-		var escapedArgs = cmd.Replace("\"", "\\\"");
-
-		var startInfo = new ProcessStartInfo
-		{
-			FileName = "/usr/bin/env",
-			Arguments = $"sh -c \"{escapedArgs}\"",
-			RedirectStandardOutput = true,
-			RedirectStandardError = readResult,
-			UseShellExecute = false,
-			CreateNoWindow = true,
-			WindowStyle = ProcessWindowStyle.Hidden
-		};
-
-		using var process = new Process()
-		{
-			StartInfo = startInfo
-		};
-
-		process.StartWithExceptionLogging();
-
-		string output = readResult ? process.StandardOutput.ReadToEnd() : "";
-
-		await process.GracefulWaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-		if (process.ExitCode != 0)
-		{
-			Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
-		}
-
-		return output;
 	}
 
 	public static string GetFullBaseDirectory()
