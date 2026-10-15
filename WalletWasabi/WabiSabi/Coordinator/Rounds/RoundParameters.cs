@@ -2,7 +2,7 @@ using NBitcoin.Policy;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
-public delegate RoundParameters RoundParametersFactory(FeeRate feeRate, Money maxSuggestedAmount, int? minInputCountByRound = null);
+public delegate RoundParameters RoundParametersFactory(FeeRate feeRate, int? minInputCountByRound = null);
 
 public record RoundParameters
 {
@@ -87,13 +87,12 @@ public record RoundParameters
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		FeeRate miningFeeRate,
-		Money maxSuggestedAmount,
 		int? minInputCountByRound = null)
 	{
 		return new RoundParameters(
 			wabiSabiConfig.Network,
 			miningFeeRate,
-			maxSuggestedAmount,
+			maxSuggestedAmount: wabiSabiConfig.MaxRegistrableAmount, // For backward compatibility.
 			minInputCountByRound ?? wabiSabiConfig.MinInputCountByRound,
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),
