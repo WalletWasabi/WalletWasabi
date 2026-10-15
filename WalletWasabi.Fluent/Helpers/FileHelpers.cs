@@ -1,51 +1,68 @@
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class FileHelpers
 {
-	public static Task OpenFileInTextEditorAsync(string filePath)
+	/// <seealso href="https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1000-1299-"/>
+	private const int ErrorNoAssociation = 1155; // ERROR_NO_ASSOCIATION
+
+	private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
 	{
-		if (!File.Exists(filePath))
+		".txt",
+		".json",
+		".log"
+	};
+
+	public static void OpenFileInTextEditor(string filePath)
+	{
+		string fullPath = Path.GetFullPath(filePath);
+
+		if (!File.Exists(fullPath))
 		{
-			throw new FileNotFoundException($"The {Path.GetFileName(filePath)} file is not found.");
+			throw new FileNotFoundException($"The {Path.GetFileName(fullPath)} file is not found.", fullPath);
 		}
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		if (!AllowedExtensions.Contains(Path.GetExtension(fullPath)))
 		{
-			using var process = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { filePath } });
+			throw new NotSupportedException($"Opening '{Path.GetExtension(fullPath)}' files in a text editor is not supported.");
 		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
+		ProcessStartInfo startInfo;
+
+		if (OperatingSystem.IsLinux())
 		{
-			using var process = Process.Start(new ProcessStartInfo("open") { ArgumentList = { "-e", filePath } });
+			// Opens the default handler for the file type, which is not guaranteed to be a text editor.
+			startInfo = new ProcessStartInfo("xdg-open") { ArgumentList = { fullPath } };
 		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		else if (OperatingSystem.IsMacOS())
 		{
-			bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
-
-			try
-			{
-				openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated(Path.GetExtension(filePath));
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			using var process = openWithNotepad
-				? Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { filePath } })
-				: Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
+			startInfo = new ProcessStartInfo("/usr/bin/open") { ArgumentList = { "-e", "--", fullPath } };
+		}
+		else if (OperatingSystem.IsWindows())
+		{
+			// Opens the file with the app associated with its type.
+			startInfo = new ProcessStartInfo(fullPath) { UseShellExecute = true };
 		}
 		else
 		{
 			throw new PlatformNotSupportedException("Cannot open a text editor on this platform.");
 		}
 
-		return Task.CompletedTask;
+		try
+		{
+			using var process = Process.Start(startInfo);
+		}
+		catch (Win32Exception ex) when (OperatingSystem.IsWindows() && ex.NativeErrorCode == ErrorNoAssociation)
+		{
+			using var process = Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { fullPath } });
+		}
+		catch (Win32Exception ex)
+		{
+			throw new InvalidOperationException($"Failed to launch '{startInfo.FileName}'.", ex);
+		}
 	}
 }
