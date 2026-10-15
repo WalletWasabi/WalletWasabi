@@ -18,11 +18,11 @@ public static class FileHelpers
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
-			using var process = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { filePath }, UseShellExecute = false });
+			using var process = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { filePath } });
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			using var process = Process.Start(new ProcessStartInfo("open") { ArgumentList = { "-e", filePath }, UseShellExecute = false });
+			using var process = Process.Start(new ProcessStartInfo("open") { ArgumentList = { "-e", filePath } });
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -38,7 +38,7 @@ public static class FileHelpers
 			}
 
 			using var process = openWithNotepad
-				? Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { filePath }, UseShellExecute = false })
+				? Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { filePath } })
 				: Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
 		}
 		else
