@@ -4,7 +4,6 @@ using System.Linq;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;

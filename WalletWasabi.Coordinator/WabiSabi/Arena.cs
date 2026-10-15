@@ -122,7 +122,7 @@ public partial class Arena : PeriodicRunner
 					}
 
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
-					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}).", round);
+					Logger.LogInfo(FormatLog($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}).", round));
 				}
 				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
@@ -473,7 +473,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			Logger.LogInfo("Created new round.", r);
+			Logger.LogInfo(FormatLog("Created new round.", r));
 		}
 	}
 

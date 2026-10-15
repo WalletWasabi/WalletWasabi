@@ -111,7 +111,6 @@ cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
   "RoundDestroyerThreshold": 375,
   "CoordinatorExtPubKey": "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC",
   "CoordinatorExtPubKeyCurrentDepth": 1,
-  "MaxSuggestedAmountBase": "100",
   "RoundParallelization": 1,
   "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
   "AllowP2wpkhInputs": true,
