@@ -14,7 +14,8 @@ namespace WalletWasabi.Stores;
 public class TransactionSqliteStorage : IDisposable
 {
 	private const string AllColumns = "txid, block_height, block_hash, block_index, labels, first_seen, is_replacement, is_speedup, is_cancellation, tx";
-	private const string AllParameters = "$txid, $block_height, $block_hash, $block_index, $labels, $first_seen, $is_replacement, $is_speedup, $is_cancellation, $tx";
+	// is_replacement is no longer used. It is kept (always 0) so older versions can still read the database.
+	private const string AllParameters = "$txid, $block_height, $block_hash, $block_index, $labels, $first_seen, 0, $is_speedup, $is_cancellation, $tx";
 	private bool _disposedValue;
 
 	private TransactionSqliteStorage(SqliteConnection connection, Network network)
@@ -123,7 +124,6 @@ public class TransactionSqliteStorage : IDisposable
 					block_index=excluded.block_index,
 					labels=excluded.labels,
 					first_seen=excluded.first_seen,
-					is_replacement=excluded.is_replacement,
 					is_speedup=excluded.is_speedup,
 					is_cancellation=excluded.is_cancellation
 				""";
@@ -156,9 +156,6 @@ public class TransactionSqliteStorage : IDisposable
 		SqliteParameter firstSeenParameter = CreateParameter(command, "$first_seen");
 		command.Parameters.Add(firstSeenParameter);
 
-		SqliteParameter isReplacementParameter = CreateParameter(command, "$is_replacement");
-		command.Parameters.Add(isReplacementParameter);
-
 		SqliteParameter isSpeedupParameter = CreateParameter(command, "$is_speedup");
 		command.Parameters.Add(isSpeedupParameter);
 
@@ -181,7 +178,6 @@ public class TransactionSqliteStorage : IDisposable
 			blockIndexParameter.Value = tx.BlockIndex;
 			labelsParameter.Value = tx.Labels.ToString();
 			firstSeenParameter.Value = tx.FirstSeen.ToUnixTimeSeconds();
-			isReplacementParameter.Value = tx.IsReplacement ? 1 : 0;
 			isSpeedupParameter.Value = tx.IsSpeedup ? 1 : 0;
 			isCancellationParameter.Value = tx.IsCancellation ? 1 : 0;
 			txParameter.Value = tx.Transaction.ToBytes();
@@ -232,7 +228,6 @@ public class TransactionSqliteStorage : IDisposable
 				block_index = $block_index,
 				labels = $labels,
 				first_seen = $first_seen,
-				is_replacement = $is_replacement,
 				is_speedup = $is_speedup,
 				is_cancellation = $is_cancellation
 			WHERE txid = $txid
@@ -258,9 +253,6 @@ public class TransactionSqliteStorage : IDisposable
 		SqliteParameter firstSeenParameter = CreateParameter(command, "$first_seen");
 		command.Parameters.Add(firstSeenParameter);
 
-		SqliteParameter isReplacementParameter = CreateParameter(command, "$is_replacement");
-		command.Parameters.Add(isReplacementParameter);
-
 		SqliteParameter isSpeedupParameter = CreateParameter(command, "$is_speedup");
 		command.Parameters.Add(isSpeedupParameter);
 
@@ -280,7 +272,6 @@ public class TransactionSqliteStorage : IDisposable
 			blockIndexParameter.Value = tx.BlockIndex;
 			labelsParameter.Value = tx.Labels.ToString();
 			firstSeenParameter.Value = tx.FirstSeen.ToUnixTimeSeconds();
-			isReplacementParameter.Value = tx.IsReplacement ? 1 : 0;
 			isSpeedupParameter.Value = tx.IsSpeedup ? 1 : 0;
 			isCancellationParameter.Value = tx.IsCancellation ? 1 : 0;
 
@@ -408,7 +399,6 @@ public class TransactionSqliteStorage : IDisposable
 		int blockIndex = reader.GetInt32(ordinal: 3);
 		string labelsString = reader.GetString(ordinal: 4);
 		long firstSeenLong = reader.GetInt64(ordinal: 5);
-		bool isReplacement = reader.GetInt32(ordinal: 6) == 1;
 		bool isSpeedup = reader.GetInt32(ordinal: 7) == 1;
 		bool isCancellation = reader.GetInt32(ordinal: 8) == 1;
 		byte[] tx = reader.GetFieldValue<byte[]>(ordinal: 9);
@@ -419,7 +409,7 @@ public class TransactionSqliteStorage : IDisposable
 		LabelsArray labelsArray = new(labelsString);
 		DateTimeOffset firstSeen = DateTimeOffset.FromUnixTimeSeconds(firstSeenLong);
 
-		SmartTransaction stx = new(transaction, height, blockHash, blockIndex, labelsArray, isReplacement, isSpeedup, isCancellation, firstSeen);
+		SmartTransaction stx = new(transaction, height, blockHash, blockIndex, labelsArray, isSpeedup, isCancellation, firstSeen);
 
 		if (stx.GetHash() != txid)
 		{
