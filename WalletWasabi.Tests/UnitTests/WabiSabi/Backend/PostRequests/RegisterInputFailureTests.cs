@@ -19,7 +19,7 @@ public class RegisterInputFailureTests
 {
 	private static async Task RegisterAndAssertWrongPhaseAsync(InputRegistrationRequest req, Arena handler)
 	{
-		var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
+		var ex = await Assert.ThrowsAsync<WrongPhaseException>(async () => await handler.RegisterInputAsync(req, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 	}
 
@@ -33,10 +33,10 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(uint256.Zero, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(uint256.Zero, BitcoinFactory.CreateOutPoint(), ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -60,7 +60,7 @@ public class RegisterInputFailureTests
 			}
 		}
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -82,11 +82,11 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -106,11 +106,11 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -132,12 +132,12 @@ public class RegisterInputFailureTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 
 		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
-		Assert.IsAssignableFrom<InputBannedExceptionData>(ex.ExceptionData);
+		Assert.IsType<InputBannedExceptionData>(ex.ExceptionData, exactMatch: false);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -159,12 +159,12 @@ public class RegisterInputFailureTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 
 		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
-		Assert.IsAssignableFrom<InputBannedExceptionData>(ex.ExceptionData);
+		Assert.IsType<InputBannedExceptionData>(ex.ExceptionData, exactMatch: false);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -188,10 +188,10 @@ public class RegisterInputFailureTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -209,10 +209,10 @@ public class RegisterInputFailureTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -231,10 +231,10 @@ public class RegisterInputFailureTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputUnconfirmed, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -260,12 +260,12 @@ public class RegisterInputFailureTests
 		foreach (var i in Enumerable.Range(1, 100))
 		{
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, TestContext.Current.CancellationToken));
 
 			Assert.Equal(WabiSabiProtocolErrorCode.InputImmature, ex.ErrorCode);
 		}
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -284,10 +284,10 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -324,10 +324,10 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -344,10 +344,10 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -369,10 +369,10 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.TooMuchVsize, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -393,10 +393,10 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -419,10 +419,10 @@ public class RegisterInputFailureTests
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	private async Task TestOwnershipProofAsync(Func<Key, uint256, OwnershipProof> ownershipProofFunc)
@@ -438,9 +438,9 @@ public class RegisterInputFailureTests
 		OwnershipProof ownershipProof = ownershipProofFunc(key, round.Id);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, TestContext.Current.CancellationToken));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongOwnershipProof, ex.ErrorCode);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 }
