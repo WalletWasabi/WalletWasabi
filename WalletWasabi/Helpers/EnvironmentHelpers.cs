@@ -5,11 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers;
 

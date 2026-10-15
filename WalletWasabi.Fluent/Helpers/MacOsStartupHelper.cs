@@ -16,8 +16,8 @@ public static class MacOsStartupHelper
 		<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 		<plist version=\"1.0\">
 		<dict>
-		    <key>Label</key>
-		    <string>com.wasabiwallet.startup</string>
+			<key>Label</key>
+			<string>com.wasabiwallet.startup</string>
 			<key>ProgramArguments</key>
 			<array>
 				<string>{EnvironmentHelpers.GetExecutablePath()}</string>
