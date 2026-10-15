@@ -10,7 +10,6 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
-using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests;
 

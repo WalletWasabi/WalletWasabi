@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WabiSabi.CredentialRequesting;
-using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -28,7 +27,6 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -79,7 +77,7 @@ public static class WabiSabiFactory
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters, InsecureRandom.Instance);
+		new(parameters, RandomnessProviders.Insecure);
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
@@ -157,8 +155,8 @@ public static class WabiSabiFactory
 	{
 		var roundState = RoundState.FromRound(round ?? arena.Rounds.First());
 		return new ArenaClient(
-			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
-			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			CoordinatorIdentifier,
 			arena);
 	}
@@ -191,12 +189,12 @@ public static class WabiSabiFactory
 		var vsizeIssuer = round.VsizeCredentialIssuer;
 		var amountClient = new WabiSabiClient(
 			amountIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			InsecureRandom.Instance,
+			RandomnessProviders.Insecure.ToWasabiRandom(),
 			amountIssuer.MaxAmount);
 
 		var vsizeClient = new WabiSabiClient(
 			vsizeIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-			InsecureRandom.Instance,
+			RandomnessProviders.Insecure.ToWasabiRandom(),
 			vsizeIssuer.MaxAmount);
 
 		var (amountZeroCredentials, vsizeZeroCredentials) = EnsureZeroCredentials(amountClient, vsizeClient, amountIssuer, vsizeIssuer);
@@ -300,7 +298,7 @@ public static class WabiSabiFactory
 			parameters: roundParameters,
 			blameOf: round,
 			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
-			InsecureRandom.Instance);
+			RandomnessProviders.Insecure);
 	}
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)

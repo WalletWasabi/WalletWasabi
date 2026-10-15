@@ -1,9 +1,5 @@
 using WabiSabi.Crypto;
-using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Crypto;
-using WalletWasabi.WabiSabi.Coordinator.Models;
-using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Crypto.Randomness;
 using static WalletWasabi.Logging.LoggerTools;
 using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
@@ -31,14 +27,15 @@ public enum EndRoundState
 public class Round
 {
 	private Lazy<uint256> _id;
-	public Round(RoundParameters parameters, WasabiRandom random)
+	public Round(RoundParameters parameters, RandomnessProvider random)
 	{
 		Parameters = parameters;
 
 		CoinjoinState = new ConstructionState(Parameters);
 
-		AmountCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(random), random, Parameters.MaxAmountCredentialValue);
-		VsizeCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(random), random, Parameters.MaxVsizeCredentialValue);
+		var wasabiRandom = random.ToWasabiRandom();
+		AmountCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(wasabiRandom), wasabiRandom, Parameters.MaxAmountCredentialValue);
+		VsizeCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(wasabiRandom), wasabiRandom, Parameters.MaxVsizeCredentialValue);
 		AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 		VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 

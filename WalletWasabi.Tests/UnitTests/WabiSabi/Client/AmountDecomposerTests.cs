@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class AmountDecomposerTests
 {
-	private static readonly RandomnessProvider Random = RandomExtensions.CreateSeeded(seed: 0);
+	private static readonly RandomnessProvider Random = RandomnessProviders.CreateSeeded(seed: 0);
 
 	[Theory]
 	[InlineData(0, 0, 8)]
@@ -106,5 +106,31 @@ public class AmountDecomposerTests
 
 		Assert.Equal(expectedResultCount, res.Count());
 		Assert.All(res, x => Assert.True(x.Sum <= target && x.Sum >= target - tolerance));
+	}
+}
+
+public static class RandomExtensions
+{
+	public static long GetInt64(this RandomnessProvider generator, long fromInclusive, long toExclusive)
+	{
+		if (fromInclusive >= toExclusive)
+		{
+			throw new ArgumentOutOfRangeException(nameof(toExclusive), "toExclusive must be greater than fromInclusive");
+		}
+
+		var range = (ulong)(toExclusive - fromInclusive);
+
+		Span<byte> bytes = stackalloc byte[8];
+		generator(bytes);
+		var value = BitConverter.ToUInt64(bytes);
+
+		var max = ulong.MaxValue - (ulong.MaxValue % range);
+		while (value >= max)
+		{
+			generator(bytes);
+			value = BitConverter.ToUInt64(bytes);
+		}
+
+		return (long)(value % range) + fromInclusive;
 	}
 }

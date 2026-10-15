@@ -1,10 +1,10 @@
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public class BlameRound : Round
 {
-	public BlameRound(RoundParameters parameters, Round blameOf, ISet<OutPoint> blameWhitelist, WasabiRandom random)
+	public BlameRound(RoundParameters parameters, Round blameOf, ISet<OutPoint> blameWhitelist, RandomnessProvider random)
 		: base(parameters, random)
 	{
 		BlameOf = blameOf;

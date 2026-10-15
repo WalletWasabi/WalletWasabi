@@ -45,16 +45,15 @@ public class BobClientTests
 
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
-		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var bobArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(insecureRandom),
-			roundState.CreateVsizeCredentialClient(insecureRandom),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);

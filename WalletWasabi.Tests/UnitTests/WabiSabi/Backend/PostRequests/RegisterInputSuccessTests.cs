@@ -63,8 +63,8 @@ public class RegisterInputSuccessTests
 
 		var roundState = RoundState.FromRound(arena.Rounds.First());
 		var arenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
-			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			"test",
 			arena);
 		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", round.Id), ScriptPubKeyType.Segwit);
