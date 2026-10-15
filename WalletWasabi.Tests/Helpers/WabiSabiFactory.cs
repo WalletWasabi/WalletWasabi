@@ -78,6 +78,15 @@ public static class WabiSabiFactory
 			new FeeRate(100m),
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
+	public static UtxoSelectionParameters CreateUtxoSelectionParameters() =>
+		UtxoSelectionParameters.FromRoundParameters(
+			CreateRoundParameters(new()
+			{
+				MinRegistrableAmount = Money.Coins(0.0001m),
+				MaxRegistrableAmount = Money.Coins(430)
+			}),
+			[ScriptType.P2WPKH, ScriptType.Taproot]);
+
 	public static Round CreateRound(RoundParameters parameters) =>
 		new(parameters, InsecureRandom.Instance);
 
@@ -340,7 +349,7 @@ public static class WabiSabiFactory
 			keyChain,
 			outputProvider,
 			roundStateProvider,
-			coinSelector,
+			coinSelector.SelectCoinsForRound,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider(),
@@ -395,7 +404,7 @@ public class TestableCoinJoinClient(
 	IKeyChain keyChain,
 	OutputProvider outputProvider,
 	RoundStateProvider roundStatusProvider,
-	CoinJoinCoinSelector coinJoinCoinSelector,
+	CoinSelector coinSelector,
 	CoinJoinConfiguration coinJoinConfiguration,
 	InputVerifier inputVerifier,
 	LiquidityClueProvider liquidityClueProvider,
@@ -404,7 +413,7 @@ public class TestableCoinJoinClient(
 		keyChain,
 		outputProvider,
 		roundStatusProvider,
-		coinJoinCoinSelector,
+		coinSelector,
 		coinJoinConfiguration,
 		inputVerifier,
 		liquidityClueProvider,

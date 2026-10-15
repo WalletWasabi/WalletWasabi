@@ -168,7 +168,7 @@ public class PaymentAwareOutputProviderTests
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 
-		var payments = amountsToPay.Select(a => (Destination: GetNewSegwitAddress(), Amount: Money.Coins(decimal.Parse(a))));
+		var payments = amountsToPay.Select(a => (Destination: BitcoinFactory.CreateSegwitAddress(), Amount: Money.Coins(decimal.Parse(a))));
 		payments.ToList().ForEach(p => paymentBatch.AddPayment(p.Destination, p.Amount));
 
 		var availableMoney = Money.Coins(decimal.Parse(availableAmountStr));
@@ -177,11 +177,5 @@ public class PaymentAwareOutputProviderTests
 		Assert.True(paymentSet.TotalAmount < availableMoney);
 		Assert.True(paymentSet.TotalVSize < availableVsize);
 		Assert.Equal(expectedOutputs, paymentSet.Payments.Count());
-	}
-
-	private static BitcoinAddress GetNewSegwitAddress()
-	{
-		using Key key = new();
-		return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
 	}
 }

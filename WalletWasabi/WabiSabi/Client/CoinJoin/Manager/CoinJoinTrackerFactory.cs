@@ -42,7 +42,11 @@ public class CoinJoinTrackerFactory
 		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
 		wallet.ConsolidationMode = outputWallet.WalletId != wallet.WalletId;
 
-		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
+		var minAnonScoreForPayments = wallet.OnlyUsePrivateFundsForPayments ? wallet.AnonScoreTarget : 0;
+		var coinJoinCoinSelector = CoinJoinCoinSelector.FromWallet(wallet);
+		var coinSelector = CoinSelectors.ComposedCoinSelector([
+			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold),
+			coinJoinCoinSelector.SelectCoinsForRound]);
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
@@ -53,7 +57,7 @@ public class CoinJoinTrackerFactory
 			_inputVerifier,
 			_liquidityClueProvider,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
-			minAnonScoreForPayments: wallet.OnlyUsePrivateFundsForPayments ? wallet.AnonScoreTarget : 0);
+			minAnonScoreForPayments: minAnonScoreForPayments);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}
