@@ -1,76 +1,71 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using WalletWasabi.Blockchain.Keys;
-
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public class Cluster(IEnumerable<HdPubKey> keys) : IEquatable<Cluster>
+public class Cluster(ImmutableHashSet<HdPubKey> keys) : IEquatable<Cluster>
 {
-	public LabelsArray Labels => LabelsArray.Merge(KeysSet.Select(x => x.Labels));
-
 	private readonly Lock _lock = new();
-	private HashSet<HdPubKey> KeysSet { get; } = keys.ToHashSet();
+	public LabelsArray Labels => LabelsArray.Merge(GetKeys().Select(x => x.Labels));
 
-	public void Merge(Cluster cluster) => Merge(cluster.KeysSet);
+	private ImmutableHashSet<HdPubKey> _keys = keys;
 
-	private void Merge(IEnumerable<HdPubKey> keys)
+	private ImmutableHashSet<HdPubKey> GetKeys()
 	{
 		lock (_lock)
 		{
-			foreach (var key in keys.ToList())
-			{
-				KeysSet.Add(key);
-				key.Cluster = this;
-			}
+			return _keys;
+		}
+	}
+
+	public void Merge(Cluster cluster)
+	{
+		// Read the other cluster's keys before taking our lock so the two locks are never nested.
+		var otherClusterKeys = cluster.GetKeys();
+
+		lock (_lock)
+		{
+			_keys = _keys.Union(otherClusterKeys);
+		}
+
+		foreach (var key in otherClusterKeys)
+		{
+			key.Cluster = this;
 		}
 	}
 
 	public override string ToString() => Labels;
 
-	#region EqualityAndComparison
-
 	public override bool Equals(object? obj) => Equals(obj as Cluster);
-
-	public bool Equals(Cluster? other) => this == other;
-
-	public override int GetHashCode()
+	public bool Equals(Cluster? other)
 	{
-		lock (_lock)
-		{
-			int hash = 0;
-			foreach (var key in KeysSet)
-			{
-				hash ^= key.GetHashCode();
-			}
-			return hash;
-		}
-	}
-
-	public static bool operator ==(Cluster? x, Cluster? y)
-	{
-		if (ReferenceEquals(x, y))
+		if (ReferenceEquals(this, other))
 		{
 			return true;
 		}
 
-		if (x is null || y is null)
+#if NET10_0
+		if (other is null)
 		{
 			return false;
 		}
 
-		lock (x._lock)
-		{
-			lock (y._lock)
-			{
-				// We lose the order here, which isn't great and may cause problems,
-				// but this is also a significant performance gain.
-				return x.KeysSet.SetEquals(y.KeysSet);
-			}
-		}
+		// In .NET 10, `SetEquals` allocates. In .NET 11, it does not.
+		var mine = GetKeys();
+		var theirs = other.GetKeys();
+		return mine.Count == theirs.Count && theirs.All(mine.Contains);
+#else
+		return other is not null && GetKeys().SetEquals(other.GetKeys());
+#endif
 	}
 
-	public static bool operator !=(Cluster? x, Cluster? y) => !(x == y);
+	/// <remarks>Hash code is computed for a set. Therefore, an order-independent hash function must be used (e.g. XOR).</remarks>
+	public override int GetHashCode()
+	{
+		int hash = 0;
 
-	#endregion EqualityAndComparison
+		foreach (var key in GetKeys())
+		{
+			hash ^= key.GetHashCode();
+		}
+
+		return hash;
+	}
 }
