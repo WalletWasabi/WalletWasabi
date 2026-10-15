@@ -141,6 +141,7 @@ listunspentcoins
 listcoins
 createwallet
 getwalletinfo
+getcoinjoinstatus
 getnewaddress
 getstatus
 gethistory
