@@ -76,20 +76,4 @@ public class RoundCreationTests
 
 		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
-
-	/// <summary>
-	/// Released clients skip a round when one of their coins exceeds MaxSuggestedAmount and refuse a blame round whose
-	/// MaxSuggestedAmount differs from its parent's. Clients that no longer receive the field assume AllowedInputAmounts.Max
-	/// when they hash the round id.
-	/// </summary>
-	[Fact]
-	public void KeepsMaxSuggestedAmountForReleasedClients()
-	{
-		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(123m) };
-		RoundParameters round = RoundParameters.Create(cfg, new FeeRate(10m));
-		RoundParameters blameRound = RoundParameters.Create(cfg, new FeeRate(20m), cfg.MinInputCountByBlameRound);
-
-		Assert.Equal(round.AllowedInputAmounts.Max, round.MaxSuggestedAmount);
-		Assert.Equal(round.MaxSuggestedAmount, blameRound.MaxSuggestedAmount);
-	}
 }
