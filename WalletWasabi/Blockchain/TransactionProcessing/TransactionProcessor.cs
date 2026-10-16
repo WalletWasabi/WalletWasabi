@@ -9,6 +9,7 @@ using WalletWasabi.Services;
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
 public class TransactionProcessor(
+	WalletId walletId,
 	AllTransactionStore transactionStore,
 	MempoolService? mempoolService,
 	KeyManager keyManager,
@@ -22,6 +23,7 @@ public class TransactionProcessor(
 
 	public AllTransactionStore TransactionStore { get; } = transactionStore;
 	private readonly MemoryCache<uint256, bool> _aware = new(AwareExpiration);
+	private readonly WalletId _walletId = walletId;
 
 	public KeyManager KeyManager { get; } = keyManager;
 
@@ -42,7 +44,7 @@ public class TransactionProcessor(
 
 		foreach (var result in results.Where(x => x.IsNews))
 		{
-			eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
+			eventBus.Publish(new WalletRelevantTransactionProcessed(_walletId, result));
 		}
 
 		return results;
@@ -73,7 +75,7 @@ public class TransactionProcessor(
 
 		if (result.IsNews)
 		{
-			eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
+			eventBus.Publish(new WalletRelevantTransactionProcessed(_walletId, result));
 		}
 
 		return result;
