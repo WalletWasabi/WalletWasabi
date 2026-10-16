@@ -307,6 +307,14 @@ public class WalletManager
 			.Select(w => w.KeyManager.GetBestHeight())
 			.MinBy(b => b);
 
+	public Wallet GetWalletById(WalletId walletId)
+	{
+		lock (_lock)
+		{
+			return _wallets.Single(x => x.WalletId == walletId);
+		}
+	}
+
 	public Wallet GetWalletByName(string walletName)
 	{
 		lock (_lock)

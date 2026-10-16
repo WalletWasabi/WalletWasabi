@@ -40,6 +40,7 @@ public class Wallet : BackgroundService
 		CpfpInfoProvider cpfpInfoProvider,
 		EventBus eventBus)
 	{
+		WalletId = new WalletId(Guid.NewGuid());
 		Password = "";
 		Network = network;
 		KeyManager = keyManager;
@@ -50,13 +51,12 @@ public class Wallet : BackgroundService
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
 
-		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
+		TransactionProcessor = new TransactionProcessor(WalletId, TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
 		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch(Coins);
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
-		WalletId = new WalletId(Guid.NewGuid());
 		_lastFilterProcess = keyManager.GetBestHeight();
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
@@ -64,7 +64,7 @@ public class Wallet : BackgroundService
 
 		_eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 			{
-				if (e.WalletName == WalletName)
+				if (e.WalletId == WalletId)
 				{
 					WalletRelevantTransactionProcessed(e.Result);
 				}
