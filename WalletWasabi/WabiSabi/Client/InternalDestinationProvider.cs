@@ -42,5 +42,5 @@ public class InternalDestinationProvider : IDestinationProvider
 		_keyManager.ToFile();
 	}
 
-	public IEnumerable<ScriptType> SupportedScriptTypes { get; }
+	public ImmutableHashSet<ScriptType> SupportedScriptTypes { get; }
 }

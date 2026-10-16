@@ -1,4 +1,5 @@
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
