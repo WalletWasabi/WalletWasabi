@@ -1,13 +1,5 @@
-using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using static WalletWasabi.Logging.LoggerTools;
 
