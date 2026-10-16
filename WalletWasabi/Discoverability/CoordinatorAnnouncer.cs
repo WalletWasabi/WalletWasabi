@@ -1,14 +1,9 @@
 using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using NBitcoin;
-using NNostr.Client;
-using NNostr.Client.Protocols;
+using Nostra;
 using WalletWasabi.Bases;
-using WalletWasabi.Logging;
-
+using static WalletWasabi.Discoverability.NostrExtensions;
 namespace WalletWasabi.Discoverability;
+
 
 public class CoordinatorAnnouncer(AnnouncerConfig config, Network network, TimeSpan? time = null)
 	: PeriodicRunner(time ?? TimeSpan.FromMinutes(15))
@@ -16,31 +11,25 @@ public class CoordinatorAnnouncer(AnnouncerConfig config, Network network, TimeS
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
 		using var client = NostrClientFactory.Create(config.RelayUris.Select(x => new Uri(x)).ToArray());
-		var unsignedAnnouncementEvent = new NostrEvent
-		{
-			Kind = 15750,
-			Content = config.CoordinatorDescription,
-			Tags =
-			[
-				CreateTag("name", config.CoordinatorName),
-				CreateTag("type", "wabisabi"),
-				CreateTag("network", network.ChainName.ToString().ToLower()),
-				CreateTag("endpoint", config.CoordinatorUri),
-				CreateTag("absolutemininputcount", config.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture)),
-				CreateTag("readmore", config.ReadMoreUri)
-			]
-		};
 
-		using var key = config.Key.FromNIP19Nsec();
-		var announcementEvent = await unsignedAnnouncementEvent.ComputeIdAndSignAsync(key).ConfigureAwait(false);
+		Tag[] tags = [
+			CreateTag("name", config.CoordinatorName),
+			CreateTag("type", "wabisabi"),
+			CreateTag("network", network.ChainName.ToString().ToLower()),
+			CreateTag("endpoint", config.CoordinatorUri),
+			CreateTag("absolutemininputcount", config.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture)),
+			CreateTag("readmore", config.ReadMoreUri)
+		];
 
-		using var timeoutCancellationTokenSource = new CancellationTokenSource (TimeSpan.FromSeconds(10));
+		var unsignedEvent = Events.Create((Kind)15750, tags, config.CoordinatorDescription);
+		var secretKey = Shareable.FromNSec(config.Key);
+		var announcementEvent = Events.Sign(secretKey, unsignedEvent);
+
+		using var timeoutCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 		await client.PublishAsync([announcementEvent], linkedCts.Token).ConfigureAwait(false);
 
-		Logger.LogInfo($"Coordinator has been successfully announced on Nostr ({announcementEvent.Id}).");
+		var eventIdHex = EventIds.ToHex(announcementEvent.Id);
+		Logger.LogInfo($"Coordinator has been successfully announced on Nostr ({eventIdHex}).");
 	}
-
-	private static NostrEventTag CreateTag(string tagIdentifier, string data) =>
-			new() { TagIdentifier = tagIdentifier, Data = [data] };
 }
