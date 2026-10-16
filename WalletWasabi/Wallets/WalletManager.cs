@@ -55,13 +55,10 @@ public class WalletManager
 
 	private void LoadWalletListFromFileSystem()
 	{
-		var walletFileNames = WalletDirectories.EnumerateWalletFiles().Select(fi => Path.GetFileNameWithoutExtension(fi.FullName));
-
-		string[]? walletNamesToLoad = null;
-		lock (_lock)
-		{
-			walletNamesToLoad = walletFileNames.Where(walletFileName => !_wallets.Any(wallet => wallet.WalletName == walletFileName)).ToArray();
-		}
+		var walletNamesToLoad = WalletDirectories
+			.EnumerateWalletFiles()
+			.Select(fi => Path.GetFileNameWithoutExtension(fi.FullName))
+			.ToArray();
 
 		if (walletNamesToLoad.Length == 0)
 		{
