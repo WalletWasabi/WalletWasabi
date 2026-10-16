@@ -71,12 +71,6 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
 ```
 
 ```bash
-$ ./wcli.sh -wallet=MyWallet renamewallet "Savings"
-```
-
-Renames the wallet file. From then on the wallet is addressed by its new name, also in the daemon's `--wallet` startup argument.
-
-```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address
@@ -116,4 +110,12 @@ $ ./wcli.sh -wallet=MyWallet getnewaddress "Ricardo"
   "publicKey": "0363b35d8f3d1e29f49b4479740dfa6d7cb8a90e0797b60963a32e0139d0f5361b",
   "scriptPubKey": "00146199764e093298edcf9b564629eac5a6ce0c7a77"
 }
+```
+
+### Rename Wallet
+
+To rename your wallet file from `MyWallet` to `Savings`:
+
+```bash
+$ ./wcli.sh -wallet=MyWallet renamewallet "Savings"
 ```
