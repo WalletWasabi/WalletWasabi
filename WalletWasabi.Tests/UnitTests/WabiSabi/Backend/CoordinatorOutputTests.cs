@@ -1,8 +1,6 @@
 using NBitcoin;
-using System.Linq;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -102,7 +100,6 @@ public class CoordinatorOutputTests
 		{
 			MinRegistrableAmount = minRegistrableAmount ?? DefaultMinRegistrableAmount,
 			MaxRegistrableAmount = Money.Coins(43_000m),
-			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 		}) with
 		{
 			MiningFeeRate = miningFeeRate ?? DefaultMiningFeeRate
