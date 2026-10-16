@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Client;
@@ -811,6 +812,33 @@ public static class WasabiLibGenerator
 		           (if (not (wallet-loaded? wallet))
 		               (__start_wallet wallet)
 		               wallet)))
+
+		       (define (new-address wallet label taproot)
+		         (generate-address wallet label taproot))
+
+		       (define (new-address-string wallet label taproot)
+		         (native->string (hdpubkey->address (generate-address wallet label taproot))))
+
+		       (define (create-transaction wallet address amount fee-rate coins subtract-fee)
+		         (build-tx wallet address amount fee-rate coins subtract-fee))
+
+		       (define (send wallet address amount fee-rate coins subtract-fee)
+		         (broadcast-tx (build-tx wallet address amount fee-rate coins subtract-fee)))
+
+		       (define donation-address "{Constants.DonationAddress}")
+
+		       (define (donate-dust wallet fee-rate)
+		         (let* ((private-dust (filter (lambda (c)
+		                                        (and (< (coin-amount c) 0.0002)
+		                                             (> (coin-anonymityset c) 1)))
+		                                      (wallet-unspent-coins wallet)))
+		                (sorted (sort private-dust (lambda (a b) (< (coin-amount a) (coin-amount b)))))
+		                (smallest-3 (take 3 sorted)))
+		           (send wallet donation-address 0 fee-rate smallest-3 #t)))
+
+		       (define (send-to-self wallet coin fee-rate label taproot)
+		         (let ((addr (new-address-string wallet label taproot)))
+		           (send wallet addr 0 fee-rate (list coin) #t)))
 		       """;
 	}
 }
