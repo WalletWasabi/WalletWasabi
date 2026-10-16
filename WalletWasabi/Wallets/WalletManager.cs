@@ -47,28 +47,16 @@ public class WalletManager
 
 	private void LoadWalletListFromFileSystem()
 	{
-		var walletNamesToLoad = WalletDirectories
+		var tasks = WalletDirectories
 			.EnumerateWalletFiles()
-			.Select(fi => Path.GetFileNameWithoutExtension(fi.FullName))
-			.ToArray();
+			.Select(fileInfo => Task.Run(() => LoadWalletByNameFromDisk(Path.GetFileNameWithoutExtension(fileInfo.FullName)), _cancelAllTasksToken))
+			.ToList();
 
-		if (walletNamesToLoad.Length == 0)
+		foreach (var task in tasks)
 		{
-			return;
-		}
-
-		List<Task<Wallet>> walletLoadTasks = walletNamesToLoad.Select(walletName => Task.Run(() => LoadWalletByNameFromDisk(walletName), _cancelAllTasksToken)).ToList();
-
-		while (walletLoadTasks.Count > 0)
-		{
-			var tasksArray = walletLoadTasks.ToArray();
-			var finishedTaskIndex = Task.WaitAny(tasksArray, _cancelAllTasksToken);
-			var finishedTask = tasksArray[finishedTaskIndex];
-			walletLoadTasks.Remove(finishedTask);
 			try
 			{
-				var wallet = finishedTask.Result;
-				AddWallet(wallet);
+				AddWallet(task.Result);
 			}
 			catch (Exception ex)
 			{
