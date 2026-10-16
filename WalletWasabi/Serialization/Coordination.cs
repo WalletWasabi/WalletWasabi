@@ -56,7 +56,7 @@ public static partial class Encode
 			("Network", String(p.Network.Name)),
 			("MiningFeeRate", FeeRate(p.MiningFeeRate)),
 			("CoordinationFeeRate", CoordinationFeeRate() ),
-			("MaxSuggestedAmount",  MoneySatoshis(p.MaxSuggestedAmount)),
+			("MaxSuggestedAmount",  MoneySatoshis(p.MaxAmountCredentialValue)),
 			("MinInputCountByRound", Int(p.MinInputCountByRound)),
 			("MaxInputCountByRound", Int(p.MaxInputCountByRound) ),
 			("AllowedInputAmounts", MoneyRange(p.AllowedInputAmounts)),
@@ -293,7 +293,6 @@ public static partial class Encode
 			("RoundId", UInt256(rs.RoundId)),
 			("IsBlameRound", Bool(rs.IsBlameRound)),
 			("InputCount", Int(rs.InputCount)),
-			("MaxSuggestedAmount", Decimal(rs.MaxSuggestedAmount)),
 			("InputRegistrationRemaining", TimeSpan(rs.InputRegistrationRemaining)),
 			("Phase", String(rs.Phase)),
 		]);
@@ -424,7 +423,6 @@ public static partial class Decode
 		Object(get => new RoundParameters(
 			get.Required("Network", Network),
 			get.Required("MiningFeeRate", FeeRate),
-			get.Required("MaxSuggestedAmount",  MoneySatoshis),
 			get.Required("MinInputCountByRound", Int),
 			get.Required("MaxInputCountByRound", Int),
 			get.Required("AllowedInputAmounts", MoneyRange),
