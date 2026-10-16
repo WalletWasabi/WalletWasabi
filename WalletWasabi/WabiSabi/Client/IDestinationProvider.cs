@@ -2,7 +2,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public interface IDestinationProvider
 {
-	IEnumerable<ScriptType> SupportedScriptTypes { get; }
+	ImmutableHashSet<ScriptType> SupportedScriptTypes { get; }
 
 	IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot);
 
