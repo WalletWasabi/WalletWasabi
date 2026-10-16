@@ -34,7 +34,7 @@ public record RoundState(uint256 Id,
 		CoinjoinState.Parameters.MaxAmountCredentialValue,
 		CoinjoinState.Parameters.MaxVsizeCredentialValue,
 		CoinjoinState.Parameters.MaxVsizeAllocationPerAlice,
-		CoinjoinState.Parameters.MaxSuggestedAmount,
+		CoinjoinState.Parameters.MaxAmountCredentialValue,
 		CoinjoinState.Parameters.CoordinationIdentifier,
 		AmountCredentialIssuerParameters,
 		VsizeCredentialIssuerParameters));
