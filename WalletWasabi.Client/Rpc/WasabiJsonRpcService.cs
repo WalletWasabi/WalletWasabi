@@ -116,8 +116,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("renamewallet")]
 	public void RenameWallet(string newWalletName)
 	{
-		newWalletName = Guard.NotNullOrEmptyOrWhitespace(nameof(newWalletName), newWalletName);
+		Guard.NotNullOrEmptyOrWhitespace(nameof(newWalletName), newWalletName);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		if (activeWallet.Loaded)
+		{
+			throw new InvalidOperationException("A loaded wallet cannot be renamed. Start the daemon without it, or restart it.");
+		}
+
 		Global.WalletManager.RenameWallet(activeWallet, newWalletName);
 	}
 

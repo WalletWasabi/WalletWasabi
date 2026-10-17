@@ -114,7 +114,7 @@ $ ./wcli.sh -wallet=MyWallet getnewaddress "Ricardo"
 
 ### Rename Wallet
 
-To rename your wallet file from `MyWallet` to `Savings`:
+Renames the wallet file `MyWallet` to `Savings`. The wallet must not be loaded, so do not pass it to the daemon's `--wallet` argument:
 
 ```bash
 $ ./wcli.sh -wallet=MyWallet renamewallet "Savings"
