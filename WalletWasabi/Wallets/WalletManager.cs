@@ -112,8 +112,6 @@ public class WalletManager
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
-		string walletFilePath = Path.Combine(WalletDirectories.WalletsDir, $"{walletName}.json");
-
 		if (string.IsNullOrEmpty(walletName))
 		{
 			return (ErrorSeverity.Error, "The name cannot be empty");
@@ -124,7 +122,7 @@ public class WalletManager
 			return (ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
 		}
 
-		if (File.Exists(walletFilePath))
+		if (File.Exists(WalletDirectories.GetWalletFilePaths(walletName)))
 		{
 			return (ErrorSeverity.Error, $"A wallet named {walletName} already exists. Please try a different name.");
 		}
