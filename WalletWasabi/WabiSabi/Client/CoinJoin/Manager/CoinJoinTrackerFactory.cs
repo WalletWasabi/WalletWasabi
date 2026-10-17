@@ -39,6 +39,13 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
+		// A device counts every output outside its coinjoin account as value leaving it and refuses to sign the
+		// round, after the coordinator has its inputs, which bans them. So its outputs never go to another wallet.
+		if (wallet.KeyManager.HasCoinJoinAccount)
+		{
+			outputWallet = wallet;
+		}
+
 		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
 		wallet.ConsolidationMode = outputWallet.WalletId != wallet.WalletId;
 
@@ -49,7 +56,7 @@ public class CoinJoinTrackerFactory
 			outputWallet.OutputProvider,
 			_roundStatusProvider,
 			coinSelector,
-			_coinJoinConfiguration,
+			_coinJoinConfiguration.CappedBy(wallet.KeyChain),
 			_inputVerifier,
 			_liquidityClueProvider,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
