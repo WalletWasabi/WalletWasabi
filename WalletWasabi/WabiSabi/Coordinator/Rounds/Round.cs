@@ -161,7 +161,6 @@ public class Round
 				Parameters.MaxAmountCredentialValue,
 				Parameters.MaxVsizeCredentialValue,
 				Parameters.MaxVsizeAllocationPerAlice,
-				maxSuggestedAmount: Parameters.MaxAmountCredentialValue,
 				Parameters.CoordinationIdentifier,
 				AmountCredentialIssuerParameters,
 				VsizeCredentialIssuerParameters);

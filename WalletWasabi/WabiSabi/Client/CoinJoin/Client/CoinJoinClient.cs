@@ -203,7 +203,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					myCoins = info.MySignedCoins;
-					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount);
+					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins);
 
 					Logger.LogInfo(FormatLog("Waiting for the blame round.", currentRoundState));
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
@@ -323,7 +323,6 @@ public class CoinJoinClient
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
 					mySignedCoins,
 					roundState.CoinjoinState.Inputs.ToImmutableArray(),
-					roundState.CoinjoinState.Parameters.MaxAmountCredentialValue,
 					roundState.CoinjoinState.Parameters.MiningFeeRate),
 				_ => new FailedCoinJoinResult()
 			};
@@ -972,5 +971,5 @@ public class CoinJoinClient
 		public static readonly UnrestrictedRound Instance = new();
 	}
 
-	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount) : IRoundRestrictions;
+	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins) : IRoundRestrictions;
 }
