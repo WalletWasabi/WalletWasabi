@@ -37,6 +37,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
     [AutoNotify] private string? _addressToConfirm;
+    [AutoNotify(SetterModifier = AccessModifier.Private)] private bool _canEnableCoinjoin;
+    [AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isRestartPending;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
@@ -114,16 +116,15 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
         // A device-backed watch-only wallet imported without coinjoin can opt in later. The device shows the new
-        // coinjoin account for confirmation; then the application restarts, since every page of this wallet was built for a wallet without one.
+        // coinjoin account for confirmation; then the application has to restart, since every page of this wallet was built for a wallet without one.
         CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
         EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             try
             {
                 await walletModel.EnableCoinjoinAsync(new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString()), System.Threading.CancellationToken.None);
-
-                UiContext.Navigate(MetaData.NavigationTarget).Clear();
-                AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+                CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+                IsRestartPending = true;
             }
             catch (Exception ex)
             {
@@ -135,6 +136,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                 AddressToConfirm = null;
             }
         });
+
+        // The change is saved; the user picks when the restart that shows it happens.
+        RestartNowCommand = ReactiveCommand.Create(() =>
+        {
+            UiContext.Navigate(MetaData.NavigationTarget).Clear();
+            AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+        });
+        RestartLaterCommand = ReactiveCommand.Create(() => IsRestartPending = false);
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -203,8 +212,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
     public ICommand ResyncWalletCommand { get; }
-    public bool CanEnableCoinjoin { get; }
     public ICommand EnableCoinjoinCommand { get; }
+    public ICommand RestartNowCommand { get; }
+    public ICommand RestartLaterCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {
