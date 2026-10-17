@@ -42,6 +42,7 @@ public class Startup(IConfiguration configuration)
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Coordinator"));
 		EnvironmentHelpers.CreateOwnerOnlyDirectory(dataDir);
 		Logger.Configure(Path.Combine(dataDir, "Logs.txt"));
+		EnvironmentHelpers.WarnIfWorldAccessible(dataDir);
 
 		services.AddMemoryCache();
 

@@ -60,35 +60,34 @@ public static class EnvironmentHelpers
 	}
 
 	/// <summary>
-	/// Creates a directory that only its owner can enter (mode 0700 on Unix). An existing directory only loses its
-	/// world-access bits, so a mode an operator widened on purpose, such as group access, is kept.
+	/// Creates a directory that only its owner can enter (mode 0700 on Unix). An existing directory is left as it is,
+	/// see <see cref="WarnIfWorldAccessible"/>.
 	/// </summary>
-	/// <remarks>Runs before the logger is configured, so a file system without POSIX modes is tolerated silently.</remarks>
 	public static void CreateOwnerOnlyDirectory(string directory)
 	{
 		if (OperatingSystem.IsWindows())
 		{
 			Directory.CreateDirectory(directory);
-			return;
 		}
+		else
+		{
+			Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+		}
+	}
 
+	/// <summary>Logs a warning when other users of the machine can access the directory. Nothing is checked on Windows.</summary>
+	/// <returns>Whether a warning was logged.</returns>
+	public static bool WarnIfWorldAccessible(string directory)
+	{
 		const UnixFileMode WorldAccess = UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute;
 
-		try
+		if (OperatingSystem.IsWindows() || (File.GetUnixFileMode(directory) & WorldAccess) == UnixFileMode.None)
 		{
-			if (!Directory.Exists(directory))
-			{
-				Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-			}
-			else if ((File.GetUnixFileMode(directory) & WorldAccess) != UnixFileMode.None)
-			{
-				File.SetUnixFileMode(directory, File.GetUnixFileMode(directory) & ~WorldAccess);
-			}
+			return false;
 		}
-		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-		{
-			Directory.CreateDirectory(directory);
-		}
+
+		Logger.LogWarning($"Directory '{directory}' is accessible to all users of this machine. Restrict it, for example with: chmod o-rwx '{directory}'");
+		return true;
 	}
 
 
