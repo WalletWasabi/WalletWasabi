@@ -1,3 +1,5 @@
+namespace WalletWasabi.WabiSabi.Models;
+
 public record HumanMonitorRoundResponse(
 	uint256 RoundId,
 	bool IsBlameRound,
