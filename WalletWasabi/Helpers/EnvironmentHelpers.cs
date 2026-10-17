@@ -46,16 +46,41 @@ public static class EnvironmentHelpers
 			}
 		}
 
-		if (Directory.Exists(directory))
-		{
-			DataDirDict.TryAdd(appName, directory);
-			return directory;
-		}
-
-		Directory.CreateDirectory(directory);
+		CreateOwnerOnlyDirectory(directory);
 
 		DataDirDict.TryAdd(appName, directory);
 		return directory;
+	}
+
+	/// <summary>
+	/// Creates a directory that only its owner can enter (mode 0700 on Unix). An existing directory is left as it is,
+	/// see <see cref="WarnIfWorldAccessible"/>.
+	/// </summary>
+	public static void CreateOwnerOnlyDirectory(string directory)
+	{
+		if (OperatingSystem.IsWindows())
+		{
+			Directory.CreateDirectory(directory);
+		}
+		else
+		{
+			Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+		}
+	}
+
+	/// <summary>Logs a warning when other users of the machine can access the directory. Nothing is checked on Windows.</summary>
+	/// <returns>Whether a warning was logged.</returns>
+	public static bool WarnIfWorldAccessible(string directory)
+	{
+		const UnixFileMode WorldAccess = UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute;
+
+		if (OperatingSystem.IsWindows() || (File.GetUnixFileMode(directory) & WorldAccess) == UnixFileMode.None)
+		{
+			return false;
+		}
+
+		Logger.LogWarning($"Directory '{directory}' is accessible to all users of this machine. Restrict it, for example with: chmod o-rwx '{directory}'");
+		return true;
 	}
 
 
