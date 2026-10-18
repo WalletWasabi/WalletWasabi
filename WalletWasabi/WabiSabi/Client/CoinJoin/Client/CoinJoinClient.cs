@@ -892,6 +892,13 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.", roundState));
 
 		var signingState = roundState.Assert<SigningState>();
+
+		// An omitted input cannot stop the transaction when we withhold its signature.
+		// Only consider registered inputs that are actually present in the proposed transaction.
+		var inputOutpoints = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
+		var alicesInTransaction = registeredAliceClients
+			.Where(alice => inputOutpoints.Contains(alice.SmartCoin.Outpoint))
+			.ToImmutableArray();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
@@ -929,7 +936,8 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog("Effective fee rate of the transaction is lower than expected.", roundState));
 		}
 
-		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var allMyInputsArePresent = alicesInTransaction.Length == registeredAliceClients.Length;
+		var mustSignAllInputs = allMyInputsArePresent && !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
@@ -937,9 +945,12 @@ public class CoinJoinClient
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		var alicesToSign = mustSignAllInputs
-			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(_secureRandom.GetInt(0, registeredAliceClients.Length));
+		var alicesToSign = alicesInTransaction;
+		if (!mustSignAllInputs && !alicesToSign.IsEmpty)
+		{
+			// Leave one input of this transaction unsigned so the coordinator cannot complete it.
+			alicesToSign = alicesToSign.RemoveAt(_secureRandom.GetInt(0, alicesToSign.Length));
+		}
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
