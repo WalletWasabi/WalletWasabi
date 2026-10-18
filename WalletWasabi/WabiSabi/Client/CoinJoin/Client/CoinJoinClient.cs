@@ -153,7 +153,7 @@ public class CoinJoinClient
 
 			coinCandidates = coinCandidatesFunc();
 
-			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
+			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxAmountCredentialValue);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes.ToArray());
 
 			myCoins = _coinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, liquidityClue);
@@ -170,14 +170,6 @@ public class CoinJoinClient
 			{
 				excludeRound = currentRoundState.Id;
 				Logger.LogInfo(FormatLog("Skipping the round since none of the wallet's coins is suitable for it.", currentRoundState));
-
-				continue;
-			}
-
-			if (roundParameters.MaxSuggestedAmount != default && myCoins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
-			{
-				excludeRound = currentRoundState.Id;
-				Logger.LogInfo(FormatLog($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{myCoins.Select(c => c.Amount).Max()}' BTC.", currentRoundState));
 
 				continue;
 			}
@@ -211,7 +203,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					myCoins = info.MySignedCoins;
-					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount);
+					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins);
 
 					Logger.LogInfo(FormatLog("Waiting for the blame round.", currentRoundState));
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
@@ -331,7 +323,6 @@ public class CoinJoinClient
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
 					mySignedCoins,
 					roundState.CoinjoinState.Inputs.ToImmutableArray(),
-					roundState.CoinjoinState.Parameters.MaxSuggestedAmount,
 					roundState.CoinjoinState.Parameters.MiningFeeRate),
 				_ => new FailedCoinJoinResult()
 			};
@@ -383,7 +374,7 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
-			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
+			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxAmountCredentialValue, unsignedCoinJoin, outputTxOuts);
 
 			return (aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin);
 		}
@@ -763,14 +754,7 @@ public class CoinJoinClient
 		// Check if the round restrictions for blame rounds are satisfied. If not, it means that the coordinator is trying to cheat.
 		if (roundRestrictions is BlameRoundRestrictions restrictions)
 		{
-			var currentMaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount;
 			var currentMiningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
-
-			if (restrictions.SuggestedAmount != currentMaxSuggestedAmount)
-			{
-				Logger.LogWarning(FormatLog($"Suggested amount is {currentMaxSuggestedAmount}. Value {restrictions.SuggestedAmount} was expected. Is coordinator cheating?", roundState));
-				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
-			}
 
 			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
 			{
@@ -987,5 +971,5 @@ public class CoinJoinClient
 		public static readonly UnrestrictedRound Instance = new();
 	}
 
-	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount) : IRoundRestrictions;
+	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins) : IRoundRestrictions;
 }
