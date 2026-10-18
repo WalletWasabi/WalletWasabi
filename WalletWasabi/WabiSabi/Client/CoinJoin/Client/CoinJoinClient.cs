@@ -895,9 +895,9 @@ public class CoinJoinClient
 
 		// An omitted input cannot stop the transaction when we withhold its signature.
 		// Only consider registered inputs that are actually present in the proposed transaction.
-		var inputOutpoints = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
+		var myInputsInRound = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
 		var alicesInTransaction = registeredAliceClients
-			.Where(alice => inputOutpoints.Contains(alice.SmartCoin.Outpoint))
+			.Where(alice => myInputsInRound.Contains(alice.SmartCoin.Outpoint))
 			.ToImmutableArray();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
@@ -906,8 +906,8 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var actualInputCount = signingState.Inputs.Count();
-		var isItSoloCoinjoin = actualInputCount == registeredAliceClients.Length;
+		var actualInputCount = signingState.Inputs.DistinctBy(i => i.Outpoint).Count();
+		var isItSoloCoinjoin = actualInputCount == alicesInTransaction.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
@@ -937,7 +937,7 @@ public class CoinJoinClient
 		}
 
 		var allMyInputsArePresent = alicesInTransaction.Length == registeredAliceClients.Length;
-		var mustSignAllInputs = allMyInputsArePresent && !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var mustSignAllInputs = allMyInputsArePresent && allMyOutputsArePresent && !isItForbiddenSoloCoinjoining && !hasTooFewInputs && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
@@ -945,12 +945,9 @@ public class CoinJoinClient
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		var alicesToSign = alicesInTransaction;
-		if (!mustSignAllInputs && !alicesToSign.IsEmpty)
-		{
-			// Leave one input of this transaction unsigned so the coordinator cannot complete it.
-			alicesToSign = alicesToSign.RemoveAt(_secureRandom.GetInt(0, alicesToSign.Length));
-		}
+		var alicesToSign = mustSignAllInputs || alicesInTransaction.IsEmpty
+			? alicesInTransaction
+			: alicesInTransaction.RemoveAt(_secureRandom.GetInt(0, alicesInTransaction.Length));
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
