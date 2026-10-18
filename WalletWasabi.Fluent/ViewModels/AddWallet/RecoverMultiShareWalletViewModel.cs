@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
@@ -157,23 +156,6 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 					shares);
 				options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit, BirthHeight = BirthHeight};
 				var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-
-				var filterMinHeight = UiContext.Services.GetMinimumBlockHeight();
-				if (filterMinHeight is { } minHeight && BirthHeight < minHeight)
-				{
-					UiContext.WalletRepository.SaveWallet(walletSettings);
-
-					UiContext.Services.SetLastSelectedWallet(walletName);
-					UiContext.Services.UiConfig.ToFile();
-
-					await ShowErrorAsync(
-						"Restart required",
-						"Wasabi needs to download older block filters for this wallet. The application will restart to begin this process.",
-						"Wallet recovery");
-					AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
-					return;
-				}
-
 				Navigate().To().AddedWalletPage(walletSettings, options);
 			}
 			catch (Exception ex)
