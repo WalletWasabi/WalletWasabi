@@ -516,7 +516,7 @@ mkdir -p "$BUILD_INSTALLER_DIR"
     -cg PublishedComponents \
     -pog Binaries \
     -dr INSTALLFOLDER \
-    -srd -scom -gg -sfrag -sreg
+    -srd -scom -ag -sfrag -sreg
 
 # Compile the .wxs file to .wixobj
 "$CANDLE_EXE" \
