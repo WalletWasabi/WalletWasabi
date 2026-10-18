@@ -47,6 +47,8 @@ public partial class Arena : PeriodicRunner
 		_maxSuggestedAmountProvider = new(_config);
 	}
 
+	private const int MaxCoordinatorOutputs = 8;
+
 	public HashSet<Round> Rounds { get; } = new();
 	private ImmutableList<RoundState> _roundStates = [];
 	private readonly ConcurrentQueue<uint256> _disruptedRounds = new();
@@ -242,8 +244,9 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo(FormatLog($"{coinjoin.Inputs.Count()} inputs were added.", round));
 					Logger.LogInfo(FormatLog($"{coinjoin.Outputs.Count()} outputs were added.", round));
 
-					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
-					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript, _config.TrimCoordinatorOutput);
+					var coordinatorScripts = GetCoordinatorScriptsPreventReuse(round);
+					coinjoin = AddCoordinationFee(round, coinjoin, coordinatorScripts, _config.TrimCoordinatorOutput);
+					round.CoordinatorScripts = coordinatorScripts.Intersect(coinjoin.Outputs.Select(x => x.ScriptPubKey)).ToArray();
 
 					round.CoinjoinState = FinalizeTransaction(coinjoin);
 
@@ -315,8 +318,7 @@ public partial class Arena : PeriodicRunner
 					EndRound(round, EndRoundState.TransactionBroadcasted);
 					Logger.LogInfo(FormatLog($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.", round));
 
-					var coordinatorScriptPubKey = _config.GetNextCleanCoordinatorScript();
-					if (round.CoordinatorScript == coordinatorScriptPubKey)
+					while (round.CoordinatorScripts.Contains(_config.GetNextCleanCoordinatorScript()))
 					{
 						_config.MakeNextCoordinatorScriptDirty();
 					}
@@ -325,9 +327,9 @@ public partial class Arena : PeriodicRunner
 						.Select(x => x.ScriptPubKey)
 						.Where(script => _coinJoinScriptStore?.Contains(script) is true))
 					{
-						if (address == round.CoordinatorScript)
+						if (round.CoordinatorScripts.Contains(address))
 						{
-							Logger.LogError(FormatLog($"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}", round));
+							Logger.LogError(FormatLog($"Coordinator script pub key reuse detected: {address.ToHex()}", round));
 						}
 						else
 						{
@@ -512,8 +514,9 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey, bool trimCoordinatorOutput = false)
+	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script[] coordinatorScripts, bool trimCoordinatorOutput)
 	{
+		var coordinatorScriptPubKey = coordinatorScripts[0];
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
 
@@ -522,19 +525,20 @@ public partial class Arena : PeriodicRunner
 		Logger.LogInfo(FormatLog($"Available coordination: {availableCoordinationFee}.", round));
 
 		// The coordinator must pay output creation at round's FeeRate, but then he can wait to spend the output.
-		var minEconomicalOutput = round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize()) +
-		                          new FeeRate(1.0m).GetFee(coordinatorScriptPubKey.EstimateInputVsize());
+		var outputFee = round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
+		var minEconomicalOutput = outputFee + new FeeRate(1.0m).GetFee(coordinatorScriptPubKey.EstimateInputVsize());
 
 		if (availableCoordinationFee > minEconomicalOutput)
 		{
-			var coordinatorOutputValue = trimCoordinatorOutput
-				? TrimToDenomination(round, availableCoordinationFee, minEconomicalOutput)
-				: availableCoordinationFee;
+			Money[] coordinatorOutputValues = trimCoordinatorOutput
+				? TrimToDenominations(round, availableCoordinationFee, minEconomicalOutput, outputFee, coordinatorScripts.Length)
+				: [availableCoordinationFee];
 
-			var txOut = new TxOut(coordinatorOutputValue, coordinatorScriptPubKey);
-			if (!txOut.IsDust())
+			var txOuts = coordinatorOutputValues.Zip(coordinatorScripts, (value, script) => new TxOut(value, script)).ToArray();
+			if (txOuts.All(x => !x.IsDust()))
 			{
-				return coinjoin.AddOutputNoMinAmountCheck(txOut)
+				return txOuts
+					.Aggregate(coinjoin, (state, txOut) => state.AddOutputNoMinAmountCheck(txOut))
 					.AsPayingForSharedOverhead();
 			}
 		}
@@ -543,35 +547,47 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private static Money TrimToDenomination(Round round, Money coordinatorOutputValue, Money minEconomicalOutput)
+	private static Money[] TrimToDenominations(Round round, Money coordinatorOutputValue, Money minEconomicalOutput, Money outputFee, int maxOutputCount)
 	{
-		var denomination = DenominationBuilder
+		// GetFee rounds down, so every output pays one more satoshi to never leave the coinjoin below the round's fee rate.
+		var outputCost = outputFee.Satoshi + 1;
+		var target = coordinatorOutputValue.Satoshi + outputCost;
+		var denominations = DenominationBuilder
 			.CreateDenominationAmounts(round.Parameters.AllowedOutputAmounts.Min, coordinatorOutputValue)
-			.OrderByDescending(x => x.Satoshi)
-			.FirstOrDefault();
+			.Where(x => x > minEconomicalOutput)
+			.Select(x => x.Satoshi + outputCost)
+			.OrderDescending()
+			.ToArray();
 
-		if (denomination is null || denomination <= minEconomicalOutput)
+		var trimmed = denominations is [.., var smallest] && smallest < target
+			? Decomposer.Decompose(target, smallest, maxOutputCount, denominations)
+				.Select(decomposition => decomposition.AsEnumerable().Select(x => Money.Satoshis(x - outputCost)).ToArray())
+				.MaxBy(x => x.Sum())
+			: null;
+
+		if (trimmed is null)
 		{
-			return coordinatorOutputValue;
+			return [coordinatorOutputValue];
 		}
 
-		Logger.LogInfo(FormatLog($"Coordinator output trimmed from {coordinatorOutputValue} to {denomination}, {(coordinatorOutputValue - denomination).Satoshi} satoshis were given up to the miners.", round));
-		return denomination;
+		Logger.LogInfo(FormatLog($"Coordinator output trimmed from {coordinatorOutputValue} to {string.Join(", ", trimmed)}, {(coordinatorOutputValue - trimmed.Sum()).Satoshi} satoshis were given up to the miners.", round));
+		return trimmed;
 	}
 
-	private Script GetCoordinatorScriptPreventReuse(Round round)
+	private Script[] GetCoordinatorScriptsPreventReuse(Round round)
 	{
-		var coordinatorScriptPubKey = _config.GetNextCleanCoordinatorScript();
+		var scriptsInUse = Rounds.SelectMany(r => r.CoordinatorScripts).ToHashSet();
 
 		// Prevent coordinator script reuse.
-		if (Rounds.Any(r => r.CoordinatorScript == coordinatorScriptPubKey))
+		while (scriptsInUse.Contains(_config.GetNextCleanCoordinatorScript()))
 		{
 			_config.MakeNextCoordinatorScriptDirty();
-			coordinatorScriptPubKey = _config.GetNextCleanCoordinatorScript();
 			Logger.LogWarning(FormatLog("Coordinator script pub key was already used by another round, making it dirty and taking a new one.", round));
 		}
 
-		return coordinatorScriptPubKey;
+		return Enumerable.Range(_config.CoordinatorExtPubKeyCurrentDepth, MaxCoordinatorOutputs)
+			.Select(_config.DeriveCoordinatorScript)
+			.ToArray();
 	}
 
 	private void AbortDisruptedRounds()

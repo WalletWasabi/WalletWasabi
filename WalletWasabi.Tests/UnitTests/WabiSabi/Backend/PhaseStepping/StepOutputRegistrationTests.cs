@@ -108,7 +108,53 @@ public class StepOutputRegistrationTests
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
 		Assert.Equal(2, tx.Outputs.Count);
-		Assert.Contains(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
+		Assert.Contains(Assert.Single(round.CoordinatorScripts), tx.Outputs.Select(x => x.ScriptPubKey));
+
+		await arena.StopAsync(token);
+	}
+
+	[Fact]
+	public async Task TrimmedCoordinatorOutputsAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = new()
+		{
+			MaxInputCountByRound = 2,
+			MinInputCountByRoundMultiplier = 0.5,
+			OutputRegistrationTimeout = TimeSpan.Zero,
+			TrimCoordinatorOutput = true,
+		};
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		using Arena arena = await ArenaBuilder.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
+		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
+
+		// Only the first alice registers an output, so the coordinator gets the two bitcoins of the second one.
+		var bobClient = new BobClient(round.Id, arenaClient);
+		using var destinationKey = new Key();
+		await bobClient.RegisterOutputAsync(
+			destinationKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+			amountCredentials1.Take(ProtocolConstants.CredentialNumber),
+			vsizeCredentials1.Take(ProtocolConstants.CredentialNumber),
+			token);
+		await alices[0].ReadyToSignAsync(token);
+		await alices[1].ReadyToSignAsync(token);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+		var tx = round.Assert<SigningState>().CreateTransaction();
+
+		// Every coordinator output gets its own fresh script.
+		Assert.True(round.CoordinatorScripts.Length > 1);
+		Assert.Equal(
+			Enumerable.Range(cfg.CoordinatorExtPubKeyCurrentDepth, round.CoordinatorScripts.Length).Select(cfg.DeriveCoordinatorScript),
+			round.CoordinatorScripts);
+		Assert.Equal(round.CoordinatorScripts.Length + 1, tx.Outputs.Count);
+		Assert.All(round.CoordinatorScripts, script => Assert.Single(tx.Outputs, x => x.ScriptPubKey == script));
 
 		await arena.StopAsync(token);
 	}
@@ -165,7 +211,7 @@ public class StepOutputRegistrationTests
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Equal(3, tx.Inputs.Count);
 		Assert.Equal(2, tx.Outputs.Count);
-		Assert.DoesNotContain(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
+		Assert.Empty(round.CoordinatorScripts);
 
 		await arena.StopAsync(token);
 	}

@@ -73,7 +73,7 @@ public class Round
 	public bool FastSigningPhase { get; set; }
 
 	public RoundParameters Parameters { get; }
-	public Script? CoordinatorScript { get; set; }
+	public Script[] CoordinatorScripts { get; set; } = [];
 
 	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
 

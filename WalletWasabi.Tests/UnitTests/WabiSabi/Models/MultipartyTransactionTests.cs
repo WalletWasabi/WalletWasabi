@@ -457,7 +457,7 @@ public class MultipartyTransactionTests
 		var round = WabiSabiFactory.CreateRound(parameters);
 
 		// Make sure the highest fee rate is low, so coordinator script will be added.
-		var coinjoinWithCoordinatorScript = Arena.AddCoordinationFee(round, coinjoin, coordinatorScript);
+		var coinjoinWithCoordinatorScript = Arena.AddCoordinationFee(round, coinjoin, [coordinatorScript], trimCoordinatorOutput: false);
 		coinjoinWithCoordinatorScript.Finalize();
 		Assert.NotSame(coinjoinWithCoordinatorScript, coinjoin);
 	}
