@@ -71,6 +71,12 @@ $ ./wcli.sh -wallet=MyWallet getwalletinfo
 ```
 
 ```bash
+$ ./wcli.sh -wallet=MyWallet setlabel tb1qgvnht40a08gumw32kp05hs8mny95hvatgk39sv '"Alice, Bob"'
+```
+
+Replaces the label of one of the wallet's own addresses, and so of the coins on it. Labels are separated by commas and stored trimmed, deduplicated and sorted (see `listkeys`). A label is required, like for `getnewaddress`.
+
+```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
 
 fullkeypath       internal  keystate  label             scriptpubkey                                                      pubkey                                                              pubkeyhash                                 address
