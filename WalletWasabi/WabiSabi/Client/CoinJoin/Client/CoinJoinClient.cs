@@ -876,6 +876,13 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.", roundState));
 
 		var signingState = roundState.Assert<SigningState>();
+
+		// Only consider our registered inputs that appear in the proposed transaction. This ensures that if we deliberately
+		// withhold a valid signature for one of them, the coordinator cannot construct a valid transaction to broadcast.
+		var inputsInRound = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
+		var alicesInTransaction = registeredAliceClients
+			.Where(alice => inputsInRound.Contains(alice.SmartCoin.Outpoint))
+			.ToImmutableArray();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
@@ -883,8 +890,8 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var actualInputCount = signingState.Inputs.Count();
-		var isItSoloCoinjoin = actualInputCount == registeredAliceClients.Length;
+		var actualInputCount = signingState.Inputs.DistinctBy(i => i.Outpoint).Count();
+		var isItSoloCoinjoin = actualInputCount == alicesInTransaction.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
@@ -913,7 +920,8 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog("Effective fee rate of the transaction is lower than expected.", roundState));
 		}
 
-		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var allMyInputsArePresent = alicesInTransaction.Length == registeredAliceClients.Length;
+		var mustSignAllInputs = allMyInputsArePresent && allMyOutputsArePresent && !isItForbiddenSoloCoinjoining && !hasTooFewInputs && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
@@ -921,9 +929,9 @@ public class CoinJoinClient
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		var alicesToSign = mustSignAllInputs
-			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(_secureRandom.GetInt(0, registeredAliceClients.Length));
+		var alicesToSign = mustSignAllInputs || alicesInTransaction.IsEmpty
+			? alicesInTransaction
+			: alicesInTransaction.RemoveAt(_secureRandom.GetInt(0, alicesInTransaction.Length));
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
