@@ -58,6 +58,15 @@ else
   ZIP="zip -r"
 fi
 
+# PathMap must use the path form the compiler sees. Under Git Bash on Windows,
+# pwd returns /c/..., which never matches C:\..., so source paths stay embedded
+# in the binaries and the build only reproduces from the same checkout path.
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  SOURCE_ROOT=$(cygpath -w "$(pwd -P)")
+else
+  SOURCE_ROOT=$(pwd -P)
+fi
+
 if [ "$1" = "wininstaller" ]; then
   # Supported platforms
   PLATFORMS=("win-x64")
@@ -154,7 +163,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
-            --property:PathMap="$(pwd -P)=/src" \
+            --property:PathMap="$SOURCE_ROOT=/src" \
             /clp:ErrorsOnly
   done
 
