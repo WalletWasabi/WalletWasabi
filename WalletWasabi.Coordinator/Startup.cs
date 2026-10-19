@@ -40,10 +40,15 @@ public class Startup(IConfiguration configuration)
 	public void ConfigureServices(IServiceCollection services)
 	{
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Coordinator"));
-		Logger.Configure(Path.Combine(dataDir, "Logs.txt"));
+
+		// Set up logger.
+		LogLevel logLevel = Enum.TryParse(Configuration["loglevel"], ignoreCase: true, out LogLevel parsedLevel)
+			? parsedLevel
+			: LogLevel.Info;
+
+		Logger.Configure(Path.Combine(dataDir, "Logs.txt"), logLevel);
 
 		services.AddMemoryCache();
-
 
 		services.AddMvc(options => {
 			options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
