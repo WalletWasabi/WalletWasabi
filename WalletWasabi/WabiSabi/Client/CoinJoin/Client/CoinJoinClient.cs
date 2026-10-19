@@ -893,11 +893,11 @@ public class CoinJoinClient
 
 		var signingState = roundState.Assert<SigningState>();
 
-		// An omitted input cannot stop the transaction when we withhold its signature.
-		// Only consider registered inputs that are actually present in the proposed transaction.
-		var myInputsInRound = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
+		// Only consider our registered inputs that appear in the proposed transaction. This ensures that if we deliberately
+		// withhold a valid signature for one of them, the coordinator cannot construct a valid transaction to broadcast.
+		var inputsInRound = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
 		var alicesInTransaction = registeredAliceClients
-			.Where(alice => myInputsInRound.Contains(alice.SmartCoin.Outpoint))
+			.Where(alice => inputsInRound.Contains(alice.SmartCoin.Outpoint))
 			.ToImmutableArray();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
