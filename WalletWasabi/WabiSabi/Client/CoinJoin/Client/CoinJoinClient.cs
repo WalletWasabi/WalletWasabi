@@ -1,4 +1,5 @@
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Exceptions;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -632,7 +633,12 @@ public class CoinJoinClient
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
-	private async Task SignTransactionAsync(
+	/// <summary>
+	/// Posts the signatures. Success means every Alice signed. A failed request does not take the posted
+	/// signatures with it: the failure carries the Alices that did sign, because those inputs are whitelisted
+	/// for the blame round. Cancellation propagates as everywhere else.
+	/// </summary>
+	private async Task<Result<NotAllAlicesSigned>> SignTransactionAsync(
 		ImmutableArray<AliceClient> aliceClients,
 		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
 		DateTimeOffset signingStartTime,
@@ -656,16 +662,33 @@ public class CoinJoinClient
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, _keyChain, cancellationToken).ConfigureAwait(false);
+					return true;
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug(FormatLog("Signature was already sent - bypassing error.", ex.ToString()));
+					Logger.LogDebug(FormatLog("Signature was already sent - bypassing error.", aliceClient));
+					return true;
+				}
+				catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+					Logger.LogInfo(FormatLog($"Failed to post the signature: {ex.Message}", aliceClient));
+					Logger.LogDebug(FormatLog(ex.ToString(), aliceClient));
+					return false;
 				}
 			})
 			.ToImmutableArray();
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		var signed = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+		if (signed.All(s => s))
+		{
+			return Result<NotAllAlicesSigned>.Ok();
+		}
+
+		return new NotAllAlicesSigned(aliceClients.Where((_, i) => signed[i]).ToImmutableArray());
 	}
+
+	private record NotAllAlicesSigned(ImmutableArray<AliceClient> AliceClientsThatSigned);
 
 	private async Task ReadyToSignAsync(ImmutableArray<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
@@ -944,10 +967,11 @@ public class CoinJoinClient
 			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash(), unsignedCoinJoin.Transaction.Inputs.Select(i => i.PrevOut).ToImmutableArray()));
 		}
 
-		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
+		var signingResult = await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		var alicesThatSigned = signingResult.Match(_ => alicesToSign, failure => failure.AliceClientsThatSigned);
+		Logger.LogInfo(FormatLog($"{alicesThatSigned.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
 
-		return (unsignedCoinJoin.Transaction, alicesToSign);
+		return (unsignedCoinJoin.Transaction, alicesThatSigned);
 	}
 
 	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)

@@ -267,6 +267,122 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}
 	}
 
+	/// <summary>
+	/// A participant whose signature request fails for one input must still join the blame round with the
+	/// inputs it did sign: the coordinator removes only the unsigned input and whitelists the rest.
+	/// </summary>
+	[Theory]
+	[InlineData(new long[] { 30_000_000, 40_000_000 }, new long[] { 50_000_000, 60_000_000 }, new long[] { 70_000_000, 80_000_000 })]
+	public async Task CoinJoinWithPartiallySigningParticipantJoinsBlameRoundTestAsync(long[] satAmounts1, long[] satAmounts2, long[] satAmounts3)
+	{
+		int inputCount = satAmounts1.Length;
+
+		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+		cts.Token.Register(() => broadcastedTxTcs.TrySetCanceled(), useSynchronizationContext: false);
+
+		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager3 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+
+		// The second participant signs all but one of its inputs.
+		var participant1Coins = GenerateSmartCoins(keyManager1, satAmounts1, inputCount);
+		var participant2Coins = GenerateSmartCoins(keyManager2, satAmounts2, inputCount);
+		var participant3Coins = GenerateSmartCoins(keyManager3, satAmounts3, inputCount);
+
+		await using var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			builder.AddMockRpcClient(
+				Enumerable.Concat(participant1Coins, participant2Coins).Concat(participant3Coins).ToImmutableList(),
+				rpc =>
+				{
+					rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
+					{
+						var tx = Transaction.Create(Network.Main);
+						return Task.FromResult(tx);
+					};
+
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						broadcastedTxTcs.SetResult(tx);
+						return tx.GetHash();
+					};
+				})
+			.ConfigureServices(services =>
+				services.AddSingleton(s => new WabiSabiConfig
+				{
+					AllowP2trInputs = true,
+					AllowP2trOutputs = true,
+					MaxInputCountByRound = 3 * inputCount,
+					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
+				})));
+
+		await Task.Delay(100);
+
+		var apiClient1 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient1, cts.Token);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
+
+		using var httpClient = coordinatorApp.CreateClient();
+
+		// Forwards every request except the first transaction signature of the first round, which is lost on the way.
+		var signatureRequests = 0;
+		using var partiallySigningHttpClientMock = new MockHttpClient()
+		{
+			BaseAddress = httpClient.BaseAddress,
+			OnSendAsync = req =>
+			{
+				Assert.NotNull(req.RequestUri);
+
+				if (req.RequestUri.ToString().Contains("transaction-signature") && Interlocked.Increment(ref signatureRequests) == 1)
+				{
+					throw new HttpRequestException("The request was lost.");
+				}
+
+				return httpClient.SendAsync(req, CancellationToken.None);
+			}
+		};
+
+		var apiClient2 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(partiallySigningHttpClientMock);
+		var apiClient3 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+
+		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
+		var coinJoinClient2 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2, keyManager2, roundStateProvider);
+		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
+
+		var participant1CoinjoinTask = coinJoinClient1.StartCoinJoinAsync(() => participant1Coins, cts.Token);
+		var participant2CoinjoinTask = coinJoinClient2.StartCoinJoinAsync(() => participant2Coins, cts.Token);
+		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
+
+		try
+		{
+			await Task.WhenAll(participant1CoinjoinTask, participant2CoinjoinTask, participant3CoinjoinTask);
+		}
+		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found.")
+		                                         || e.Message.Contains("Not enough coins registered to participate in the coinjoin."))
+		{
+			// See CoinJoinWithBlameRoundTestAsync.
+			return;
+		}
+
+		Assert.IsType<SuccessfulCoinJoinResult>(await participant1CoinjoinTask);
+		var participant2Result = Assert.IsType<SuccessfulCoinJoinResult>(await participant2CoinjoinTask);
+		Assert.IsType<SuccessfulCoinJoinResult>(await participant3CoinjoinTask);
+
+		var broadcastedTx = await broadcastedTxTcs.Task;
+
+		// The second participant is in the blame round with the input it signed, and only with that one.
+		var participant2Inputs = participant2Coins.Select(x => x.Coin.Outpoint).ToHashSet();
+		var participant2InputsInTx = broadcastedTx.Inputs.Select(x => x.PrevOut).Where(participant2Inputs.Contains).ToList();
+		Assert.Single(participant2InputsInTx);
+		Assert.Equal(participant2InputsInTx, participant2Result.Coins.Select(x => x.Coin.Outpoint));
+
+		var honestInputs = participant1Coins.Concat(participant3Coins).Select(x => x.Coin.Outpoint);
+		Assert.Equal(
+			honestInputs.Concat(participant2InputsInTx).Select(x => x.ToString()).Order(),
+			broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).Order());
+	}
+
 	[Theory]
 	[InlineData(new long[] { 30_000_000, 40_000_000 }, new long[] { 50_000_000, 60_000_000 }, new long[] { 70_000_000, 80_000_000 })]
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts1, long[] satAmounts2, long[] satAmounts3)
