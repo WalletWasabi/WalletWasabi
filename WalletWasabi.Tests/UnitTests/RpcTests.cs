@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Client.Rpc;
+using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Rpc;
 using Xunit;
 
@@ -134,5 +135,19 @@ public class RpcTests
 		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20, feeTarget: 8));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
+	}
+
+	[Fact]
+	public void SetWalletInfoValidatesBeforeTouchingTheWallet()
+	{
+		var service = new WasabiJsonRpcService(null!);
+
+		Assert.Throws<ArgumentException>(() => service.SetWalletInfo(anonScoreTarget: PrivacyProfiles.AbsoluteMinAnonScoreTarget - 1));
+		Assert.Throws<ArgumentException>(() => service.SetWalletInfo(anonScoreTarget: PrivacyProfiles.AbsoluteMaxAnonScoreTarget + 1));
+		Assert.Throws<ArgumentException>(() => service.SetWalletInfo(plebStopThreshold: Money.Satoshis(-1)));
+
+		// Valid values get as far as the wallet lookup, which fails because no wallet is selected.
+		var ex = Assert.Throws<ArgumentNullException>(() => service.SetWalletInfo(anonScoreTarget: PrivacyProfiles.AbsoluteMinAnonScoreTarget));
+		Assert.Equal("ActiveWallet", ex.ParamName);
 	}
 }
