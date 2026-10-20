@@ -56,6 +56,10 @@ public class Cluster(ImmutableHashSet<HdPubKey> keys) : IEquatable<Cluster>
 #endif
 	}
 
+	public static bool operator ==(Cluster? x, Cluster? y) => x?.Equals(y) ?? y is null;
+
+	public static bool operator !=(Cluster? x, Cluster? y) => !(x == y);
+
 	/// <remarks>Hash code is computed for a set. Therefore, an order-independent hash function must be used (e.g. XOR).</remarks>
 	public override int GetHashCode()
 	{
