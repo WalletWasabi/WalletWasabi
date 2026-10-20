@@ -59,9 +59,9 @@ else
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
-  PATH_MAP_ROOT=$(cygpath -w "$(pwd -P)")  # PathMap expects native path on Windows (e.g. C:\WalletWasabi, not /c/WalletWasabi)
+  SOURCE_ROOT=$(cygpath -w "$(pwd -P)")  # PathMap expects native path on Windows (e.g. C:\WalletWasabi, not /c/WalletWasabi)
 else
-  PATH_MAP_ROOT=$(pwd -P)
+  SOURCE_ROOT=$(pwd -P)
 fi
 
 if [ "$1" = "wininstaller" ]; then
@@ -160,7 +160,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
-            --property:PathMap="$PATH_MAP_ROOT=/src" \
+            --property:PathMap="$SOURCE_ROOT=/src" \
             /clp:ErrorsOnly
   done
 
