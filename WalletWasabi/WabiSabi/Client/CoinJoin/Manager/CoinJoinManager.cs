@@ -130,7 +130,7 @@ public class CoinJoinManager : BackgroundService
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						await HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory, cancellationToken).ConfigureAwait(false);
+						HandleStartCoinJoinCommand(startCommand, coinJoinTrackerFactory, cancellationToken);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
@@ -157,7 +157,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private async Task HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory, CancellationToken cancellationToken)
+	private void HandleStartCoinJoinCommand(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory, CancellationToken cancellationToken)
 	{
 		var walletToStart = startCommand.Wallet;
 
@@ -230,32 +230,12 @@ public class CoinJoinManager : BackgroundService
 		// task and re-post the command when done. A start while the device is already asking adds no second prompt.
 		if (NeedsDeviceAuthorization(walletToStart))
 		{
-			if (!_pendingAuthorizations.TryAdd(walletToStart.WalletId, startCommand))
+			if (_pendingAuthorizations.TryAdd(walletToStart.WalletId, startCommand))
 			{
-				return;
+				NotifyWalletStartedCoinJoin(walletToStart);
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AwaitingDeviceConfirmation);
+				_ = Task.Run(() => AuthorizeDeviceAndResumeAsync(walletToStart, cancellationToken), cancellationToken);
 			}
-
-			_ = Task.Run(
-				async () =>
-				{
-					try
-					{
-						await AuthorizeDeviceAsync(walletToStart, cancellationToken).ConfigureAwait(false);
-
-						// A stop while the device was asking took the start away: the coinjoin stays stopped.
-						if (_pendingAuthorizations.TryRemove(walletToStart.WalletId, out var resume))
-						{
-							_mailboxProcessor.Post(resume);
-						}
-					}
-					catch (Exception ex)
-					{
-						_pendingAuthorizations.TryRemove(walletToStart.WalletId, out _);
-						Logger.LogWarning(FormatLog($"Coinjoin authorization failed: {ex.Message}", walletToStart));
-						NotifyCoinJoinStartError(walletToStart, CoinjoinError.DeviceAuthorizationFailed);
-					}
-				},
-				cancellationToken);
 			return;
 		}
 
@@ -283,17 +263,43 @@ public class CoinJoinManager : BackgroundService
 	}
 
 	/// <summary>Whether this wallet still owes its signing device an authorization before it can coinjoin.</summary>
-	public static bool NeedsDeviceAuthorization(Wallet wallet) =>
+	private static bool NeedsDeviceAuthorization(Wallet wallet) =>
 		wallet.KeyManager.HasCoinJoinAccount && wallet.KeyChain is not { NeedsAuthorization: false };
 
-	/// <summary>Asks the signing device to authorize a batch of rounds, with the same confirmation time for every front end.</summary>
-	public async Task AuthorizeDeviceAsync(Wallet wallet, CancellationToken cancellationToken)
+	/// <summary>Asks the device to authorize a batch of rounds, then resumes the start; a stop while the device was asking took the start away.</summary>
+	private async Task AuthorizeDeviceAndResumeAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		authCts.CancelAfter(HardwareWalletService.AuthorizationTimeout);
-		await wallet
-			.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, authCts.Token)
-			.ConfigureAwait(false);
+		CoinjoinError? error = null;
+		try
+		{
+			using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			timeout.CancelAfter(HardwareWalletService.AuthorizationTimeout);
+			await wallet.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, timeout.Token).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning(FormatLog($"Coinjoin authorization failed: {ex.Message}", wallet));
+			error = ex switch
+			{
+				HardwareWalletTransportNotFoundException => CoinjoinError.DeviceTransportNotFound,
+				HardwareWalletNotFoundException => CoinjoinError.DeviceNotFound,
+				_ => CoinjoinError.DeviceAuthorizationFailed,
+			};
+		}
+
+		if (!_pendingAuthorizations.TryRemove(wallet.WalletId, out var start))
+		{
+			return;
+		}
+
+		if (error is { } reason)
+		{
+			NotifyWalletStoppedCoinJoin(wallet);
+			NotifyCoinJoinStartError(wallet, reason);
+			return;
+		}
+
+		_mailboxProcessor.Post(start);
 	}
 
 	private void HandleStopCoinJoinCommand(StopCoinJoinCommand stopCommand)
