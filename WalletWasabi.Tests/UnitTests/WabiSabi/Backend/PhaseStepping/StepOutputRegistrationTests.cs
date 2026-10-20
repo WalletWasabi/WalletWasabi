@@ -133,7 +133,7 @@ public class StepOutputRegistrationTests
 		var (round, arenaClient, alices) = await CreateRoundWithTwoConfirmedConnectionsAsync(arena, keyChain, coin1, coin2);
 		var (amountCredentials1, vsizeCredentials1) = (alices[0].IssuedAmountCredentials, alices[0].IssuedVsizeCredentials);
 
-		// Only the first alice registers an output, so the coordinator gets the two bitcoins of the second one.
+		// Only the first alice registers an output, so the coordinator gets what is left of the two bitcoins of the second one.
 		var bobClient = new BobClient(round.Id, arenaClient);
 		using var destinationKey = new Key();
 		await bobClient.RegisterOutputAsync(
@@ -144,17 +144,23 @@ public class StepOutputRegistrationTests
 		await alices[0].ReadyToSignAsync(token);
 		await alices[1].ReadyToSignAsync(token);
 
+		// Participants have these denominations, so the coordinator can trim its output into them.
+		Money[] participantOutputValues = [Money.Coins(0.5m), Money.Coins(0.2m), Money.Coins(0.1m)];
+		round.CoinjoinState = participantOutputValues.Aggregate(
+			round.Assert<ConstructionState>(),
+			(coinjoin, value) => coinjoin.AddOutput(new TxOut(value, BitcoinFactory.CreateScript())));
+
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 		var tx = round.Assert<SigningState>().CreateTransaction();
 
-		// Every coordinator output gets its own fresh script.
+		// Every coordinator output gets its own fresh script and a value that participants have too.
 		Assert.True(round.CoordinatorScripts.Length > 1);
 		Assert.Equal(
 			Enumerable.Range(cfg.CoordinatorExtPubKeyCurrentDepth, round.CoordinatorScripts.Length).Select(cfg.DeriveCoordinatorScript),
 			round.CoordinatorScripts);
-		Assert.Equal(round.CoordinatorScripts.Length + 1, tx.Outputs.Count);
-		Assert.All(round.CoordinatorScripts, script => Assert.Single(tx.Outputs, x => x.ScriptPubKey == script));
+		Assert.Equal(round.CoordinatorScripts.Length + 1 + participantOutputValues.Length, tx.Outputs.Count);
+		Assert.All(round.CoordinatorScripts, script => Assert.Contains(Assert.Single(tx.Outputs, x => x.ScriptPubKey == script).Value, participantOutputValues));
 
 		await arena.StopAsync(token);
 	}
