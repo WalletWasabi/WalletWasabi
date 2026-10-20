@@ -217,13 +217,14 @@ create_and_fund_wallet() {
 
   echo -e "${YELLOW}Loading wallet $wallet_name...${NC}"
   local request="{\"jsonrpc\":\"2.0\",\"id\":\"2\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\"]}"
-  wasabi_rpc_call "$request" "$wallet_name"
+  wasabi_rpc_call "$request"
 
   local i
   for (( i = 0; i < 4; i++ )); do
     echo -e "${YELLOW}Generating address #$i for $wallet_name in Wasabi client...${NC}"
     local request='{"jsonrpc":"2.0","id":"3","method":"getnewaddress","params":["label"]}'
-    local response=$(wasabi_rpc_call "$request" "$wallet_name")
+    local response
+    response=$(wasabi_rpc_call "$request" "$wallet_name")
 
     local address=$(echo "$response" | jq -r '.result.address')
 
