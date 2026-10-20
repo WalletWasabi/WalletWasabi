@@ -171,31 +171,9 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it is too late to do any
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
-						var allOffendingAlices = new List<Alice>();
-						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+						var doubleSpenders = await BanDoubleSpendersAsync(round, cancel).ConfigureAwait(false);
+						if (doubleSpenders.Length > 0)
 						{
-							allOffendingAlices.AddRange(offendingAlices);
-						}
-
-						if (ReasonableOffendersCount(allOffendingAlices.Count, round.Parameters.MinInputCountByRound))
-						{
-							foreach (var offender in allOffendingAlices)
-							{
-								_prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
-							}
-						}
-						else
-						{
-							Logger.LogWarning(FormatLog($"Tried to ban {allOffendingAlices.Count} inputs for FailedToConfirm - ban was skipped.", round));
-							foreach (var alice in allOffendingAlices)
-							{
-								_prison.CoordinatorStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
-							}
-						}
-						if (allOffendingAlices.Count > 0)
-						{
-							Logger.LogInfo(FormatLog($"There were {allOffendingAlices.Count} alices that spent the registered UTXO. Aborting...", round));
-
 							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
 						}
@@ -306,7 +284,17 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo(FormatLog($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.", round));
 
 					// Broadcasting.
-					await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					try
+					{
+						await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					}
+					catch (RPCException ex)
+					{
+						Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
+						await FailTransactionBroadcastAsync(round, cancellationToken).ConfigureAwait(false);
+						continue;
+					}
+
 					EndRound(round, EndRoundState.TransactionBroadcasted);
 					Logger.LogInfo(FormatLog($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.", round));
 
@@ -345,11 +333,6 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 			}
-			catch (RPCException ex)
-			{
-				Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
-				EndRound(round, EndRoundState.TransactionBroadcastFailed);
-			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(FormatLog($"Signing phase failed, reason: '{ex}'.", round));
@@ -374,6 +357,49 @@ public partial class Arena : PeriodicRunner
 			var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
 			yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 		}
+	}
+
+	private async Task<Alice[]> BanDoubleSpendersAsync(Round round, CancellationToken cancellationToken)
+	{
+		var allOffendingAlices = new List<Alice>();
+		await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancellationToken).ConfigureAwait(false))
+		{
+			allOffendingAlices.AddRange(offendingAlices);
+		}
+
+		if (ReasonableOffendersCount(allOffendingAlices.Count, round.Parameters.MinInputCountByRound))
+		{
+			foreach (var offender in allOffendingAlices)
+			{
+				_prison.DoubleSpent(offender.Coin.Outpoint, offender.Coin.Amount, round.Id);
+			}
+		}
+		else
+		{
+			Logger.LogWarning(FormatLog($"Tried to ban {allOffendingAlices.Count} inputs for FailedToConfirm - ban was skipped.", round));
+			foreach (var alice in allOffendingAlices)
+			{
+				_prison.CoordinatorStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
+			}
+		}
+		if (allOffendingAlices.Count > 0)
+		{
+			Logger.LogInfo(FormatLog($"There were {allOffendingAlices.Count} alices that spent the registered UTXO.", round));
+		}
+
+		return allOffendingAlices.ToArray();
+	}
+
+	private async Task FailTransactionBroadcastAsync(Round round, CancellationToken cancellationToken)
+	{
+		var doubleSpenders = await BanDoubleSpendersAsync(round, cancellationToken).ConfigureAwait(false);
+		if (doubleSpenders.Length == 0)
+		{
+			EndRound(round, EndRoundState.TransactionBroadcastFailed);
+			return;
+		}
+
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)

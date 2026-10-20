@@ -117,18 +117,24 @@ public class StepTransactionSigningTests
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
-		await arena.TriggerAndWaitRoundAsync(token);
-		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
-		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
 
-		// There should be no inmate, because we aren't punishing spenders with banning
-		// as there's no reason to ban already spent UTXOs,
-		// the cost of spending the UTXO is the punishment instead.
-		var now = DateTimeOffset.UtcNow;
-		Assert.All(
-			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
-			prevOut => Assert.False(prison.IsBanned(prevOut, cfg.GetDoSConfiguration(), now)));
+		// The first Alice's coin is spent in another transaction after signing.
+		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
+		var defaultBehavior = mockRpc.OnGetTxOutAsync;
+		mockRpc.OnGetTxOutAsync = (txId, n, includeMempool) =>
+			(txId, n) == (spentOutpoint.Hash, spentOutpoint.N)
+				? null
+				: defaultBehavior?.Invoke(txId, n, includeMempool);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.Ended, round.Phase);
+		Assert.Equal(EndRoundState.NotAllAlicesSign, round.EndRoundState);
+		Assert.True(prison.IsBanned(spentOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
+
+		var blameRound = Assert.IsType<BlameRound>(Assert.Single(arena.Rounds, x => x is BlameRound));
+		Assert.Equal(round.Id, blameRound.BlameOf.Id);
+		Assert.Contains(aliceClient2.SmartCoin.Outpoint, blameRound.BlameWhitelist);
+		Assert.DoesNotContain(spentOutpoint, blameRound.BlameWhitelist);
 
 		await arena.StopAsync(token);
 	}
