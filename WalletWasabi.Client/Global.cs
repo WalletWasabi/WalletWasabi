@@ -328,9 +328,9 @@ public class Global
 		{
 			internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
 		}
-		catch (ArgumentException)
+		catch (ArgumentException ex)
 		{
-			Logger.LogWarning($"Failed to connect to Bitcoin RPC using '{bitcoinRpcUri}'.");
+			Logger.LogWarning($"Failed to connect to Bitcoin RPC using '{bitcoinRpcUri}'.", ex);
 			return null;
 		}
 

@@ -69,7 +69,7 @@ public class JsonRpcServer : BackgroundService
 					{
 						using var reader = new StreamReader(request.InputStream);
 						string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
-						Logger.LogTrace($"Received JSON RPC request: {body}");
+						Logger.LogTrace($"Received JSON RPC request ({body.Length} bytes).");
 
 						var path = request.Url?.LocalPath ?? string.Empty;
 						string jsonResponse = string.Empty;
