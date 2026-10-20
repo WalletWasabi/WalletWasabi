@@ -29,6 +29,9 @@ public enum CoinjoinError
 	MinInputCountTooLow,
 	CoordinatorLiedAboutInputs,
 	NotEnoughConfirmedUnprivateBalance,
+	AwaitingDeviceConfirmation,
+	DeviceTransportNotFound,
+	DeviceNotFound,
 	DeviceAuthorizationFailed
 }
 

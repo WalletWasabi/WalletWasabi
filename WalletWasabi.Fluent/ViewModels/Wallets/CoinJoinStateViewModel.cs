@@ -46,7 +46,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
 	private const string ConfirmOnDeviceMessage = "Confirm coinjoin on your device";
-	private const string DeviceConfirmedMessage = "Device confirmed, coinjoin is starting";
 	private const string DeviceNotFoundMessage = "Connect and unlock your device, then press Play";
 	private const string DeviceTransportNotFoundMessage = "Cannot reach the device, start its bridge software";
 	private const string CoinJoinAccountEmptyMessage = "Deposit to a coinjoin account address";
@@ -87,24 +86,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		walletCoinjoinModel.StatusUpdated
 					   .Do(ProcessStatusChange)
 					   .Subscribe();
-
-		walletCoinjoinModel.WhenAnyValue(x => x.DeviceAuthorization)
-					   .ObserveOn(RxApp.MainThreadScheduler)
-					   .Subscribe(status =>
-					   {
-						   // Point the user at the device while it waits for the hold-to-confirm, acknowledge
-						   // the confirmation, and tell them when the device declined. Confirmed is transient:
-						   // the wallet fires WalletStartedCoinJoin right after, which updates the status again.
-						   CurrentStatus = status switch
-						   {
-							   DeviceAuthorizationStatus.AwaitingConfirmation => ConfirmOnDeviceMessage,
-							   DeviceAuthorizationStatus.Confirmed => DeviceConfirmedMessage,
-							   DeviceAuthorizationStatus.TransportNotFound => DeviceTransportNotFoundMessage,
-							   DeviceAuthorizationStatus.DeviceNotFound => DeviceNotFoundMessage,
-							   DeviceAuthorizationStatus.Failed => DeviceAuthorizationFailedMessage,
-							   _ => CurrentStatus,
-						   };
-					   });
 
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -150,19 +131,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
-
-			// The same dialog flow users know from sending with a hardware wallet: Continue,
-			// then hold-to-confirm on the device. The coinjoin only starts when the device agreed.
-			if (wallet.HasSeparateCoinJoinAccount
-				&& !await UiContext.Navigate().To().CoinJoinAuthDialog(
-					walletCoinjoinModel,
-					wallet.Settings.WalletType,
-					wallet.Settings.CoinJoinDeviceMaxRounds,
-					wallet.Settings.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync())
-			{
-				return;
-			}
-
 			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
 		});
 
@@ -446,6 +414,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					CoinjoinError.CoordinatorLiedAboutInputs => CoordinatorLiedMessage,
+					CoinjoinError.AwaitingDeviceConfirmation => ConfirmOnDeviceMessage,
+					CoinjoinError.DeviceTransportNotFound => DeviceTransportNotFoundMessage,
+					CoinjoinError.DeviceNotFound => DeviceNotFoundMessage,
 					CoinjoinError.DeviceAuthorizationFailed => DeviceAuthorizationFailedMessage,
 					_ => GeneralErrorMessage
 				};
