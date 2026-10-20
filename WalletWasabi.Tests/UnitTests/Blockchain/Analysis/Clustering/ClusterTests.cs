@@ -21,11 +21,21 @@ public class ClusterTests
 		var km = ServiceFactory.CreateKeyManager();
 		var a = BitcoinFactory.CreateHdPubKey(km);
 		var b = BitcoinFactory.CreateHdPubKey(km);
+		var c = BitcoinFactory.CreateHdPubKey(km);
 		var ab = new Cluster([a, b]);
 		var ba = new Cluster([b, a]);
+		var abc = new Cluster([a, b, c]);
 
+		// Compare [a, b] with [b, a]. Should be equal.
 		Assert.Equal(ab, ba);
+		Assert.True(ab.Equals(ba));
+		Assert.True(ab == ba);
 		Assert.Equal(ab.GetHashCode(), ba.GetHashCode());
-		Assert.NotEqual(ab, new Cluster([a]));
+
+		// Compare [a, b] with [a, b, c]. Should not be equal.
+		Assert.NotEqual(ab, abc);
+		Assert.False(ab.Equals(abc));
+		Assert.False(ab == abc);
+		Assert.NotEqual(ab.GetHashCode(), abc.GetHashCode());
 	}
 }
