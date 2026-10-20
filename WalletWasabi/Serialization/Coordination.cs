@@ -1,18 +1,6 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using NBitcoin;
-using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
-using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Coordinator.Models;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.JsonConverters.ReflectionUtils;
 using ProtocolConstants = WalletWasabi.WabiSabi.ProtocolConstants;
 
@@ -56,7 +44,7 @@ public static partial class Encode
 			("Network", String(p.Network.Name)),
 			("MiningFeeRate", FeeRate(p.MiningFeeRate)),
 			("CoordinationFeeRate", CoordinationFeeRate() ),
-			("MaxSuggestedAmount",  MoneySatoshis(p.MaxSuggestedAmount)),
+			("MaxSuggestedAmount",  MoneySatoshis(p.MaxAmountCredentialValue)),
 			("MinInputCountByRound", Int(p.MinInputCountByRound)),
 			("MaxInputCountByRound", Int(p.MaxInputCountByRound) ),
 			("AllowedInputAmounts", MoneyRange(p.AllowedInputAmounts)),
@@ -288,7 +276,7 @@ public static partial class Encode
 		]);
 
 
-	public static JsonNode HummanMonitorRoundResponse(HumanMonitorRoundResponse rs) =>
+	public static JsonNode HumanMonitorRoundResponse(HumanMonitorRoundResponse rs) =>
 		Object([
 			("RoundId", UInt256(rs.RoundId)),
 			("IsBlameRound", Bool(rs.IsBlameRound)),
@@ -300,7 +288,7 @@ public static partial class Encode
 
 	public static JsonNode HumanMonitorResponse(HumanMonitorResponse rs) =>
 		Object([
-			("RoundStates", Array(rs.RoundStates.Select(HummanMonitorRoundResponse)))
+			("RoundStates", Array(rs.RoundStates.Select(HumanMonitorRoundResponse)))
 		]);
 
 	public static JsonNode Error(Error e) =>
@@ -424,7 +412,6 @@ public static partial class Decode
 		Object(get => new RoundParameters(
 			get.Required("Network", Network),
 			get.Required("MiningFeeRate", FeeRate),
-			get.Required("MaxSuggestedAmount",  MoneySatoshis),
 			get.Required("MinInputCountByRound", Int),
 			get.Required("MaxInputCountByRound", Int),
 			get.Required("AllowedInputAmounts", MoneyRange),

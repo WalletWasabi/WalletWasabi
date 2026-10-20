@@ -1,7 +1,7 @@
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public record UtxoSelectionParameters(
 	MoneyRange AllowedInputAmounts,
@@ -9,7 +9,7 @@ public record UtxoSelectionParameters(
 	FeeRate MiningFeeRate,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
-	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ImmutableHashSet<ScriptType> scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
@@ -37,7 +37,7 @@ public static class RoundParametersExtensions
 	/// <returns>Min: must be larger than the smallest economical denom. Max: max allowed in the round.</returns>
 	/// <returns>Min output amount that's economically reasonable to be registered with current network conditions.</returns>
 	/// <remarks>It won't be smaller than min allowed output amount.</remarks>
-	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters, IEnumerable<ScriptType> scriptTypesSupportedByWallet)
+	public static Money CalculateMinReasonableOutputAmount(this RoundParameters roundParameters, ImmutableHashSet<ScriptType> scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPair = outputTypes.Max(x => x.EstimateInputVsize() + x.EstimateOutputVsize());

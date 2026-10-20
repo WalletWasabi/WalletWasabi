@@ -1,4 +1,4 @@
-using NBitcoin;
+namespace WalletWasabi.WabiSabi.Models;
 
 public record HumanMonitorRoundResponse(
 	uint256 RoundId,

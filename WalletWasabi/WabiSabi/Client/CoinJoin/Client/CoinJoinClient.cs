@@ -1,4 +1,5 @@
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Exceptions;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -153,8 +154,8 @@ public class CoinJoinClient
 
 			coinCandidates = coinCandidatesFunc();
 
-			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
-			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes.ToArray());
+			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxAmountCredentialValue);
+			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes);
 
 			myCoins = _coinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, liquidityClue);
 
@@ -170,14 +171,6 @@ public class CoinJoinClient
 			{
 				excludeRound = currentRoundState.Id;
 				Logger.LogInfo(FormatLog("Skipping the round since none of the wallet's coins is suitable for it.", currentRoundState));
-
-				continue;
-			}
-
-			if (roundParameters.MaxSuggestedAmount != default && myCoins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
-			{
-				excludeRound = currentRoundState.Id;
-				Logger.LogInfo(FormatLog($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{myCoins.Select(c => c.Amount).Max()}' BTC.", currentRoundState));
 
 				continue;
 			}
@@ -211,7 +204,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					myCoins = info.MySignedCoins;
-					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount);
+					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins);
 
 					Logger.LogInfo(FormatLog("Waiting for the blame round.", currentRoundState));
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
@@ -331,7 +324,6 @@ public class CoinJoinClient
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
 					mySignedCoins,
 					roundState.CoinjoinState.Inputs.ToImmutableArray(),
-					roundState.CoinjoinState.Parameters.MaxSuggestedAmount,
 					roundState.CoinjoinState.Parameters.MiningFeeRate),
 				_ => new FailedCoinJoinResult()
 			};
@@ -383,7 +375,7 @@ public class CoinJoinClient
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
-			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
+			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxAmountCredentialValue, unsignedCoinJoin, outputTxOuts);
 
 			return (aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin);
 		}
@@ -641,7 +633,12 @@ public class CoinJoinClient
 		return AllExpectedScriptsArePresent() && AllOutputsHaveAtLeastTheExpectedValue();
 	}
 
-	private async Task SignTransactionAsync(
+	/// <summary>
+	/// Posts the signatures. Success means every Alice signed. A failed request does not take the posted
+	/// signatures with it: the failure carries the Alices that did sign, because those inputs are whitelisted
+	/// for the blame round. Cancellation propagates as everywhere else.
+	/// </summary>
+	private async Task<Result<NotAllAlicesSigned>> SignTransactionAsync(
 		ImmutableArray<AliceClient> aliceClients,
 		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
 		DateTimeOffset signingStartTime,
@@ -665,16 +662,33 @@ public class CoinJoinClient
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, _keyChain, cancellationToken).ConfigureAwait(false);
+					return true;
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
 				{
-					Logger.LogDebug(FormatLog("Signature was already sent - bypassing error.", ex.ToString()));
+					Logger.LogDebug(FormatLog("Signature was already sent - bypassing error.", aliceClient));
+					return true;
+				}
+				catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+					Logger.LogInfo(FormatLog($"Failed to post the signature: {ex.Message}", aliceClient));
+					Logger.LogDebug(FormatLog(ex.ToString(), aliceClient));
+					return false;
 				}
 			})
 			.ToImmutableArray();
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		var signed = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+		if (signed.All(s => s))
+		{
+			return Result<NotAllAlicesSigned>.Ok();
+		}
+
+		return new NotAllAlicesSigned(aliceClients.Where((_, i) => signed[i]).ToImmutableArray());
 	}
+
+	private record NotAllAlicesSigned(ImmutableArray<AliceClient> AliceClientsThatSigned);
 
 	private async Task ReadyToSignAsync(ImmutableArray<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
@@ -763,14 +777,7 @@ public class CoinJoinClient
 		// Check if the round restrictions for blame rounds are satisfied. If not, it means that the coordinator is trying to cheat.
 		if (roundRestrictions is BlameRoundRestrictions restrictions)
 		{
-			var currentMaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount;
 			var currentMiningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
-
-			if (restrictions.SuggestedAmount != currentMaxSuggestedAmount)
-			{
-				Logger.LogWarning(FormatLog($"Suggested amount is {currentMaxSuggestedAmount}. Value {restrictions.SuggestedAmount} was expected. Is coordinator cheating?", roundState));
-				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
-			}
 
 			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
 			{
@@ -892,6 +899,13 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.", roundState));
 
 		var signingState = roundState.Assert<SigningState>();
+
+		// Only consider our registered inputs that appear in the proposed transaction. This ensures that if we deliberately
+		// withhold a valid signature for one of them, the coordinator cannot construct a valid transaction to broadcast.
+		var inputsInRound = signingState.Inputs.Select(input => input.Outpoint).ToHashSet();
+		var alicesInTransaction = registeredAliceClients
+			.Where(alice => inputsInRound.Contains(alice.SmartCoin.Outpoint))
+			.ToImmutableArray();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
@@ -899,8 +913,8 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var actualInputCount = signingState.Inputs.Count();
-		var isItSoloCoinjoin = actualInputCount == registeredAliceClients.Length;
+		var actualInputCount = signingState.Inputs.DistinctBy(i => i.Outpoint).Count();
+		var isItSoloCoinjoin = actualInputCount == alicesInTransaction.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
@@ -929,7 +943,8 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog("Effective fee rate of the transaction is lower than expected.", roundState));
 		}
 
-		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var allMyInputsArePresent = alicesInTransaction.Length == registeredAliceClients.Length;
+		var mustSignAllInputs = allMyInputsArePresent && allMyOutputsArePresent && !isItForbiddenSoloCoinjoining && !hasTooFewInputs && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
@@ -937,9 +952,9 @@ public class CoinJoinClient
 
 		// Send signature.
 		var combinedToken = linkedCts.Token;
-		var alicesToSign = mustSignAllInputs
-			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(_secureRandom.GetInt(0, registeredAliceClients.Length));
+		var alicesToSign = mustSignAllInputs || alicesInTransaction.IsEmpty
+			? alicesInTransaction
+			: alicesInTransaction.RemoveAt(_secureRandom.GetInt(0, alicesInTransaction.Length));
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
@@ -952,10 +967,11 @@ public class CoinJoinClient
 			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash(), unsignedCoinJoin.Transaction.Inputs.Select(i => i.PrevOut).ToImmutableArray()));
 		}
 
-		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
+		var signingResult = await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		var alicesThatSigned = signingResult.Match(_ => alicesToSign, failure => failure.AliceClientsThatSigned);
+		Logger.LogInfo(FormatLog($"{alicesThatSigned.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
 
-		return (unsignedCoinJoin.Transaction, alicesToSign);
+		return (unsignedCoinJoin.Transaction, alicesThatSigned);
 	}
 
 	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
@@ -987,5 +1003,5 @@ public class CoinJoinClient
 		public static readonly UnrestrictedRound Instance = new();
 	}
 
-	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount) : IRoundRestrictions;
+	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins) : IRoundRestrictions;
 }

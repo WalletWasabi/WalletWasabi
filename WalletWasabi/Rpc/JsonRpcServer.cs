@@ -31,12 +31,16 @@ public class JsonRpcServer : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
+		Logger.LogDebug("Starting JSON RPC server…");
+
 		_listener.Start();
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
+		Logger.LogDebug("Stopping JSON RPC server…");
+
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 
 		// HttpListener is disposable but the dispose method is not public.
@@ -46,6 +50,8 @@ public class JsonRpcServer : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		Logger.LogDebug("JSON RPC server was started.");
+
 		bool stopRpcRequestReceived = false;
 
 		while (!stoppingToken.IsCancellationRequested)
@@ -63,6 +69,7 @@ public class JsonRpcServer : BackgroundService
 					{
 						using var reader = new StreamReader(request.InputStream);
 						string body = await reader.ReadToEndAsync(stoppingToken).ConfigureAwait(false);
+						Logger.LogTrace($"Received JSON RPC request: {body}");
 
 						var path = request.Url?.LocalPath ?? string.Empty;
 						string jsonResponse = string.Empty;
@@ -127,6 +134,8 @@ public class JsonRpcServer : BackgroundService
 				Logger.LogError(ex);
 			}
 		}
+
+		Logger.LogDebug("JSON RPC server stopped.");
 
 		if (stopRpcRequestReceived)
 		{

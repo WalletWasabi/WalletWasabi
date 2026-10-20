@@ -4,7 +4,6 @@ using System.Linq;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -22,7 +21,6 @@ public class MultipartyTransactionTests
 	{
 		MinRegistrableAmount = DefaultAllowedAmounts.Min,
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
-		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 	}) with
 	{
 		MiningFeeRate = new FeeRate(0m)
@@ -421,7 +419,6 @@ public class MultipartyTransactionTests
 		{
 			MinRegistrableAmount = Money.Zero,
 			MaxRegistrableAmount = Money.Coins(43000m),
-			MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 		}) with
 		{
 			MiningFeeRate = feeRate
