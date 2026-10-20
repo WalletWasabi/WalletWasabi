@@ -1,5 +1,5 @@
+using NBitcoin;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Coordinator.WabiSabi;
@@ -27,11 +27,11 @@ public class RoundCreationTests
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
-		await arena.StartAsync(CancellationToken.None);
+		await arena.StartAsync(TestContext.Current.CancellationToken);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Single(arena.Rounds);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -42,7 +42,7 @@ public class RoundCreationTests
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
-		await arena.StartAsync(CancellationToken.None);
+		await arena.StartAsync(TestContext.Current.CancellationToken);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = Assert.Single(arena.Rounds);
 
@@ -50,7 +50,7 @@ public class RoundCreationTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(2, arena.Rounds.Count);
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact]
@@ -61,7 +61,7 @@ public class RoundCreationTests
 
 		using Arena arena = CreateArena(cfg, mockRpc);
 		Assert.Empty(arena.Rounds);
-		await arena.StartAsync(CancellationToken.None);
+		await arena.StartAsync(TestContext.Current.CancellationToken);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = Assert.Single(arena.Rounds);
 
@@ -72,8 +72,8 @@ public class RoundCreationTests
 		arena.Rounds.Add(blameRound);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		Assert.Equal(3, arena.Rounds.Count);
-		Assert.Equal(2, arena.Rounds.Where(x => x.Phase == Phase.InputRegistration).Count());
+		Assert.Equal(2, arena.Rounds.Count(x => x.Phase == Phase.InputRegistration));
 
-		await arena.StopAsync(CancellationToken.None);
+		await arena.StopAsync(TestContext.Current.CancellationToken);
 	}
 }

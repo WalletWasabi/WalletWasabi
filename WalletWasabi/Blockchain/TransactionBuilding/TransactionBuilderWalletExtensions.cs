@@ -1,11 +1,5 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -23,7 +17,6 @@ public static class TransactionBuilderWalletExtensions
 		FeeStrategy feeStrategy,
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null,
 		bool allowDoubleSpend = false,
 		bool tryToSign = true,
 		bool overrideFeeOverpaymentProtection = false)
@@ -56,8 +49,7 @@ public static class TransactionBuilderWalletExtensions
 			{
 				var currentTipHeight = wallet.FilterHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
-			},
-			payjoinClient);
+			});
 	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(
@@ -112,14 +104,8 @@ public static class TransactionBuilderWalletExtensions
 		FeeRate feeRate,
 		IEnumerable<SmartCoin> coins,
 		bool subtractFee,
-		IPayjoinClient? payJoinClient = null,
 		bool tryToSign = true)
 	{
-		if (payJoinClient is { } && subtractFee)
-		{
-			throw new InvalidOperationException("Not possible to subtract the fee.");
-		}
-
 		var intent = new PaymentIntent(
 			destination: destination,
 			amount: amount,
@@ -132,7 +118,6 @@ public static class TransactionBuilderWalletExtensions
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
 			allowedInputs: coins.Select(coin => coin.Outpoint),
-			payjoinClient: payJoinClient,
 			tryToSign: tryToSign);
 
 		return txRes;
@@ -145,7 +130,6 @@ public static class TransactionBuilderWalletExtensions
 		FeeStrategy feeStrategy,
 		bool allowUnconfirmed = false,
 		IEnumerable<OutPoint>? allowedInputs = null,
-		IPayjoinClient? payjoinClient = null,
 		bool allowDoubleSpend = false)
 		=> BuildTransaction(
 			wallet,
@@ -154,7 +138,6 @@ public static class TransactionBuilderWalletExtensions
 			feeStrategy,
 			allowUnconfirmed,
 			allowedInputs,
-			payjoinClient,
 			allowDoubleSpend,
 			tryToSign: true,
 			overrideFeeOverpaymentProtection: true);

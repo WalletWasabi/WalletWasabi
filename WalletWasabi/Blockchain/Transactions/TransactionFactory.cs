@@ -1,19 +1,8 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
 using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets.SilentPayment;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
@@ -36,8 +25,7 @@ public class TransactionFactory
 
 	public BuildTransactionResult BuildTransaction(
 		TransactionParameters parameters,
-		Func<LockTime>? lockTimeSelector = null,
-		IPayjoinClient? payjoinClient = null)
+		Func<LockTime>? lockTimeSelector = null)
 	{
 		lockTimeSelector ??= () => LockTime.Zero;
 
@@ -49,15 +37,10 @@ public class TransactionFactory
 		}
 
 		var isSilentPayment = payments.Requests.Select(x => x.Destination).OfType<Destination.Silent>().Any();
-		var isPayJoin = payjoinClient is not null;
 		var canUsePrivateKeys = !KeyManager.IsWatchOnly;
 		if (isSilentPayment && !canUsePrivateKeys)
 		{
 			throw new InvalidOperationException("Silent payments requires a hot wallet.");
-		}
-		if (isSilentPayment && isPayJoin)
-		{
-			throw new InvalidOperationException("Silent payments cannot be combined with Payjoin.");
 		}
 
 		// Get allowed coins to spend.
@@ -251,22 +234,8 @@ public class TransactionFactory
 			psbt = builder.SolveSilentPayment(psbt);
 			builder.SignPSBT(psbt);
 
-			// Try to pay using payjoin
-			if (payjoinClient is not null && KeyManager.MasterFingerprint is { } masterFingerprint)
-			{
-				// changeHdPubKey is never null
-				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, masterFingerprint, changeHdPubKey);
-				psbt.AddKeyPaths(KeyManager);
-				psbt.AddPrevTxs(_transactionStore);
-			}
-
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
-
-			if (isPayJoin)
-			{
-				builder.CoinFinder = (outpoint) => psbt.Inputs.Select(x => x.GetCoin()).Single(x => x?.Outpoint == outpoint)!;
-			}
 
 			var checkResults = builder.Check(tx).ToList();
 			if (checkResults.Count > 0)
@@ -317,41 +286,6 @@ public class TransactionFactory
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
-	}
-
-	private PSBT TryNegotiatePayjoin(
-		IPayjoinClient payjoinClient,
-		TransactionBuilderWithSilentPaymentSupport builder,
-		PSBT psbt,
-		HDFingerprint masterFingerprint,
-		HdPubKey? changeHdPubKey)
-	{
-		try
-		{
-			Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
-
-			psbt = payjoinClient.RequestPayjoin(
-				psbt,
-				KeyManager.SegwitExtPubKey,
-				new RootedKeyPath(masterFingerprint, KeyManager.SegwitAccountKeyPath),
-				KeyManager.TaprootExtPubKey,
-				new RootedKeyPath(masterFingerprint, KeyManager.TaprootAccountKeyPath),
-				changeHdPubKey,
-				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
-			builder.SignPSBT(psbt);
-
-			Logger.LogInfo("Payjoin payment was negotiated successfully.");
-		}
-		catch (HttpRequestException e)
-		{
-			Logger.LogWarning($"Payjoin server responded with {e.ToTypeMessageString()}. Ignoring...");
-		}
-		catch (PayjoinException e)
-		{
-			Logger.LogWarning($"Payjoin server responded with {e.Message}. Ignoring...");
-		}
-
-		return psbt;
 	}
 }
 

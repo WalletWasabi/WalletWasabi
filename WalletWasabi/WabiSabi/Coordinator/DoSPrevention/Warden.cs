@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Threading.Channels;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 

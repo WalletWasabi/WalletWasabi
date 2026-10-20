@@ -1,15 +1,8 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using NBitcoin;
 using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Helpers;
 
@@ -28,7 +21,7 @@ public static class FeeHelpers
 	{
 		maxFeeRate = SeekMaxFeeRate(
 			startingFeeRate,
-			feeRate => wallet.BuildTransaction(destination, amount, labels, feeRate, coins, subtractFee, null, tryToSign));
+			feeRate => wallet.BuildTransaction(destination, amount, labels, feeRate, coins, subtractFee, tryToSign));
 
 		return maxFeeRate is not null;
 	}

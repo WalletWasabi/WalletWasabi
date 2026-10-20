@@ -307,6 +307,7 @@ public class Global
 		}
 		else if (!RPCCredentialString.TryParse(credentialString, out credentials))
 		{
+			Logger.LogWarning("Failed to parse RPC credentials.");
 			return null;
 		}
 
@@ -328,6 +329,7 @@ public class Global
 		}
 		catch (ArgumentException)
 		{
+			Logger.LogWarning($"Failed to connect to Bitcoin RPC using '{bitcoinRpcUri}'.");
 			return null;
 		}
 
@@ -337,6 +339,7 @@ public class Global
 			internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 		}
 
+		Logger.LogDebug($"Configured Bitcoin RPC to use {bitcoinRpcUri}.");
 		return new RpcClientBase(internalRpcClient);
 	}
 

@@ -1,10 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
 

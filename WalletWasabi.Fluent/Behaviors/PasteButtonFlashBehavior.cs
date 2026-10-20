@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Xaml.Interactions.Custom;
-using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -96,8 +95,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 		clipboardValue = clipboardValue.Trim();
 		var addressParsingResult = AddressParser.Parse(clipboardValue, Services.Instance.GetNetwork());
 
-		// ClipboardValue might not match CurrentAddress, but it might be a PayJoin address pointing to the CurrentAddress
-		// Hence we need to compare both string value and parse result
+		// clipboardValue may be a BIP 21 URI whose address is CurrentAddress, so compare the parsed value too.
 		if (clipboardValue != CurrentAddress && addressParsingResult.IsOk && CurrentAddress != addressParsingResult.Value.ToWif(Services.Instance.GetNetwork()))
 		{
 			AssociatedObject.Classes.Add(FlashAnimation);

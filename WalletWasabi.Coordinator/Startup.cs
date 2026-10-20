@@ -40,10 +40,15 @@ public class Startup(IConfiguration configuration)
 	public void ConfigureServices(IServiceCollection services)
 	{
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Coordinator"));
-		Logger.Configure(Path.Combine(dataDir, "Logs.txt"));
+
+		// Set up logger.
+		LogLevel logLevel = Enum.TryParse(Configuration["loglevel"], ignoreCase: true, out LogLevel parsedLevel)
+			? parsedLevel
+			: LogLevel.Info;
+
+		Logger.Configure(Path.Combine(dataDir, "Logs.txt"), logLevel);
 
 		services.AddMemoryCache();
-
 
 		services.AddMvc(options => {
 			options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
@@ -71,43 +76,43 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IRPCClient>(provider =>
 		{
-		    string host;
-		    if (config.Network == Network.Main)
-		    {
-		        host = config.MainNetBitcoinRpcUri;
-		    }
-		    else if (config.Network == Network.TestNet)
-		    {
-		        host = config.TestNetBitcoinRpcUri;
-		    }
-		    else if (config.Network == Network.RegTest)
-		    {
-		        host = config.RegTestBitcoinRpcUri;
-		    }
-		    else
-		    {
-		        throw new NotSupportedException($"Network {config.Network} is not supported");
-		    }
+			string host;
+			if (config.Network == Network.Main)
+			{
+				host = config.MainNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.TestNet)
+			{
+				host = config.TestNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.RegTest)
+			{
+				host = config.RegTestBitcoinRpcUri;
+			}
+			else
+			{
+				throw new NotSupportedException($"Network {config.Network} is not supported");
+			}
 
-		    RPCClient rpcClient = new(
+			RPCClient rpcClient = new(
 				authenticationString: config.BitcoinRpcConnectionString,
 				hostOrUri: host,
 				network: config.Network);
 
-		    IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
-		    CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
-		    return cachedRpc;
+			IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
+			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
+			return cachedRpc;
 		});
 
 		var network = config.Network;
 		services.AddSingleton(_ => network);
 
 		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
+		services.AddBackgroundService<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
 		services.AddSingleton<RoundParametersFactory>(s =>
 		{
 			var config = s.GetRequiredService<WabiSabiConfig>();
-			return (feeRate, maxSuggestedAmount, minInputCountByRound) => RoundParameters.Create(config, feeRate, maxSuggestedAmount);
+			return (feeRate, minInputCountByRound) => RoundParameters.Create(config, feeRate, minInputCountByRound);
 		});
 		services.AddBackgroundService<Arena>();
 

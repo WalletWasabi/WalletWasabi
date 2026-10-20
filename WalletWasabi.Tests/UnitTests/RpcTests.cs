@@ -135,4 +135,15 @@ public class RpcTests
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
 	}
+
+	[Fact]
+	public void SetLabelRequiresALabel()
+	{
+		var service = new WasabiJsonRpcService(null!);
+		var address = BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main);
+
+		// Without a label the address would go back into the getnewaddress pool.
+		Assert.Throws<ArgumentException>(() => service.SetLabel(address, ""));
+		Assert.Throws<ArgumentException>(() => service.SetLabel(address, " , "));
+	}
 }

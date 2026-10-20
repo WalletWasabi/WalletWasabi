@@ -1,15 +1,8 @@
-using Microsoft.Win32;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.BundledApps;
-using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers;
 
@@ -92,85 +85,6 @@ public static class EnvironmentHelpers
 
 		var fileNameWithoutExtension = fileName.TrimEnd(".cs", StringComparison.InvariantCultureIgnoreCase);
 		return fileNameWithoutExtension;
-	}
-
-	/// <summary>
-	/// Executes a command with Bourne shell.
-	/// https://stackoverflow.com/a/47918132/2061103
-	/// </summary>
-	public static async Task ShellExecAsync(string cmd, bool waitForExit = true)
-		=> await ShellExecAndGetResultAsync(cmd, waitForExit, false).ConfigureAwait(false);
-
-	public static async Task<string> ShellExecAndGetResultAsync(string cmd)
-		=> await ShellExecAndGetResultAsync(cmd, true, true).ConfigureAwait(false);
-
-	/// <summary>
-	/// Executes a command with Bourne shell and returns Standard Output.
-	/// </summary>
-	private static async Task<string> ShellExecAndGetResultAsync(string cmd, bool waitForExit = true, bool readResult = false)
-	{
-		var escapedArgs = cmd.Replace("\"", "\\\"");
-
-		var startInfo = new ProcessStartInfo
-		{
-			FileName = "/usr/bin/env",
-			Arguments = $"sh -c \"{escapedArgs}\"",
-			RedirectStandardOutput = true,
-			RedirectStandardError = readResult,
-			UseShellExecute = false,
-			CreateNoWindow = true,
-			WindowStyle = ProcessWindowStyle.Hidden
-		};
-
-		if (readResult)
-		{
-			waitForExit = true;
-		}
-		string output = "";
-
-		if (waitForExit)
-		{
-			using var process = new Process()
-			{
-				StartInfo = startInfo
-			};
-
-			process.StartWithExceptionLogging();
-
-			if (readResult)
-			{
-				output = process.StandardOutput.ReadToEnd();
-			}
-
-			await process.GracefulWaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-			if (process.ExitCode != 0)
-			{
-				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
-			}
-		}
-		else
-		{
-			using var process = Process.Start(startInfo);
-		}
-
-		return output;
-	}
-
-	public static bool IsFileTypeAssociated(string fileExtension)
-	{
-		// Source article: https://edi.wang/post/2019/3/4/read-and-write-windows-registry-in-net-core
-
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			throw new InvalidOperationException("Operation only supported on windows.");
-		}
-
-		fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
-
-		using var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}");
-
-		// Read the (Default) value.
-		return key?.GetValue(null) is not null;
 	}
 
 	public static string GetFullBaseDirectory()

@@ -30,7 +30,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private double? _feeDiff;
 	[AutoNotify] private InputsCoinListViewModel? _inputList;
 	[AutoNotify] private OutputsCoinListViewModel? _outputList;
-	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = Array.Empty<RecipientSummaryViewModel>();
+	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = [];
 
 	public TransactionSummaryViewModel(UiContext uiContext, TransactionPreviewViewModel parent, IWalletModel wallet, TransactionInfo info, bool isPreview = false) : base(uiContext)
 	{
@@ -40,8 +40,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		IsPreview = isPreview;
 		IsPayToMany = info.IsPayToMany;
 		AddressText = info.Destination.ToString(_wallet.Network);
-		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-		IsPayJoin = PayJoinUrl is not null;
 	}
 
 	public TransactionPreviewViewModel Parent { get; }
@@ -49,10 +47,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	public bool IsPreview { get; }
 
 	public string AddressText { get; }
-
-	public string? PayJoinUrl { get; }
-
-	public bool IsPayJoin { get; }
 
 	public bool IsPayToMany { get; }
 

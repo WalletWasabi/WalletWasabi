@@ -58,6 +58,12 @@ else
   ZIP="zip -r"
 fi
 
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  SOURCE_ROOT=$(cygpath -w "$(pwd -P)")  # PathMap expects native path on Windows (e.g. C:\WalletWasabi, not /c/WalletWasabi)
+else
+  SOURCE_ROOT=$(pwd -P)
+fi
+
 if [ "$1" = "wininstaller" ]; then
   # Supported platforms
   PLATFORMS=("win-x64")
@@ -154,7 +160,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
-            --property:PathMap="$(pwd -P)=/src" \
+            --property:PathMap="$SOURCE_ROOT=/src" \
             /clp:ErrorsOnly
   done
 
@@ -290,7 +296,7 @@ License: Open Source (MIT)
 Installed-Size: ${DEBIAN_PACKAGE_SIZE}
 Recommends: policykit-1
 Description: open-source, non-custodial, privacy focused Bitcoin wallet
-  Built-in Tor, coinjoin, payjoin and coin control features."
+  Built-in Tor, coinjoin, and coin control features."
 
 echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 
@@ -516,7 +522,7 @@ mkdir -p "$BUILD_INSTALLER_DIR"
     -cg PublishedComponents \
     -pog Binaries \
     -dr INSTALLFOLDER \
-    -srd -scom -gg -sfrag -sreg
+    -srd -scom -ag -sfrag -sreg
 
 # Compile the .wxs file to .wixobj
 "$CANDLE_EXE" \

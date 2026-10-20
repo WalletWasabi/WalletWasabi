@@ -8,7 +8,8 @@ public class FileSystemModel
 {
 	public Task OpenFileInTextEditorAsync(string filePath)
 	{
-		return FileHelpers.OpenFileInTextEditorAsync(filePath);
+		FileHelpers.OpenFileInTextEditor(filePath);
+		return Task.CompletedTask;
 	}
 
 	public void OpenFolderInFileExplorer(string dirPath)

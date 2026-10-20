@@ -9,17 +9,15 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionHelpers
 {
-	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
+	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool tryToSign = true)
 	{
 		if (transactionInfo.IsPayToMany)
 		{
@@ -36,11 +34,6 @@ public static class TransactionHelpers
 				tryToSign: tryToSign);
 		}
 
-		if (isPayJoin && transactionInfo.SubtractFee)
-		{
-			throw new InvalidOperationException("Not possible to subtract the fee.");
-		}
-
 		return wallet.BuildTransaction(
 			transactionInfo.Destination,
 			transactionInfo.Amount,
@@ -48,7 +41,6 @@ public static class TransactionHelpers
 			transactionInfo.FeeRate,
 			transactionInfo.Coins,
 			transactionInfo.SubtractFee,
-			isPayJoin ? transactionInfo.PayJoinClient : null,
 			tryToSign: tryToSign);
 	}
 
@@ -105,8 +97,7 @@ public static class TransactionHelpers
 
 			builder.BuildTransaction(
 				parameters,
-				lockTimeSelector: () => LockTime.Zero, // Doesn't matter.
-				transactionInfo.PayJoinClient);
+				lockTimeSelector: () => LockTime.Zero); // Doesn't matter.
 
 			return true;
 		}
