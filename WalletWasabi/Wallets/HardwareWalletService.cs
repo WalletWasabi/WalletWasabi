@@ -31,8 +31,8 @@ public class HardwareWalletService : IDisposable
 	private readonly TrezorBridgeProcess _bridge;
 	private readonly Func<string?> _walletCoinJoiningOnDevice;
 
-	/// <summary>The device each coinjoin key chain holds, by master fingerprint. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
-	private readonly ConcurrentDictionary<HDFingerprint, TrezorDevice> _coinJoinDevices = new();
+	/// <summary>The coinjoin key chain of each wallet, by master fingerprint, with the device session it holds. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
+	private readonly ConcurrentDictionary<HDFingerprint, TrezorKeyChain> _coinJoinKeyChains = new();
 
 	/// <summary>Raised when the transport used to reach the device changes, so the UI can show it.</summary>
 	public event EventHandler<HardwareWalletTransport>? TransportStatusChanged;
@@ -275,55 +275,41 @@ public class HardwareWalletService : IDisposable
 		}
 	}
 
-	/// <summary>Asks the device to authorize a batch of coinjoin rounds (shown with the fee cap, confirmed physically); the returned key chain then signs them without further interaction.</summary>
-	/// <param name="existingKeyChain">The wallet's current key chain, reused when it already holds the device.</param>
-	public async Task<IKeyChain> AuthorizeCoinJoinAsync(
-		KeyManager keyManager,
-		IKeyChain? existingKeyChain,
-		string coordinatorIdentifier,
-		int maxRounds,
-		FeeRate maxMiningFeeRate,
-		CancellationToken cancellationToken)
+	/// <summary>Asks the device to authorize the wallet's coinjoin limits (shown on its screen, confirmed physically); the returned key chain then signs the rounds without further interaction.</summary>
+	public async Task<IKeyChain> AuthorizeCoinJoinAsync(KeyManager keyManager, string coordinatorIdentifier, CancellationToken cancellationToken)
 	{
 		if (!keyManager.HasCoinJoinAccount)
 		{
 			throw new NotSupportedException("This wallet has no coinjoin account, so no device can authorize its coinjoins.");
 		}
 
-		var keyChain = existingKeyChain as TrezorKeyChain;
-		if (keyChain is not null && !await keyChain.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
+		var fingerprint = keyManager.MasterFingerprint!.Value;
+		if (_coinJoinKeyChains.TryGetValue(fingerprint, out var held) && !await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
 		{
 			// The bridge was restarted, dropped the device, or the wallet was stopped: every call on the old
 			// session would fail forever, so let go of it and acquire the device anew.
 			Logger.LogInfo("The Trezor bridge session of this wallet is gone, acquiring the device again.");
-			keyChain.Dispose();
-			keyChain = null;
+			ForgetKeyChain(fingerprint);
 		}
 
-		bool acquiredHere = keyChain is null;
+		bool acquiredHere = !_coinJoinKeyChains.TryGetValue(fingerprint, out var keyChain);
 		if (keyChain is null)
 		{
-			var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
-			keyChain = new TrezorKeyChain(device, keyManager);
-			_coinJoinDevices[keyManager.MasterFingerprint!.Value] = device;
+			keyChain = new TrezorKeyChain(await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false), keyManager);
+			_coinJoinKeyChains[fingerprint] = keyChain;
 		}
 
 		try
 		{
-			await keyChain.Device
-				.AuthorizeCoinJoinAsync(coordinatorIdentifier, maxRounds, maxMiningFeeRate, keyManager.TaprootAccountKeyPath, _network, cancellationToken)
-				.ConfigureAwait(false);
+			await keyChain.AuthorizeAsync(coordinatorIdentifier, cancellationToken).ConfigureAwait(false);
 		}
 		catch when (acquiredHere)
 		{
-			// The wallet never gets this key chain, so nothing else would release the session it holds.
-			_coinJoinDevices.TryRemove(keyManager.MasterFingerprint!.Value, out _);
-			keyChain.Dispose();
+			// The wallet never gets this key chain, so do not keep the session it holds.
+			ForgetKeyChain(fingerprint);
 			throw;
 		}
 
-		keyChain.MaxMiningFeeRate = maxMiningFeeRate;
-		keyChain.NeedsAuthorization = false;
 		return keyChain;
 	}
 
@@ -345,10 +331,19 @@ public class HardwareWalletService : IDisposable
 		}
 
 		// The bridge stays while another wallet's coinjoin key chain still holds a device through it.
-		_coinJoinDevices.TryRemove(keyManager.MasterFingerprint!.Value, out _);
-		if (_coinJoinDevices.IsEmpty)
+		ForgetKeyChain(keyManager.MasterFingerprint!.Value);
+		if (_coinJoinKeyChains.IsEmpty)
 		{
 			_bridge.StopIfOurs();
+		}
+	}
+
+	/// <summary>Drops a wallet's coinjoin key chain and releases the device session it holds.</summary>
+	private void ForgetKeyChain(HDFingerprint fingerprint)
+	{
+		if (_coinJoinKeyChains.TryRemove(fingerprint, out var keyChain))
+		{
+			keyChain.Dispose();
 		}
 	}
 
@@ -380,9 +375,9 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Runs an operation on the session a coinjoin key chain holds for this device, or on a session of its own when there is none.</summary>
 	private async Task WithDeviceAsync(HDFingerprint fingerprint, Func<TrezorDevice, Task> operation, CancellationToken cancellationToken)
 	{
-		if (_coinJoinDevices.TryGetValue(fingerprint, out var held) && await held.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
+		if (_coinJoinKeyChains.TryGetValue(fingerprint, out var held) && await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
 		{
-			await operation(held).ConfigureAwait(false);
+			await operation(held.Device).ConfigureAwait(false);
 			return;
 		}
 

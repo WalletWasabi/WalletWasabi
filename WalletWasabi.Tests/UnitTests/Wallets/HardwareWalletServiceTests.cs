@@ -53,7 +53,7 @@ public class HardwareWalletServiceTests
 		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false);
 
 		await Assert.ThrowsAsync<NotSupportedException>(
-			() => service.AuthorizeCoinJoinAsync(keyManager, existingKeyChain: null, "coordinator", maxRounds: 1, new FeeRate(1m), CancellationToken.None));
+			() => service.AuthorizeCoinJoinAsync(keyManager, "coordinator", CancellationToken.None));
 	}
 
 	/// <summary>Detecting takes the device away from the bridge, which would end a running coinjoin's authorization mid-round.</summary>
