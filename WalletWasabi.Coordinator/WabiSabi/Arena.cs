@@ -171,8 +171,8 @@ public partial class Arena : PeriodicRunner
 					// Once an input is confirmed and non-zero credentials are issued, it is too late to do any
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
-						var doubleSpenders = await BanDoubleSpendersAsync(round, cancel).ConfigureAwait(false);
-						if (doubleSpenders.Length > 0)
+						var removedDoubleSpenderCount = await BanAndRemoveDoubleSpendersAsync(round, cancel).ConfigureAwait(false);
+						if (removedDoubleSpenderCount > 0)
 						{
 							await EndRoundAndTryCreateBlameRoundAsync(round, cancel).ConfigureAwait(false);
 							return;
@@ -359,7 +359,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async Task<Alice[]> BanDoubleSpendersAsync(Round round, CancellationToken cancellationToken)
+	private async Task<int> BanAndRemoveDoubleSpendersAsync(Round round, CancellationToken cancellationToken)
 	{
 		var allOffendingAlices = new List<Alice>();
 		await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancellationToken).ConfigureAwait(false))
@@ -382,18 +382,20 @@ public partial class Arena : PeriodicRunner
 				_prison.CoordinatorStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
 			}
 		}
-		if (allOffendingAlices.Count > 0)
+
+		var removedAliceCount = round.Alices.RemoveAll(alice => allOffendingAlices.Contains(alice));
+		if (removedAliceCount > 0)
 		{
-			Logger.LogInfo(FormatLog($"There were {allOffendingAlices.Count} alices that spent the registered UTXO.", round));
+			Logger.LogInfo(FormatLog($"Removed {removedAliceCount} alices, because they spent the registered UTXO. Remaining: {round.InputCount}", round));
 		}
 
-		return allOffendingAlices.ToArray();
+		return removedAliceCount;
 	}
 
 	private async Task FailTransactionBroadcastAsync(Round round, CancellationToken cancellationToken)
 	{
-		var doubleSpenders = await BanDoubleSpendersAsync(round, cancellationToken).ConfigureAwait(false);
-		if (doubleSpenders.Length == 0)
+		var removedDoubleSpenderCount = await BanAndRemoveDoubleSpendersAsync(round, cancellationToken).ConfigureAwait(false);
+		if (removedDoubleSpenderCount == 0)
 		{
 			EndRound(round, EndRoundState.TransactionBroadcastFailed);
 			return;

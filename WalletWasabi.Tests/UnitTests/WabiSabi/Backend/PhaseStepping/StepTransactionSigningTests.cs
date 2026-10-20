@@ -140,6 +140,50 @@ public class StepTransactionSigningTests
 	}
 
 	[Fact]
+	public async Task AlicesSpentInsufficientPeersAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.MinInputCountByBlameRoundMultiplier = 1;
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
+
+		Prison prison = WabiSabiFactory.CreatePrison();
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
+		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+
+		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
+		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
+
+		// The first Alice's coin is spent in another transaction after signing, which leaves fewer inputs than a blame round needs.
+		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
+		var defaultBehavior = mockRpc.OnGetTxOutAsync;
+		mockRpc.OnGetTxOutAsync = (txId, n, includeMempool) =>
+			(txId, n) == (spentOutpoint.Hash, spentOutpoint.N)
+				? null
+				: defaultBehavior?.Invoke(txId, n, includeMempool);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.Ended, round.Phase);
+		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
+		Assert.DoesNotContain(arena.Rounds, x => x is BlameRound);
+		Assert.True(prison.IsBanned(spentOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
+
+		await arena.StopAsync(token);
+	}
+
+	[Fact]
 	public async Task TimeoutInsufficientPeersAsync()
 	{
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
