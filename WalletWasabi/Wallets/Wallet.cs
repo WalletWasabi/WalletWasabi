@@ -133,9 +133,7 @@ public class Wallet : BackgroundService
 
 	/// <summary>Has the device authorize this wallet's rounds and fee cap, which gives the wallet the key chain that signs them.</summary>
 	public async Task AuthorizeCoinJoinOnDeviceAsync(string coordinatorIdentifier, CancellationToken cancellationToken) =>
-		KeyChain = await _hardwareWallets
-			.AuthorizeCoinJoinAsync(KeyManager, KeyChain, coordinatorIdentifier, KeyManager.CoinJoinDeviceMaxRounds, new FeeRate(KeyManager.CoinJoinDeviceMaxMiningFeeRate), cancellationToken)
-			.ConfigureAwait(false);
+		KeyChain = await _hardwareWallets.AuthorizeCoinJoinAsync(KeyManager, coordinatorIdentifier, cancellationToken).ConfigureAwait(false);
 
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.
@@ -321,8 +319,6 @@ public class Wallet : BackgroundService
 		await base.StopAsync(cancel).ConfigureAwait(false);
 		await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 		WalletFilterProcessor.Dispose();
-
-		(KeyChain as IDisposable)?.Dispose();
 
 		// Hand the device back, so that adding another wallet can enumerate it again.
 		_hardwareWallets.Release(KeyManager);

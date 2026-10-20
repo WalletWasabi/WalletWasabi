@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client;
 
 /// <summary>
 /// Key chain backed by a Trezor device acting as a remote signer for coinjoin rounds.
-/// Requires a coinjoin authorization on the device (see <see cref="TrezorDevice.AuthorizeCoinJoinAsync"/>),
+/// Requires a coinjoin authorization on the device (see <see cref="AuthorizeAsync"/>),
 /// after which ownership proofs and signatures are produced without user interaction.
 /// </summary>
 public class TrezorKeyChain : IKeyChain, IDisposable
@@ -29,13 +29,25 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	public TrezorDevice Device { get; }
 
 	/// <summary>The cap the device was authorized with; set by the authorization, so it never drifts from what the device enforces.</summary>
-	public FeeRate? MaxMiningFeeRate { get; internal set; }
+	public FeeRate? MaxMiningFeeRate { get; private set; }
 
 	/// <summary>Set when the device fails a preauthorized call, cleared by the next authorization.</summary>
-	public bool NeedsAuthorization { get; internal set; }
+	public bool NeedsAuthorization { get; private set; }
 
 	/// <summary>The device has to be asked, and it verifies every foreign input of the round before it signs.</summary>
 	public bool SigningTakesTime => true;
+
+	/// <summary>Has the device authorize the wallet's coinjoin limits (shown on its screen, confirmed physically); the rounds are then signed without interaction.</summary>
+	public async Task AuthorizeAsync(string coordinatorIdentifier, CancellationToken cancellationToken)
+	{
+		var maxMiningFeeRate = new FeeRate(_keyManager.CoinJoinDeviceMaxMiningFeeRate);
+		await Device
+			.AuthorizeCoinJoinAsync(coordinatorIdentifier, _keyManager.CoinJoinDeviceMaxRounds, maxMiningFeeRate, _keyManager.TaprootAccountKeyPath, _keyManager.GetNetwork(), cancellationToken)
+			.ConfigureAwait(false);
+
+		MaxMiningFeeRate = maxMiningFeeRate;
+		NeedsAuthorization = false;
+	}
 
 	// IKeyChain is a synchronous interface (soft wallets sign in-process), while the device i/o is async.
 	// Blocking here is safe: every task below runs with ConfigureAwait(false) end to end, and coinjoin

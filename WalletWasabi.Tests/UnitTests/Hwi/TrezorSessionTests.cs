@@ -65,6 +65,29 @@ public class TrezorSessionTests
 		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
 	}
 
+	/// <summary>The device is asked for the limits the wallet keeps, and the key chain then signs under exactly those.</summary>
+	[Fact]
+	public async Task AnAuthorizationAsksForTheWalletLimitsAndClearsTheNeedForOneAsync()
+	{
+		using var transport = new ScriptedTransport();
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		keyManager.CoinJoinDeviceMaxRounds = 7;
+		keyManager.CoinJoinDeviceMaxMiningFeeRate = 3m;
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager);
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.Success));
+		await keyChain.AuthorizeAsync("coordinator", CancellationToken.None);
+
+		var fields = Assert.Single(transport.Received, message => message.MessageType == TrezorMessageType.AuthorizeCoinJoin).ReadFields();
+		Assert.Equal(7UL, fields[2][0].VarInt);
+		Assert.Equal(3_000UL, fields[4][0].VarInt); // sat per 1000 vbytes
+		Assert.Equal(new FeeRate(3m), ((IKeyChain)keyChain).MaxMiningFeeRate);
+		Assert.False(((IKeyChain)keyChain).NeedsAuthorization);
+	}
+
 	[Fact]
 	public async Task ADisposedDeviceIsDeadWithoutAskingTheBridgeAsync()
 	{
