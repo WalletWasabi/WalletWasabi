@@ -58,6 +58,12 @@ else
   ZIP="zip -r"
 fi
 
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  SOURCE_ROOT=$(cygpath -w "$(pwd -P)")  # PathMap expects native path on Windows (e.g. C:\WalletWasabi, not /c/WalletWasabi)
+else
+  SOURCE_ROOT=$(pwd -P)
+fi
+
 if [ "$1" = "wininstaller" ]; then
   # Supported platforms
   PLATFORMS=("win-x64")
@@ -154,7 +160,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
-            --property:PathMap="$(pwd -P)=/src" \
+            --property:PathMap="$SOURCE_ROOT=/src" \
             /clp:ErrorsOnly
   done
 
