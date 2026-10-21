@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Extensions;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -57,8 +58,9 @@ public class TransactionProcessorTests
 		var km2 = KeyManager.Recover(mnemonic, "pw", Network.Main, km1.SegwitAccountKeyPath, km1.TaprootAccountKeyPath);
 
 		var eventBus = new EventBus();
-		var tp1 = new TransactionProcessor(txStore, null, km1, Money.Coins(0.0001m), eventBus);
-		var tp2 = new TransactionProcessor(txStore, null, km2, Money.Coins(0.0001m), eventBus);
+		var walletId = new WalletId(Guid.NewGuid());
+		var tp1 = new TransactionProcessor(walletId, txStore, null, km1, Money.Coins(0.0001m), eventBus);
+		var tp2 = new TransactionProcessor(walletId, txStore, null, km2, Money.Coins(0.0001m), eventBus);
 
 		// A receive to a key both instances of the wallet control (identical derivation).
 		var receiveKey = km1.GetNextReceiveKey(LabelsArray.Empty);
@@ -1581,6 +1583,7 @@ public class TransactionProcessorTests
 		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
 		eventBus = new EventBus();
 		return new TransactionProcessor(
+			new WalletId(Guid.NewGuid()),
 			transactionStore,
 			null,
 			keyManager,
