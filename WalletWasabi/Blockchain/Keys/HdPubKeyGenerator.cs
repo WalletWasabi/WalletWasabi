@@ -1,15 +1,15 @@
 namespace WalletWasabi.Blockchain.Keys;
 
-public record HdPubKeyGenerator(ExtPubKey ExtPubKey, KeyPath KeyPath, int MinGapLimit)
+public record HdPubKeyGenerator(ExtPubKey ExtPubKey, KeyPath KeyPath)
 {
 	public (KeyPath KeyPath, ExtPubKey ExtPubKey) GenerateNewKey(HdPubKeyPathView view) =>
 		GenerateKeyByIndex(GetNextKeyIndex(view));
 
-	public IEnumerable<(KeyPath KeyPath, ExtPubKey ExtPubKey)> AssertCleanKeysIndexed(HdPubKeyPathView view)
+	public IEnumerable<(KeyPath KeyPath, ExtPubKey ExtPubKey)> AssertCleanKeysIndexed(HdPubKeyPathView view, int minGapLimit)
 	{
 		var unusedKeys = view.Reverse().TakeWhile(x => x.KeyState == KeyState.Clean);
 		var unusedKeyCount = unusedKeys.Count();
-		var missingKeys = Math.Max(MinGapLimit - unusedKeyCount, 0);
+		var missingKeys = Math.Max(minGapLimit - unusedKeyCount, 0);
 		var idx = GetNextKeyIndex(view);
 		return Enumerable.Range(idx, missingKeys)
 			.Select(GenerateKeyByIndex);
