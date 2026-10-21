@@ -230,9 +230,28 @@ public class CoinJoinManager : BackgroundService
 		// task and re-post the command when done. A start while the device is already asking adds no second prompt.
 		if (NeedsDeviceAuthorization(walletToStart))
 		{
+			// The device is only asked when there is something to mix. Until then the wallet waits the way a
+			// coinjoin that found nothing to mix does.
+			try
+			{
+				SanityChecksAndGetCoinCandidatesFunc();
+			}
+			catch (CoinJoinClientException e)
+			{
+				NotifyCoinJoinStartError(walletToStart, e.CoinjoinError);
+				if (e.CoinjoinError is CoinjoinError.AllCoinsPrivate && startCommand.StopWhenAllMixed)
+				{
+					NotifyWalletStoppedCoinJoin(walletToStart);
+				}
+				else
+				{
+					ScheduleRestartAutomatically(walletToStart, _state.TrackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, cancellationToken);
+				}
+				return;
+			}
+
 			if (_pendingAuthorizations.TryAdd(walletToStart.WalletId, startCommand))
 			{
-				NotifyWalletStartedCoinJoin(walletToStart);
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.AwaitingDeviceConfirmation);
 				_ = Task.Run(() => AuthorizeDeviceAndResumeAsync(walletToStart, cancellationToken), cancellationToken);
 			}
