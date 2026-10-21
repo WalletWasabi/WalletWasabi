@@ -28,8 +28,12 @@ public class TrezorDevice : IDisposable
 
 	public TrezorFeatures? Features { get; private set; }
 
+	/// <summary>The bridge session this device was acquired with.</summary>
+	internal string BridgeSession => _bridgeSession;
+
 	/// <summary>Finds and acquires the connected Trezor with the given master fingerprint.</summary>
-	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
+	/// <param name="sessionsInUse">Bridge sessions our coinjoins hold. Opening a device takes over its session, so these devices are not even asked for their fingerprint.</param>
+	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, IReadOnlySet<string> sessionsInUse, CancellationToken cancellationToken)
 	{
 		var (bridgeUri, bridgeDevices, bridgeError) = await EnumerateAnyBridgeAsync(cancellationToken).ConfigureAwait(false);
 		if (bridgeUri is null)
@@ -42,9 +46,10 @@ public class TrezorDevice : IDisposable
 			throw new HardwareWalletNotFoundException("No Trezor device found. Connect the Trezor and unlock it with its PIN.");
 		}
 
+		var freeDevices = bridgeDevices.Where(device => device.Session is null || !sessionsInUse.Contains(device.Session)).ToList();
 		string? lastError = null;
 		bool sawPassphraseProtectedDevice = false;
-		foreach (var bridgeDevice in bridgeDevices)
+		foreach (var bridgeDevice in freeDevices)
 		{
 			// The standard wallet (empty passphrase) is tried first; on-device passphrase entry only when its
 			// fingerprint does not match, and the fingerprint check rejects a mistyped passphrase before anything is signed.
@@ -86,8 +91,11 @@ public class TrezorDevice : IDisposable
 		string passphraseHint = sawPassphraseProtectedDevice
 			? " If this wallet uses a passphrase, enter the exact same passphrase on the device."
 			: "";
+		string busyHint = freeDevices.Count < bridgeDevices.Count
+			? " A Trezor that another wallet's coinjoin holds was left alone; close that wallet to use the device here."
+			: "";
 		throw new HardwareWalletNotFoundException(lastError is null
-			? $"No Trezor device with master fingerprint '{masterFingerprint}' found.{passphraseHint}"
+			? $"No Trezor device with master fingerprint '{masterFingerprint}' found.{passphraseHint}{busyHint}"
 			: $"No usable Trezor device found. Last error: {lastError}");
 	}
 
