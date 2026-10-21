@@ -4,6 +4,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -22,6 +23,7 @@ public class ArenaBuilder
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
 	public RoundParametersFactory? RoundParametersFactory { get; set; }
+	public EventBus? EventBus { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -32,8 +34,9 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient();
 		RoundParametersFactory roundParametersFactory = RoundParametersFactory ?? CreateRoundParametersFactory(config);
 		FeeRateProvider feeProvider = FeeRateProviders.RpcAsync(rpc);
+		EventBus eventBus = EventBus ?? new();
 
-		Arena arena = new(config, rpc, prison, roundParametersFactory, feeProvider, period:period);
+		Arena arena = new(config, rpc, prison, roundParametersFactory, feeProvider, eventBus, period:period);
 
 		foreach (var round in rounds)
 		{
@@ -73,6 +76,12 @@ public class ArenaBuilder
 	public ArenaBuilder With(RoundParametersFactory roundParametersFactory)
 	{
 		RoundParametersFactory = roundParametersFactory;
+		return this;
+	}
+
+	public ArenaBuilder With(EventBus eventBus)
+	{
+		EventBus = eventBus;
 		return this;
 	}
 

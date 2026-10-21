@@ -68,6 +68,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddSingleton(s => new CoinJoinScriptStore());
 			services.AddSingleton(s => FeeRateProviders.RpcAsync(s.GetRequiredService<IRPCClient>()));
+			services.AddSingleton<EventBus>();
 			services.AddHttpClient();
 		});
 		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));

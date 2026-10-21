@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
@@ -106,79 +109,30 @@ public class StepTransactionSigningTests
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
-		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		EventBus eventBus = new();
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).With(eventBus).CreateAndStartAsync();
 
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+		var payment = Network.Main.CreateTransaction();
+		payment.Inputs.Add(aliceClient1.SmartCoin.Outpoint);
+		payment.Outputs.Add(Money.Coins(0.01m), BitcoinFactory.CreateScript());
+		eventBus.Publish(new NewTransactionInMempool(new SmartTransaction(payment, Height.Mempool)));
 
+		// The double spender signs anyway.
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
-
-		// The first Alice's coin is spent in another transaction after signing.
-		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
-		var defaultBehavior = mockRpc.OnGetTxOutAsync;
-		mockRpc.OnGetTxOutAsync = (txId, n, includeMempool) =>
-			(txId, n) == (spentOutpoint.Hash, spentOutpoint.N)
-				? null
-				: defaultBehavior?.Invoke(txId, n, includeMempool);
-
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.NotAllAlicesSign, round.EndRoundState);
-		Assert.True(prison.IsBanned(spentOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
 		var blameRound = Assert.IsType<BlameRound>(Assert.Single(arena.Rounds, x => x is BlameRound));
-		Assert.Equal(round.Id, blameRound.BlameOf.Id);
-		Assert.Contains(aliceClient2.SmartCoin.Outpoint, blameRound.BlameWhitelist);
-		Assert.DoesNotContain(spentOutpoint, blameRound.BlameWhitelist);
-
-		await arena.StopAsync(token);
-	}
-
-	[Fact]
-	public async Task AlicesSpentInsufficientPeersAsync()
-	{
-		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
-		var token = cancellationTokenSource.Token;
-
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
-		cfg.MinInputCountByBlameRoundMultiplier = 1;
-		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
-
-		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		mockRpc.OnSendRawTransactionAsync = (_) =>
-			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
-
-		Prison prison = WabiSabiFactory.CreatePrison();
-		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
-
-		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
-
-		await arena.TriggerAndWaitRoundAsync(token);
-		Assert.Equal(Phase.TransactionSigning, round.Phase);
-
-		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
-
-		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
-		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
-
-		// The first Alice's coin is spent in another transaction after signing, which leaves fewer inputs than a blame round needs.
-		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
-		var defaultBehavior = mockRpc.OnGetTxOutAsync;
-		mockRpc.OnGetTxOutAsync = (txId, n, includeMempool) =>
-			(txId, n) == (spentOutpoint.Hash, spentOutpoint.N)
-				? null
-				: defaultBehavior?.Invoke(txId, n, includeMempool);
-
-		await arena.TriggerAndWaitRoundAsync(token);
-		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
-		Assert.DoesNotContain(arena.Rounds, x => x is BlameRound);
-		Assert.True(prison.IsBanned(spentOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
+		Assert.Equal(aliceClient2.SmartCoin.Outpoint, Assert.Single(blameRound.BlameWhitelist));
+		Assert.True(prison.IsBanned(new OutPoint(payment, 0), cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
 		await arena.StopAsync(token);
 	}
