@@ -255,10 +255,31 @@ public class TransactionProcessor(
 			TransactionStore.AddOrUpdate(tx);
 		}
 
+		MarkCoinjoinFromOtherWallet(tx, spendsOurCoins: myInputs.Count != 0, paysUs: result.ReceivedCoins.Count != 0);
 		BlockchainAnalyzer.Analyze(result.Transaction);
 		SyncAnonScoresFromSharedTransaction(result.Transaction);
 
 		return result;
+	}
+
+	/// <summary>
+	/// Only the wallet owning the inputs adds them to the shared <see cref="SmartTransaction"/>, so a coinjoin
+	/// from another wallet of the user to this one ("coinjoin to this wallet") looks like a receive from a
+	/// stranger whenever that other wallet is not loaded. While it is loaded, remember the coinjoin in this
+	/// wallet's key manager; from then on mark the shared transaction before it is analyzed.
+	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/15192</remarks>
+	/// </summary>
+	private void MarkCoinjoinFromOtherWallet(SmartTransaction tx, bool spendsOurCoins, bool paysUs)
+	{
+		if (!spendsOurCoins && paysUs && tx.IsOwnCoinjoin())
+		{
+			KeyManager.AddCoinjoinFromOtherWallet(tx.GetHash());
+		}
+
+		if (KeyManager.IsCoinjoinFromOtherWallet(tx.GetHash()))
+		{
+			tx.SetCoinjoinFromOtherWallet();
+		}
 	}
 
 	/// <summary>

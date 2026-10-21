@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Extensions;
 using Xunit;
@@ -74,6 +75,63 @@ public class TransactionProcessorTests
 		Assert.Equal(1, coin1.AnonymitySet);
 		Assert.NotEqual(HdPubKey.DefaultHighAnonymitySet, coin2.AnonymitySet);
 		Assert.Equal(1, coin2.AnonymitySet);
+	}
+
+	[Fact]
+	public async Task CoinjoinFromOtherWalletIsNotAPlainReceiveAsync()
+	{
+		// Reproduces #15192. Wallet A coinjoins to wallet B ("coinjoin to this wallet"). The anonymity
+		// score of B's output is only right while A is loaded too, because only A's processor adds the
+		// inputs to the shared SmartTransaction. Alone, B used to see a receive from a stranger (anonset 1).
+		using var txStore = await CreateTransactionStoreAsync();
+		var eventBus = new EventBus();
+		var kmA = KeyManager.CreateNew(out _, "pw", Network.Main);
+		var kmB = KeyManager.CreateNew(out _, "pw", Network.Main);
+		var tpA = new TransactionProcessor(txStore, null, kmA, Money.Coins(0.0001m), eventBus);
+		var tpB = new TransactionProcessor(txStore, null, kmB, Money.Coins(0.0001m), eventBus);
+
+		var funding = CreateCreditingTransaction(kmA.GetNextReceiveKey(LabelsArray.Empty).P2wpkhScript, Money.Coins(1.1m), height: 100);
+		tpA.Process(funding);
+		var coinA = Assert.Single(tpA.Coins);
+
+		// A's coin and 9 strangers' inputs, 9 strangers' 1 BTC outputs and 1 BTC to B.
+		var cj = Network.RegTest.CreateTransaction();
+		cj.Inputs.Add(coinA.Outpoint, Script.Empty, WitScript.Empty);
+		for (int i = 0; i < 9; i++)
+		{
+			cj.Inputs.Add(GetRandomOutPoint(), Script.Empty, WitScript.Empty);
+		}
+		cj.Outputs.AddRange(CreateRandomIndistinguishableOutputs(Money.Coins(1m), 9));
+		cj.Outputs.Add(Money.Coins(1m), kmB.GetNextReceiveKey(LabelsArray.Empty).P2wpkhScript);
+		var cjId = cj.GetHash();
+
+		// Both wallets are loaded, A before B.
+		tpA.Process(new SmartTransaction(cj, new Height.ChainHeight.ChainHeight(101)));
+		tpB.Process(new SmartTransaction(cj, new Height.ChainHeight.ChainHeight(101)));
+		Assert.Equal(10, Assert.Single(tpB.Coins).AnonymitySet);
+		Assert.True(kmB.IsCoinjoinFromOtherWallet(cjId));
+
+		// Restart with only wallet B: fresh key manager from its file, fresh store without A's inputs.
+		var walletFile = Path.Combine(Common.GetWorkDir(), "WalletB.json");
+		kmB.SetFilePath(walletFile);
+		kmB.ToFile();
+		var kmBReloaded = KeyManager.FromFile(walletFile);
+		Assert.True(kmBReloaded.IsCoinjoinFromOtherWallet(cjId));
+
+		using var txStoreB = new AllTransactionStore(SqliteStorageHelper.InMemoryDatabase, Network.RegTest);
+		await txStoreB.InitializeAsync();
+		var tpBAlone = new TransactionProcessor(txStoreB, null, kmBReloaded, Money.Coins(0.0001m), eventBus);
+		tpBAlone.Process(new SmartTransaction(cj, new Height.ChainHeight.ChainHeight(101)));
+
+		var coinB = Assert.Single(tpBAlone.Coins);
+		Assert.Equal(10, coinB.AnonymitySet);
+		Assert.True(coinB.Transaction.IsOwnCoinjoin());
+
+		// An unrelated wallet loaded afterwards replays the same shared transaction and must not reset B's score.
+		var kmC = KeyManager.CreateNew(out _, "pw", Network.Main);
+		var tpC = new TransactionProcessor(txStoreB, null, kmC, Money.Coins(0.0001m), eventBus);
+		tpC.Process(new SmartTransaction(cj, new Height.ChainHeight.ChainHeight(101)));
+		Assert.Equal(10, coinB.AnonymitySet);
 	}
 
 	[Fact]

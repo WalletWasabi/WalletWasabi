@@ -30,7 +30,7 @@ public static class BlockchainAnalyzer
 
 		AnalyzeCancellation(tx);
 
-		if (ownInputCount == 0)
+		if (ownInputCount == 0 && !tx.IsCoinjoinFromOtherWallet)
 		{
 			AnalyzeReceive(tx);
 		}
@@ -102,8 +102,22 @@ public static class BlockchainAnalyzer
 		}
 	}
 
+	private static readonly StartingAnonScores UnmixedStartingAnonScores = new()
+	{
+		Minimum = (1, 1),
+		BigInputMinimum = (1, 1),
+		WeightedAverage = (1, 1)
+	};
+
 	private static StartingAnonScores AnalyzeCoinjoinWalletInputs( SmartTransaction tx)
 	{
+		if (tx.WalletInputs.Count == 0)
+		{
+			// The inputs belong to another wallet of the user that is not loaded, so they are unknown: treat them
+			// as unmixed. Once that wallet is loaded, the transaction is analyzed again with the real inputs.
+			return UnmixedStartingAnonScores;
+		}
+
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// However this is not always true:
