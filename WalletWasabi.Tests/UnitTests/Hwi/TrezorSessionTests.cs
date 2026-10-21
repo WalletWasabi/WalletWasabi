@@ -65,6 +65,20 @@ public class TrezorSessionTests
 		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
 	}
 
+	/// <summary>A bridge or device that never answers must not hold the round forever: the call is cut off and fails like any device call.</summary>
+	[Fact]
+	public void ADeviceThatDoesNotAnswerIsCutOffAndAsksForANewAuthorization()
+	{
+		using var transport = new SilentTransport();
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager) { DeviceCallTimeout = TimeSpan.FromMilliseconds(100) };
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
+	}
+
 	/// <summary>The device is asked for the limits the wallet keeps, and the key chain then signs under exactly those.</summary>
 	[Fact]
 	public async Task AnAuthorizationAsksForTheWalletLimitsAndClearsTheNeedForOneAsync()
@@ -97,5 +111,14 @@ public class TrezorSessionTests
 
 		Assert.False(await device.IsSessionAliveAsync(CancellationToken.None));
 		Assert.Empty(transport.Received);
+	}
+
+	private class SilentTransport : ScriptedTransport
+	{
+		public override async Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
+		{
+			await Task.Delay(Timeout.Infinite, cancellationToken);
+			throw new InvalidOperationException("Unreachable.");
+		}
 	}
 }
