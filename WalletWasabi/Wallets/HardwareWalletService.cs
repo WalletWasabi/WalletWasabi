@@ -31,8 +31,8 @@ public class HardwareWalletService : IDisposable
 	private readonly TrezorBridgeProcess _bridge;
 	private readonly Func<string?> _walletCoinJoiningOnDevice;
 
-	/// <summary>The coinjoin key chain of each wallet, by master fingerprint, with the device session it holds. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
-	private readonly ConcurrentDictionary<HDFingerprint, TrezorKeyChain> _coinJoinKeyChains = new();
+	/// <summary>The coinjoin key chain of each wallet, with the device session it holds. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
+	private readonly ConcurrentDictionary<KeyManager, TrezorKeyChain> _coinJoinKeyChains = new();
 
 	/// <summary>Raised when the transport used to reach the device changes, so the UI can show it.</summary>
 	public event EventHandler<HardwareWalletTransport>? TransportStatusChanged;
@@ -258,7 +258,7 @@ public class HardwareWalletService : IDisposable
 			{
 				// A coinjoin account address needs the UnlockPath that only the bridge can send, and the bridge
 				// holds the device anyway - so both accounts of such a wallet are verified over the bridge.
-				await WithDeviceAsync(fingerprint, device => ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token), linkedCts.Token).ConfigureAwait(false);
+				await WithDeviceAsync(keyManager, device => ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token), linkedCts.Token).ConfigureAwait(false);
 				return;
 			}
 
@@ -283,20 +283,19 @@ public class HardwareWalletService : IDisposable
 			throw new NotSupportedException("This wallet has no coinjoin account, so no device can authorize its coinjoins.");
 		}
 
-		var fingerprint = keyManager.MasterFingerprint!.Value;
-		if (_coinJoinKeyChains.TryGetValue(fingerprint, out var held) && !await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
+		if (_coinJoinKeyChains.TryGetValue(keyManager, out var held) && !await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
 		{
 			// The bridge was restarted, dropped the device, or the wallet was stopped: every call on the old
 			// session would fail forever, so let go of it and acquire the device anew.
 			Logger.LogInfo("The Trezor bridge session of this wallet is gone, acquiring the device again.");
-			ForgetKeyChain(fingerprint);
+			ForgetKeyChain(keyManager);
 		}
 
-		bool acquiredHere = !_coinJoinKeyChains.TryGetValue(fingerprint, out var keyChain);
+		bool acquiredHere = !_coinJoinKeyChains.TryGetValue(keyManager, out var keyChain);
 		if (keyChain is null)
 		{
-			keyChain = new TrezorKeyChain(await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false), keyManager);
-			_coinJoinKeyChains[fingerprint] = keyChain;
+			keyChain = new TrezorKeyChain(await AcquireAsync(keyManager.MasterFingerprint!.Value, cancellationToken).ConfigureAwait(false), keyManager);
+			_coinJoinKeyChains[keyManager] = keyChain;
 		}
 
 		try
@@ -306,7 +305,7 @@ public class HardwareWalletService : IDisposable
 		catch when (acquiredHere)
 		{
 			// The wallet never gets this key chain, so do not keep the session it holds.
-			ForgetKeyChain(fingerprint);
+			ForgetKeyChain(keyManager);
 			throw;
 		}
 
@@ -331,7 +330,7 @@ public class HardwareWalletService : IDisposable
 		}
 
 		// The bridge stays while another wallet's coinjoin key chain still holds a device through it.
-		ForgetKeyChain(keyManager.MasterFingerprint!.Value);
+		ForgetKeyChain(keyManager);
 		if (_coinJoinKeyChains.IsEmpty)
 		{
 			_bridge.StopIfOurs();
@@ -339,9 +338,9 @@ public class HardwareWalletService : IDisposable
 	}
 
 	/// <summary>Drops a wallet's coinjoin key chain and releases the device session it holds.</summary>
-	private void ForgetKeyChain(HDFingerprint fingerprint)
+	private void ForgetKeyChain(KeyManager keyManager)
 	{
-		if (_coinJoinKeyChains.TryRemove(fingerprint, out var keyChain))
+		if (_coinJoinKeyChains.TryRemove(keyManager, out var keyChain))
 		{
 			keyChain.Dispose();
 		}
@@ -369,19 +368,20 @@ public class HardwareWalletService : IDisposable
 	private async Task<TrezorDevice> AcquireAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
 	{
 		await _bridge.EnsureRunningAsync(cancellationToken).ConfigureAwait(false);
-		return await TrezorDevice.FindAsync(masterFingerprint, cancellationToken).ConfigureAwait(false);
+		var sessionsInUse = _coinJoinKeyChains.Values.Select(keyChain => keyChain.Device.BridgeSession).ToHashSet();
+		return await TrezorDevice.FindAsync(masterFingerprint, sessionsInUse, cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>Runs an operation on the session a coinjoin key chain holds for this device, or on a session of its own when there is none.</summary>
-	private async Task WithDeviceAsync(HDFingerprint fingerprint, Func<TrezorDevice, Task> operation, CancellationToken cancellationToken)
+	/// <summary>Runs an operation on the session the wallet's coinjoin key chain holds, or on a session of its own when there is none.</summary>
+	private async Task WithDeviceAsync(KeyManager keyManager, Func<TrezorDevice, Task> operation, CancellationToken cancellationToken)
 	{
-		if (_coinJoinKeyChains.TryGetValue(fingerprint, out var held) && await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
+		if (_coinJoinKeyChains.TryGetValue(keyManager, out var held) && await held.Device.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
 		{
 			await operation(held.Device).ConfigureAwait(false);
 			return;
 		}
 
-		using var device = await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false);
+		using var device = await AcquireAsync(keyManager.MasterFingerprint!.Value, cancellationToken).ConfigureAwait(false);
 		await operation(device).ConfigureAwait(false);
 	}
 
@@ -490,7 +490,7 @@ public class HardwareWalletService : IDisposable
 
 		Dictionary<int, byte[]> signatures = [];
 		await WithDeviceAsync(
-			keyManager.MasterFingerprint!.Value,
+			keyManager,
 			async device => signatures = await device.SignTransactionAsync(
 				inputs,
 				outputs,
