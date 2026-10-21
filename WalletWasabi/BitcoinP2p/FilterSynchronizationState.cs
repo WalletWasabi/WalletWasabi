@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Threading.Channels;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;

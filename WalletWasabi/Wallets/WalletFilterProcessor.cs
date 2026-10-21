@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Nito.AsyncEx;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;

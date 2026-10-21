@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;

@@ -1,7 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Nito.AsyncEx;
 using System.IO;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;

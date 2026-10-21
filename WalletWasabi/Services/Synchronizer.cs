@@ -1,9 +1,9 @@
 using NBitcoin.RPC;
 using System.Net.Http;
 using System.Net.Sockets;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
 

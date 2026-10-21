@@ -131,6 +131,4 @@ public static class Constants
 		432, // Three Days
 		1008, // Seven Days
 	};
-
-	public static readonly string DefaultFilterType = "legacy";
 }

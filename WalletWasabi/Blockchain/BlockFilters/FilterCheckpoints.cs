@@ -1,4 +1,3 @@
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
