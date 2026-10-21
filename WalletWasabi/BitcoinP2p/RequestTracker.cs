@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.BitcoinP2p;

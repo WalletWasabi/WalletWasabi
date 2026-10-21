@@ -1,9 +1,9 @@
 using System.Net;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Tor.StatusChecker;
 using NBitcoin.Protocol;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.WabiSabi.Client.Batching;

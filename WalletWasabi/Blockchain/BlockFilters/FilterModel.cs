@@ -1,7 +1,6 @@
-using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 
-namespace WalletWasabi.Backend.Models;
+namespace WalletWasabi.Blockchain.BlockFilters;
 
 public record FilterModel(SmartHeader Header, GolombRiceFilter Filter)
 {
