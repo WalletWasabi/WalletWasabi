@@ -28,6 +28,9 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 
 	public TrezorDevice Device { get; }
 
+	/// <summary>Far longer than any round phase lasts, so only a hung bridge or device runs into it, and its round is lost by then anyway.</summary>
+	internal TimeSpan DeviceCallTimeout { get; init; } = TimeSpan.FromMinutes(5);
+
 	/// <summary>The cap the device was authorized with; set by the authorization, so it never drifts from what the device enforces.</summary>
 	public FeeRate? MaxMiningFeeRate { get; private set; }
 
@@ -57,7 +60,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 		var keyPath = _keyManager.TryGetKeyPath(destination.ScriptPubKey)
 			?? throw new InvalidOperationException($"The key path for '{destination.ScriptPubKey}' was not found.");
 		_roundCommitmentData = commitmentData.ToBytes();
-		byte[] proof = WhileAuthorized(() => Device.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), CancellationToken.None));
+		byte[] proof = WhileAuthorized(cancel => Device.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), cancel));
 
 		return OwnershipProof.FromBytes(proof);
 	}
@@ -128,7 +131,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			})
 			.ToList();
 
-		var signatures = WhileAuthorized(() => Device.SignCoinJoinAsync(inputs, outputs, transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, CancellationToken.None));
+		var signatures = WhileAuthorized(cancel => Device.SignCoinJoinAsync(inputs, outputs, transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, cancel));
 
 		return signatures.ToDictionary(
 			signature => transaction.Inputs[signature.Key].PrevOut,
@@ -140,12 +143,22 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 				: throw new InvalidOperationException($"The ownership proof of the foreign input '{outpoint}' was not found.");
 	}
 
-	/// <summary>A preauthorized call fails once the authorization is spent or the session is gone, and it will keep failing until the device authorizes again.</summary>
-	private T WhileAuthorized<T>(Func<Task<T>> deviceCall)
+	/// <summary>
+	/// A preauthorized call fails once the authorization is spent or the session is gone, and it will keep failing until the device
+	/// authorizes again. A call that does not come back in time is cut off, so the round moves on, and it fails the same way: the
+	/// session it leaves behind cannot be trusted.
+	/// </summary>
+	private T WhileAuthorized<T>(Func<CancellationToken, Task<T>> deviceCall)
 	{
+		using var timeout = new CancellationTokenSource(DeviceCallTimeout);
 		try
 		{
-			return deviceCall().GetAwaiter().GetResult();
+			return deviceCall(timeout.Token).GetAwaiter().GetResult();
+		}
+		catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+		{
+			NeedsAuthorization = true;
+			throw new TrezorException($"The device did not answer within {DeviceCallTimeout.TotalMinutes} minutes.");
 		}
 		catch (TrezorException)
 		{
