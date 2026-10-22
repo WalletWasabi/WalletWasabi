@@ -292,6 +292,12 @@ public class Wallet : BackgroundService
 		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 	}
 
+	public void AddCoinjoinCosts(uint256 transactionId, CoinjoinCosts coinjoinCosts)
+	{
+		KeyManager.AddCoinjoinCosts(transactionId, coinjoinCosts);
+		_eventBus.Publish(new CoinjoinCostsAdded(WalletName, transactionId, coinjoinCosts));
+	}
+
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancel)
 	{

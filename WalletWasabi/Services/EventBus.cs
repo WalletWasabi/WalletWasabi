@@ -6,6 +6,7 @@ using NBitcoin.Protocol;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Services;
@@ -141,3 +142,4 @@ public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
 public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);
+public record CoinjoinCostsAdded(string WalletName, uint256 TransactionId, CoinjoinCosts Costs);
