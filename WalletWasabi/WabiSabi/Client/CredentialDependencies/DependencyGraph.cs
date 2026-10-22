@@ -352,7 +352,7 @@ public record DependencyGraph
 		// The rationale behind this is that the reissuance node already has
 		// to be created and will have zero credentials to spare, so in this
 		// way the aggregated nodes are not dependent on any other node for
-		// zero credentials. 
+		// zero credentials.
 		if (credentialType > 0)
 		{
 			g = nodes.Aggregate(g, (g, v) => g.DrainZeroCredentials(reissuance, v, 0));
@@ -391,67 +391,42 @@ public record DependencyGraph
 		// crossing to a limited degree, but could be much better.
 		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainTerminal(node, nodes)) };
 
-	private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
+	private DependencyGraph ResolveZeroCredentials(CredentialType credentialType, bool finalPass = false)
 	{
-		// TODO Build edges in parallel to existing ones to reduce
-		// dependencies per request.
-		// This can be done in 3 depth first passes, which all consume nodes
-		// whose remaining in degree is 0 and available zero degree is >0.
-		// - discharge only to AvailableZeroOutDegree >0 nodes (should be at most one such node per donor node)
-		// - discharge to direct descendants even if a net reduction in zero creds because of available zero out degree of 0
-		// - discharge all remaining in degree >0 nodes by topological order
-
 		var edgeSet = EdgeSets[(int)credentialType];
-		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v)).ToImmutableArray();
+		var unresolvedNodes = Vertices
+			.Where(v => edgeSet.RemainingInDegree(v) > 0 && (finalPass || edgeSet.AvailableZeroOutDegree(v) > 0))
+			.OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v))
+			.ToImmutableArray();
 
-		if (!unresolvedNodes.Any())
+		if (unresolvedNodes.IsEmpty)
 		{
-			return ResolveZeroCredentialsForTerminalNodes(credentialType);
+			return finalPass
+				? this
+				: ResolveZeroCredentials(credentialType, finalPass: true);
 		}
 
-		return AddZeroCredentials(unresolvedNodes, credentialType).ResolveZeroCredentials(credentialType);
-	}
-
-	// Final pass, ensure that no RemainingInDegree = 0 nodes remain
-	// TODO remove code duplication
-	private DependencyGraph ResolveZeroCredentialsForTerminalNodes(CredentialType credentialType)
-	{
-		// Stop when all nodes have a maxed out in-degree.
-		// This termination condition is guaranteed to be possible because
-		// connection confirmation and reissuance requests both have an out
-		// degree of K^2 when accounting for their extra zero credentials.
-		var edgeSet = EdgeSets[(int)credentialType];
-		var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v)).ToImmutableArray();
-
-		if (!unresolvedNodes.Any())
-		{
-			return this;
-		}
-
-		return AddZeroCredentials(unresolvedNodes, credentialType).ResolveZeroCredentialsForTerminalNodes(credentialType);
-	}
-
-	// Resolve remaining zero credentials by using nodes with no
-	// dependencies but remaining out degree. A node with all of its in
-	// edges can still be a descendant of the node it provides for, and
-	// then neither request can ever be sent.
-	private DependencyGraph AddZeroCredentials(ImmutableArray<RequestNode> unresolvedNodes, CredentialType credentialType)
-	{
-		var edgeSet = EdgeSets[(int)credentialType];
+		// Resolve remaining zero credentials by using nodes with no
+		// dependencies but remaining out degree. A node with all of its in
+		// edges can still be a descendant of the node it provides for, and
+		// then neither request can ever be sent.
 		var providers = Vertices.Where(v => edgeSet.RemainingInDegree(v) == 0 && edgeSet.AvailableZeroOutDegree(v) > 0).ToImmutableArray();
 
-		var reduced = unresolvedNodes.SelectMany(v => Enumerable.Repeat(v, edgeSet.RemainingInDegree(v)))
-			.Aggregate(this, (g, to) => providers.FirstOrDefault(from => g.EdgeSets[(int)credentialType].AvailableZeroOutDegree(from) > 0 && !g.DependsOn(from, to)) is { } from
-				? g.AddZeroCredential(from, to, credentialType)
-				: g);
+		var reduced = unresolvedNodes
+			.SelectMany(v => Enumerable.Repeat(v, edgeSet.RemainingInDegree(v)))
+			.Aggregate(this, (g, to) => providers
+				.FirstOrDefault(from => g.EdgeSets[(int)credentialType].AvailableZeroOutDegree(from) > 0 && !g.DependsOn(from, to)) is { } from
+					? g.AddZeroCredential(from, to, credentialType)
+					: g);
 
 		return reduced != this
-			? reduced
+			? reduced.ResolveZeroCredentials(credentialType, finalPass)
 			: throw new InvalidOperationException("Can't find a zero credential provider that doesn't depend on the node it provides for.");
 	}
 
+
 	private bool DependsOn(RequestNode node, RequestNode other) =>
-		EdgeSets.SelectMany(edgeSet => edgeSet.InEdges[node]).Select(edge => edge.From).Distinct().Any(from => from == other || DependsOn(from, other));
+		EdgeSets.SelectMany(edgeSet => edgeSet.InEdges[node]).Select(edge => edge.From).Any(from => from == other || DependsOn(from, other));
 
 	private DependencyGraph DrainZeroCredentials(RequestNode from, RequestNode to, CredentialType credentialType)
 		=> DependsOn(from, to)
