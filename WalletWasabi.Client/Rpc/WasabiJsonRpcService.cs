@@ -354,6 +354,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 						});
 						break;
 
+					case RejectedPayment rejected:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Rejected",
+							["minAllowedAmount"] = rejected.MinAllowedOutputAmount.Satoshi
+						});
+						break;
+
 					default:
 						throw new NotSupportedException($"Unrecognized state: {state.GetType().Name}.");
 				}

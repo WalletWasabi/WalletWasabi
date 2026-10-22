@@ -292,6 +292,16 @@ public class Wallet : BackgroundService
 		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 	}
 
+	public void RejectCoinJoinPaymentsBelow(Money minAllowedOutputAmount)
+	{
+		var rejectedPayments = BatchedPayments.MovePaymentsBelowMinimumToRejected(minAllowedOutputAmount);
+		if (rejectedPayments.Length != 0)
+		{
+			_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
+			_eventBus.Publish(new CoinJoinPaymentsRejected(WalletName, minAllowedOutputAmount, rejectedPayments));
+		}
+	}
+
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancel)
 	{

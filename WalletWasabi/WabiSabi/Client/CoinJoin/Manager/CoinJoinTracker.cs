@@ -67,6 +67,10 @@ public class CoinJoinTracker : IDisposable
 				InCriticalCoinJoinState = false;
 				break;
 
+			case RoundSelected roundSelected:
+				Wallet.RejectCoinJoinPaymentsBelow(roundSelected.RoundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min);
+				break;
+
 			case TransactionSigned transactionSigned:
 				// We've signed the transaction - move payments to signed state with the txId.
 				// This captures the txId immediately so we can reconcile later if the round

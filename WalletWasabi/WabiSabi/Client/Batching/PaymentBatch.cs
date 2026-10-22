@@ -127,6 +127,20 @@ public class PaymentBatch(CoinsRegistry coins)
 			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId, inputs)
 		});
 
+	public Payment[] MovePaymentsBelowMinimumToRejected(Money minAllowedOutputAmount)
+	{
+		var rejectedPayments = MovePaymentsTo(
+			PendingPayments.Where(payment => payment.Amount < minAllowedOutputAmount),
+			payment => payment with { State = new RejectedPayment(payment.State, minAllowedOutputAmount) });
+
+		foreach (var payment in rejectedPayments)
+		{
+			Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC was rejected: the coordinator's minimum output amount is {minAllowedOutputAmount} BTC.");
+		}
+
+		return rejectedPayments;
+	}
+
 	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
 	{
 		var txId = transaction.GetHash();
@@ -158,18 +172,20 @@ public class PaymentBatch(CoinsRegistry coins)
 			&& coin.SpenderTransaction is { Confirmed: true } spender
 			&& spender.GetHash() != attempt.TransactionId);
 
-	private void MovePaymentsTo<TOldState, TNewState>(
+	private TNewState[] MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,
 		Func<TOldState, TNewState> move) where TOldState : Payment where TNewState : Payment
 	{
 		lock (_syncObj)
 		{
 			var paymentsToMove = payments.ToArray();
+			var movedPayments = paymentsToMove.Select(move).ToArray();
 			foreach (var payment in paymentsToMove)
 			{
 				_payments.Remove(payment);
-				_payments.Add(move(payment));
 			}
+			_payments.AddRange(movedPayments);
+			return movedPayments;
 		}
 	}
 

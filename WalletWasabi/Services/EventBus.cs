@@ -141,3 +141,4 @@ public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
 public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);
+public record CoinJoinPaymentsRejected(string WalletName, Money MinAllowedOutputAmount, IReadOnlyList<Payment> Payments);

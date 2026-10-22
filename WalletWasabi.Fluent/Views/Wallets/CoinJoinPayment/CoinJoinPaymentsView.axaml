@@ -150,6 +150,40 @@
           </ItemsControl>
         </StackPanel>
 
+        <!-- Rejected Payments -->
+        <StackPanel IsVisible="{Binding HasRejectedPayments}" Spacing="8">
+          <TextBlock Text="Rejected" Classes="h8" Opacity="0.6" />
+          <ItemsControl ItemsSource="{Binding RejectedPayments}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="coinJoinPayment:CoinJoinPaymentViewModel">
+                <Border Background="{DynamicResource Layer1BackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="12"
+                        Margin="0,0,0,4">
+                  <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource warning_regular}"
+                                Width="16"
+                                Height="16"
+                                Foreground="{DynamicResource WarningMessageForeground}" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Address}"
+                                 Classes="monoSpaced"
+                                 ToolTip.Tip="{Binding Address}" />
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding AmountText}" Opacity="0.6" />
+                        <TextBlock Text="-" Opacity="0.3" />
+                        <TextBlock Text="{Binding RejectionReason}" Opacity="0.6" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
       </StackPanel>
     </DockPanel>
   </ContentArea>
