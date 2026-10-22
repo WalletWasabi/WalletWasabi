@@ -152,8 +152,6 @@ public class CoinJoinClient
 				}
 			}
 
-			CoinJoinClientProgress.SafeInvoke(this, new RoundSelected(currentRoundState));
-
 			coinCandidates = coinCandidatesFunc();
 
 			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxAmountCredentialValue);

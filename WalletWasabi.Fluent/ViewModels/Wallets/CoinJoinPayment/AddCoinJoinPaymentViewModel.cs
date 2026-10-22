@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
@@ -176,6 +177,10 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		else if (AmountBtc <= 0)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC.");
+		}
+		else if (AmountBtc < PaymentBatch.MinimumPaymentAmount.ToDecimal(MoneyUnit.BTC))
+		{
+			errors.Add(ErrorSeverity.Error, $"Amount must be at least {PaymentBatch.MinimumPaymentAmount.ToDecimal(MoneyUnit.BTC)} BTC.");
 		}
 	}
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
@@ -181,13 +180,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
-
-		UiContext.Services.EventBus.AsObservable<CoinJoinPaymentsRejected>()
-			.Where(x => x.WalletName == _walletInstance.WalletName)
-			.Subscribe(x => NotificationHelpers.ShowError(
-				"Coinjoin payment rejected",
-				$"The coordinator does not accept payments below {x.MinAllowedOutputAmount.ToFormattedString()} BTC.",
-				onClick: () => CoinJoinPaymentsCommand.Execute(null)));
 
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}

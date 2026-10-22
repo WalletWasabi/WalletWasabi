@@ -20,12 +20,10 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private ObservableCollection<CoinJoinPaymentViewModel> _pendingPayments = new();
 	[AutoNotify] private ObservableCollection<CoinJoinPaymentViewModel> _inProgressPayments = new();
 	[AutoNotify] private ObservableCollection<CoinJoinPaymentViewModel> _completedPayments = new();
-	[AutoNotify] private ObservableCollection<CoinJoinPaymentViewModel> _rejectedPayments = new();
 	[AutoNotify] private bool _hasAnyPayments;
 	[AutoNotify] private bool _hasPendingPayments;
 	[AutoNotify] private bool _hasInProgressPayments;
 	[AutoNotify] private bool _hasCompletedPayments;
-	[AutoNotify] private bool _hasRejectedPayments;
 	[AutoNotify] private int _totalPaymentCount;
 
 	public CoinJoinPaymentsViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
@@ -88,7 +86,6 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 		var pending = new ObservableCollection<CoinJoinPaymentViewModel>();
 		var inProgress = new ObservableCollection<CoinJoinPaymentViewModel>();
 		var completed = new ObservableCollection<CoinJoinPaymentViewModel>();
-		var rejected = new ObservableCollection<CoinJoinPaymentViewModel>();
 
 		foreach (var payment in payments)
 		{
@@ -105,21 +102,15 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 			{
 				completed.Add(vm);
 			}
-			else if (vm.IsRejected)
-			{
-				rejected.Add(vm);
-			}
 		}
 
 		PendingPayments = pending;
 		InProgressPayments = inProgress;
 		CompletedPayments = completed;
-		RejectedPayments = rejected;
 
 		HasPendingPayments = pending.Count > 0;
 		HasInProgressPayments = inProgress.Count > 0;
 		HasCompletedPayments = completed.Count > 0;
-		HasRejectedPayments = rejected.Count > 0;
 		HasAnyPayments = payments.Count > 0;
 		TotalPaymentCount = payments.Count;
 	}

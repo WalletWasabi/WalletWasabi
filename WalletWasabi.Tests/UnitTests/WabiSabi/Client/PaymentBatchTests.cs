@@ -435,49 +435,15 @@ public class PaymentBatchTests
 		// would have been included in the second coinjoin
 	}
 
-	/// <summary>
-	/// A payment below the coordinator's minimum output amount can never be part of its coinjoins.
-	/// Only such pending payments are rejected; a payment at the minimum and payments of the ongoing round stay.
-	/// </summary>
 	[Fact]
-	public void PendingPaymentsBelowMinimumAreRejected()
+	public void PaymentBelowMinimumIsNotAdded()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var minAllowedOutputAmount = Money.Satoshis(9_999);
-		var inProgressDestination = GetNewSegwitAddress();
-		var belowMinimumDestination = GetNewSegwitAddress();
-		var atMinimumDestination = GetNewSegwitAddress();
 
-		paymentBatch.AddPayment(inProgressDestination, Money.Satoshis(7_000));
-		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
-		paymentBatch.AddPayment(belowMinimumDestination, Money.Satoshis(7_000));
-		paymentBatch.AddPayment(atMinimumDestination, minAllowedOutputAmount);
+		Assert.Throws<ArgumentException>(() => paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(9_999)));
+		paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(10_000));
 
-		var rejectedPayment = Assert.Single(paymentBatch.MovePaymentsBelowMinimumToRejected(minAllowedOutputAmount));
-
-		Assert.Equal(belowMinimumDestination.ScriptPubKey, rejectedPayment.Destination.ScriptPubKey);
-		Assert.Equal(minAllowedOutputAmount, Assert.IsType<RejectedPayment>(rejectedPayment.State).MinAllowedOutputAmount);
-		Assert.Equal(rejectedPayment, paymentBatch.GetPayments().Single(p => p.Id == rejectedPayment.Id));
-		Assert.IsType<PendingPayment>(paymentBatch.GetPayments().Single(p => p.Destination.ScriptPubKey == atMinimumDestination.ScriptPubKey).State);
-		Assert.IsType<InProgressPayment>(paymentBatch.GetPayments().Single(p => p.Destination.ScriptPubKey == inProgressDestination.ScriptPubKey).State);
-	}
-
-	/// <summary>
-	/// A rejected payment no longer keeps a private wallet mixing, never goes back to the queue and can't be canceled.
-	/// </summary>
-	[Fact]
-	public void RejectedPaymentIsNoLongerPending()
-	{
-		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var paymentId = paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(7_000));
-
-		paymentBatch.MovePaymentsBelowMinimumToRejected(Money.Satoshis(9_999));
-		paymentBatch.MovePaymentsToPending();
-		paymentBatch.MoveSignedPaymentsToPending();
-
-		Assert.False(paymentBatch.AreTherePendingPayments);
-		Assert.IsType<RejectedPayment>(paymentBatch.GetPayments().Single().State);
-		Assert.Throws<InvalidOperationException>(() => paymentBatch.AbortPayment(paymentId));
+		Assert.Equal(Money.Satoshis(10_000), Assert.Single(paymentBatch.GetPayments()).Amount);
 	}
 
 	private static BitcoinAddress GetNewSegwitAddress()

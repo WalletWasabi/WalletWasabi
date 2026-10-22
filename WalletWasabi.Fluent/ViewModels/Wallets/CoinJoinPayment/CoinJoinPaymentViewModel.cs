@@ -27,7 +27,7 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 
 	public Money Amount => _payment.Amount;
 
-	public string AmountText => ToBtcText(_payment.Amount);
+	public string AmountText => $"{_payment.Amount.ToDecimal(MoneyUnit.BTC):N8} BTC";
 
 	public bool IsPending => _payment.State is PendingPayment;
 
@@ -35,21 +35,13 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 
 	public bool IsFinished => _payment.State is FinishedPayment;
 
-	public bool IsRejected => _payment.State is RejectedPayment;
-
 	public bool IsCancellable => IsPending;
 
 	public string? TransactionId => _payment.State is FinishedPayment finished
 		? finished.TransactionId.ToString()
 		: null;
 
-	public string? RejectionReason => _payment.State is RejectedPayment rejected
-		? $"Below the coordinator's minimum of {ToBtcText(rejected.MinAllowedOutputAmount)}"
-		: null;
-
 	public Payment Payment => _payment;
-
-	private static string ToBtcText(Money amount) => $"{amount.ToDecimal(MoneyUnit.BTC):N8} BTC";
 
 	private string GetStatusText()
 	{
@@ -58,7 +50,6 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 			PendingPayment => "Pending",
 			InProgressPayment or SignedUnknownPayment => "In Progress",
 			FinishedPayment => "Completed",
-			RejectedPayment => "Rejected",
 			_ => "Unknown"
 		};
 	}
