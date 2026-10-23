@@ -12,9 +12,7 @@ public static class CoinSelectors
 			.Select(coinSelector => coinSelector(coins, parameters, liquidityClue))
 			.FirstOrDefault(selection => !selection.IsEmpty, ImmutableList<SmartCoin>.Empty);
 
-	// Selects coins for as many pending payments as possible, cheapest first, and none if no payment can be made.
-	// A payment signed in a transaction that was not broadcast can only be made in a transaction that also spends
-	// an input of it, so an input of each such transaction that can still confirm is selected first. Red coins stay isolated.
+	// Pays as many pending payments as possible, cheapest first, spending an input of each failed attempt. Red coins stay isolated.
 	public static CoinSelector PrivatePaymentCoinSelector(PaymentBatch paymentBatch, int minAnonScoreForPayments, int semiPrivateThreshold) =>
 		(coins, parameters, _) =>
 		{
@@ -33,17 +31,14 @@ public static class CoinSelectors
 					.Where(x => !x.IsRedCoin(semiPrivateThreshold) || !selection.Any(y => y.IsRedCoin(semiPrivateThreshold)))
 					.ToArray();
 
-			ImmutableList<SmartCoin> SpendFrom(ImmutableList<SmartCoin> selection, ImmutableArray<OutPoint> attemptInputs)
-			{
-				var coin = Selectable(selection)
-					.Where(x => attemptInputs.Contains(x.Outpoint))
-					.OrderBy(x => x.IsRedCoin(semiPrivateThreshold))
-					.ThenByDescending(x => x.EffectiveValue(feeRate))
-					.FirstOrDefault();
-				return selection.Any(x => attemptInputs.Contains(x.Outpoint)) || coin is null
+			ImmutableList<SmartCoin> SpendFrom(ImmutableList<SmartCoin> selection, ImmutableArray<OutPoint> attemptInputs) =>
+				selection.Any(x => attemptInputs.Contains(x.Outpoint))
 					? selection
-					: selection.Add(coin);
-			}
+					: selection.AddRange(Selectable(selection)
+						.Where(x => attemptInputs.Contains(x.Outpoint))
+						.OrderBy(x => x.IsRedCoin(semiPrivateThreshold))
+						.ThenByDescending(x => x.EffectiveValue(feeRate))
+						.Take(1));
 
 			ImmutableList<SmartCoin> Fund(ImmutableList<SmartCoin> selection, Money amount)
 			{
