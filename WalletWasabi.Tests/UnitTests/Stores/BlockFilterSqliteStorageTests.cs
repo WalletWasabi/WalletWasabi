@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;

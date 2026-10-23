@@ -12,7 +12,6 @@ HiddenWallet's ports (3712x) are chosen within a long range of unassigned IANA p
 | 37124 | Tor socks port used by NTumbleBit                 |
 | 37125 | Tor control port used by NTumbleBit               |
 | 37126 | Wasabi Wallet Coordinator                         |
-| 37127 | Wasabi Wallet Backend                             |
 | 37128 | Wasabi Wallet RPC Server                          |
 | 37129 | Wasabi Wallet Local Client TCPListener on MainNet |
 | 37130 | Wasabi Wallet Local Client TCPListener on TestNet |
