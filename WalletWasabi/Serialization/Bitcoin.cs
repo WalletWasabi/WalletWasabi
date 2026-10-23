@@ -64,7 +64,7 @@ public static partial class Decode
 			}
 		};
 
-	private static Decoder<uint256> UInt256 =>
+	public static Decoder<uint256> UInt256 =>
 		String.Map(s => new uint256(s)).Catch();
 
 	public static Decoder<Network> Network =>

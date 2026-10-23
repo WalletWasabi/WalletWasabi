@@ -164,6 +164,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool IsCancellation { get; private set; }
 
+	/// <summary>
+	/// The inputs belong to another wallet of the user ("coinjoin to this wallet"), which may not be loaded,
+	/// so they may be missing from <see cref="WalletInputs"/>. Set by the receiving wallet from its key manager.
+	/// </summary>
+	public bool IsCoinjoinFromOtherWallet { get; private set; }
+
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
 	public bool IsCPFPd => ChildrenPayForThisTx.Any();
 
@@ -395,6 +401,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsCancellation = true;
 	}
 
+	public void SetCoinjoinFromOtherWallet()
+	{
+		IsCoinjoinFromOtherWallet = true;
+	}
+
 	public void SetUnconfirmed()
 	{
 		Height = Height.Mempool;
@@ -403,7 +414,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	public bool IsOwnCoinjoin()
-	   => WalletInputs.Count != 0 // We must be a participant in order for this transaction to be our coinjoin.
+	   => (WalletInputs.Count != 0 || IsCoinjoinFromOtherWallet) // We must be a participant in order for this transaction to be our coinjoin.
 	   && Transaction.Inputs.Count != WalletInputs.Count; // Some inputs must not be ours for it to be a coinjoin.
 
 	public bool IsSegwitWithoutWitness => !Transaction.HasWitness && Transaction.Inputs.Any(x => x.ScriptSig == Script.Empty);

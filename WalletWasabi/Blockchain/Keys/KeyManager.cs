@@ -177,6 +177,14 @@ public class KeyManager
 
 	public Dictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; private set; } = new();
 
+	/// <summary>
+	/// Coinjoins whose inputs belong to another wallet of the user (the "coinjoin to this wallet" feature).
+	/// Remembered so the coinjoin is still recognized as such when that other wallet is not loaded,
+	/// otherwise it would be analyzed as a plain receive with anonymity score 1.
+	/// </summary>
+	/// <remarks>Guarded by <see cref="_criticalStateLock"/>.</remarks>
+	private readonly HashSet<uint256> _coinjoinsFromOtherWallets = new();
+
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
@@ -732,6 +740,25 @@ public class KeyManager
 		ToFile();
 	}
 
+	public void AddCoinjoinFromOtherWallet(uint256 transactionId)
+	{
+		lock (_criticalStateLock)
+		{
+			if (_coinjoinsFromOtherWallets.Add(transactionId))
+			{
+				ToFileNoLock();
+			}
+		}
+	}
+
+	public bool IsCoinjoinFromOtherWallet(uint256 transactionId)
+	{
+		lock (_criticalStateLock)
+		{
+			return _coinjoinsFromOtherWallets.Contains(transactionId);
+		}
+	}
+
 	private static JsonNode EncodeKeyManagerNoLock(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
@@ -757,6 +784,7 @@ public class KeyManager
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
 			("CoinjoinCosts", Encode.Array(keyManager.CoinjoinCosts.Select(Encode.CoinjoinCosts))),
+			("CoinjoinsFromOtherWallets", Encode.Array(keyManager._coinjoinsFromOtherWallets.Select(Encode.UInt256))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -799,6 +827,7 @@ public class KeyManager
 				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToDictionary() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
+			km._coinjoinsFromOtherWallets.UnionWith(get.Optional("CoinjoinsFromOtherWallets", Decode.Array(Decode.UInt256)) ?? []);
 			return km;
 		});
 }

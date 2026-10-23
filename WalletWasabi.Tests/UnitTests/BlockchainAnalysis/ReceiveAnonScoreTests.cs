@@ -44,4 +44,21 @@ public class ReceiveAnonScoreTests
 		var coin = Assert.Single(tx.WalletOutputs);
 		Assert.Equal(1, coin.AnonymitySet);
 	}
+
+	[Fact]
+	public void CoinjoinFromOtherWallet()
+	{
+		// The inputs belong to another wallet of the user that is not loaded, so the transaction has
+		// no wallet inputs. It must still be analyzed as a coinjoin, starting from unmixed inputs.
+		var tx = BitcoinFactory.CreateSmartTransaction(10, Enumerable.Repeat(Money.Coins(1m), 9), Enumerable.Empty<(Money, int)>(), new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+
+		tx.SetCoinjoinFromOtherWallet();
+
+		BlockchainAnalyzer.Analyze(tx);
+
+		var coin = Assert.Single(tx.WalletOutputs);
+
+		// 10 participants, 1 is you, your anonset is 10.
+		Assert.Equal(10, coin.AnonymitySet);
+	}
 }
