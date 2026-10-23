@@ -1,96 +1,114 @@
-using NNostr.Client;
-using NNostr.Client.Protocols;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Threading;
+using System.Collections.Concurrent;
 using System.Threading.Channels;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
+using Nostra;
+using Nostra.CSharp;
 
 namespace WalletWasabi.WebClients;
 
 public class WasabiNostrClient : IDisposable
 {
 	private readonly Channel<ReleaseInfo> _updateChannel = Channel.CreateUnbounded<ReleaseInfo>();
-	private readonly Dictionary<string, NostrEvent> _events = new();
+	private readonly ConcurrentDictionary<string, Event> _events = new();
 	private readonly HashSet<object> _eoseReceivedFrom = new();
 	private readonly INostrClient _nostrClient;
-	private readonly string _pubkey;
+	private readonly AuthorIdT _pubkey;
 	private readonly string _nostrSubscriptionId = Guid.NewGuid().ToString();
 	private int _connectedClientsCount;
+	private CancellationTokenSource? _listeningCts;
 
 	public WasabiNostrClient(INostrClient nostrClient, string pubkeyNpub)
 	{
 		_nostrClient = nostrClient;
-		_pubkey = NIP19.FromNIP19Npub(pubkeyNpub).ToHex();
-		_nostrClient.EventsReceived += OnNostrEventsReceived;
-		_nostrClient.EoseReceived += OnEoseReceived;
+		_pubkey = Shareable.FromNPub(pubkeyNpub)
+		          ?? throw new ArgumentException("The pubkey was not specified.", nameof(pubkeyNpub));
 	}
 
 	public ChannelReader<ReleaseInfo> EventsReader => _updateChannel.Reader;
 
 	public async Task ConnectAndSubscribeAsync(CancellationToken cancel)
 	{
-		await _nostrClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
+		await _nostrClient.ConnectAsync(cancel).ConfigureAwait(false);
 
 		_connectedClientsCount = _nostrClient is CompositeNostrClient composite
-			? composite.States.Count(s => s.Value is WebSocketState.Open)
+			? composite.ConnectedCount
 			: 1;
 
-		var nostrSubscriptionFilter = new NostrSubscriptionFilter {
-			Kinds = [1],
-			Authors = [NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex()],
-			Limit = 1};
+		var author = Shareable.FromNPub(Constants.WasabiTeamNostrPubKey)
+			?? throw new ArgumentException("The pubkey was not specified.", nameof(_pubkey));
+		var filter = Filter.All
+			.Notes()
+			.ByAuthors(author)
+			.Limit(1);
 
-		await _nostrClient.CreateSubscription(_nostrSubscriptionId, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
+		_nostrClient.Subscribe(_nostrSubscriptionId, filter);
+
+		_listeningCts = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+		_ = _nostrClient.StartListeningAsync(OnMessageReceived, OnError, _listeningCts.Token);
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken)
 	{
-		await _nostrClient.Disconnect().ConfigureAwait(false);
+		_listeningCts?.Cancel();
+		await _nostrClient.DisconnectAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
+	private void OnMessageReceived(object sender, RelayMessageResult message)
 	{
-		if (args.subscriptionId != _nostrSubscriptionId)
+		switch (message)
+		{
+			case RelayMessageResult.Event evt:
+				OnNostrEventReceived(sender, evt.SubscriptionId, evt.EventData);
+				break;
+			case RelayMessageResult.EndOfStoredEvents eose:
+				OnEoseReceived(sender, eose.SubscriptionId);
+				break;
+		}
+	}
+
+	private void OnError(string error)
+	{
+		Logger.LogDebug($"Nostr error: {error}");
+	}
+
+	private void OnNostrEventReceived(object sender, string subscriptionId, EventT nostrEvent)
+	{
+		if (subscriptionId != _nostrSubscriptionId)
 		{
 			return;
 		}
 
-		foreach (var nostrEvent in args.events)
+		if (!AuthorIds.equals(nostrEvent.PubKey, _pubkey))
 		{
-			if (nostrEvent.PublicKey != _pubkey)
-			{
-				continue;
-			}
+			return;
+		}
 
-			if (!_events.TryAdd(nostrEvent.Id, nostrEvent))
-			{
-				continue;
-			}
+		var eventIdHex = EventIds.ToHex(nostrEvent.Id);
+		if (!_events.TryAdd(eventIdHex, nostrEvent))
+		{
+			return;
+		}
 
-			try
-			{
-				var tags = nostrEvent.Tags.ToImmutableDictionary(t => t.TagIdentifier, t => t.Data.First());
-				var releaseInfo = new ReleaseInfo(
-					Version.Parse(tags["version"]),
-					tags.Remove("version").ToImmutableDictionary(t => t.Key, t => new Uri(t.Value)));
+		try
+		{
+			var tags = nostrEvent.Tags
+				.Select(t => (Key: t.Item1, Value: t.Item2.FirstOrDefault() ?? ""))
+				.ToImmutableDictionary(t => t.Key, t => t.Value);
 
-				_updateChannel.Writer.TryWrite(releaseInfo);
-			}
-			catch (Exception)
-			{
-				Logger.LogError($"Invalid Nostr Event received. ID: {nostrEvent.Id}");
-			}
+			var releaseInfo = new ReleaseInfo(
+				Version.Parse(tags["version"]),
+				tags.Remove("version").ToImmutableDictionary(t => t.Key, t => new Uri(t.Value)));
+
+			_updateChannel.Writer.TryWrite(releaseInfo);
+		}
+		catch (Exception)
+		{
+			Logger.LogError($"Invalid Nostr Event received. ID: {eventIdHex}");
 		}
 	}
 
-	private void OnEoseReceived(object? sender, string subscriptionId)
+	private void OnEoseReceived(object sender, string subscriptionId)
 	{
-		if (subscriptionId != _nostrSubscriptionId || sender is null)
+		if (subscriptionId != _nostrSubscriptionId)
 		{
 			return;
 		}
@@ -108,8 +126,7 @@ public class WasabiNostrClient : IDisposable
 
 	public void Dispose()
 	{
-		_nostrClient.EventsReceived -= OnNostrEventsReceived;
-		_nostrClient.EoseReceived -= OnEoseReceived;
+		_listeningCts?.Dispose();
 	}
 }
 
