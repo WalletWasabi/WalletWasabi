@@ -435,6 +435,17 @@ public class PaymentBatchTests
 		// would have been included in the second coinjoin
 	}
 
+	[Fact]
+	public void PaymentBelowMinimumIsNotAdded()
+	{
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
+
+		Assert.Throws<ArgumentException>(() => paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(9_999)));
+		paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(10_000));
+
+		Assert.Equal(Money.Satoshis(10_000), Assert.Single(paymentBatch.GetPayments()).Amount);
+	}
+
 	private static BitcoinAddress GetNewSegwitAddress()
 	{
 		using Key key = new();
