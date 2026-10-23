@@ -213,7 +213,10 @@ public static class FilterProviders
 
 			if (filterHeadersTip.Height == fromHeight)
 			{
-				return AlreadyOnBestBlock;
+				// Filter headers can still be catching up after recovery or a restart.
+				return blockHeadersChain.Height == fromHeight
+					? AlreadyOnBestBlock
+					: FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 			}
 
 			Logger.LogDebug($"Requesting filters from height {fromHeight + 1} (filter headers tip: {filterHeadersTip.Height})");

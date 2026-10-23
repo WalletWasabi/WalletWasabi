@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using Xunit;
@@ -13,6 +15,42 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 public class FilterProvidersTests(ITestOutputHelper output)
 {
 	private static readonly byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
+
+	[Theory]
+	[InlineData(1)]
+	[InlineData(99)]
+	public async Task BitcoinP2pProvider_WaitsForFilterHeadersBehindBlockTipAsync(int filterHeight)
+	{
+		var blockHeaders = InitializeBlockchain(Network.RegTest);
+		var block = blockHeaders.GetBlock(filterHeight);
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(new SmartHeader(block.HashBlock, uint256.Zero, (uint)filterHeight, block.Header.BlockTime));
+		filterHeaders.SetServerTipHeight((uint)blockHeaders.Height);
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, (uint)filterHeight);
+		var provider = FilterProviders.CreateBitcoinP2pFilterProvider(filterHeaders, blockHeaders, synchronizationState);
+
+		var result = await provider((uint)filterHeight, block.HashBlock, TestContext.Current.CancellationToken);
+
+		// Having every filter header downloaded so far does not mean we have reached the block tip.
+		Assert.False(result.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(1), result.Error);
+	}
+
+	[Fact]
+	public async Task BitcoinP2pProvider_ReportsSynchronizedAtBlockTipAsync()
+	{
+		var blockHeaders = InitializeBlockchain(Network.RegTest);
+		var tip = blockHeaders.Tip;
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(new SmartHeader(tip.HashBlock, uint256.Zero, (uint)tip.Height, tip.Header.BlockTime));
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, (uint)tip.Height);
+		var provider = FilterProviders.CreateBitcoinP2pFilterProvider(filterHeaders, blockHeaders, synchronizationState);
+
+		var result = await provider((uint)tip.Height, tip.HashBlock, TestContext.Current.CancellationToken);
+
+		Assert.True(result.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value);
+	}
 
 	[Fact]
 	public async Task BitcoinRpcProvider_FetchesBoundedPageAndKeepsBestHeightAsync()

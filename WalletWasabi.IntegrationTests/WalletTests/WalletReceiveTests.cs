@@ -1,8 +1,14 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Helpers;
 using WalletWasabi.IntegrationTests.Infrastructure;
+using WalletWasabi.Services;
 using Xunit;
 
 namespace WalletWasabi.IntegrationTests.WalletTests;
@@ -19,6 +25,77 @@ public class WalletReceiveTests
 	public WalletReceiveTests(IntegrationTestFixture fixture)
 	{
 		_fixture = fixture;
+	}
+
+	[Fact(Timeout = 120_000)]
+	public async Task RecoveredWallet_WaitsForMissingFilterHeadersBeforeLoading()
+	{
+		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
+		var cancellationToken = TestContext.Current.CancellationToken;
+		var birthHeight = (uint)await env.RpcClient.GetBlockCountAsync(cancellationToken);
+		var original = KeyManager.CreateNew(out var mnemonic, RegTestEnvironment.DefaultPassword, env.Network);
+		var receiveKey = original.GetNextReceiveKey("Recovery test");
+		var amount = Money.Coins(1m);
+		var transactionId = await env.FundAddressAsync(receiveKey.GetP2wpkhAddress(env.Network), amount);
+		await env.SyncFiltersRpcAsync(cancellationToken);
+		var tipHeight = env.FilterHeaderChain.ServerTipHeight;
+
+		var blockHeaders = new ConcurrentChain(env.Network);
+		for (var height = 1; height <= tipHeight; height++)
+		{
+			var hash = await env.RpcClient.GetBlockHashAsync(height, cancellationToken);
+			var header = await env.RpcClient.GetBlockHeaderAsync(hash, cancellationToken);
+			blockHeaders.SetTip(new ChainedBlock(header, hash, blockHeaders.Tip));
+		}
+
+		// Model a restart with the block headers present, but filters only up to the recovery height.
+		await env.FilterStore.RemoveAllNewerThanAsync(birthHeight);
+		var walletPath = Path.Combine(env.WorkDir, "RecoveredWallet.json");
+		var recovered = KeyManager.Recover(mnemonic, RegTestEnvironment.DefaultPassword, env.Network,
+			original.SegwitAccountKeyPath, filePath: walletPath, birthHeight: birthHeight);
+		recovered.ToFile();
+		using var wallet = env.CreateWallet(KeyManager.FromFile(walletPath));
+		var state = new FilterSynchronizationState(blockHeaders, env.FilterHeaderChain, birthHeight);
+		var provider = FilterProviders.CreateBitcoinP2pFilterProvider(env.FilterHeaderChain, blockHeaders, state);
+		var synchronize = Synchronizer.CreateFilterGenerator(provider, env.FilterStore, env.FilterHeaderChain, env.EventBus);
+		using var syncCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		using var walletCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		var loading = wallet.StartAsync(walletCts.Token);
+		var synchronization = synchronize(Unit.Instance, syncCts.Token);
+
+		try
+		{
+			await env.WaitForConditionAsync(() => synchronization.IsCompleted || wallet.Loaded, TimeSpan.FromSeconds(10));
+			Assert.False(wallet.Loaded);
+			Assert.False(loading.IsCompleted);
+			Assert.Equal(tipHeight, env.FilterHeaderChain.ServerTipHeight);
+			Assert.Equal(birthHeight, (uint)wallet.KeyManager.GetBestHeight());
+			Assert.Empty(wallet.Coins);
+			await synchronization;
+
+			// Once the missing filters arrive, recovery must find the existing payment without another block.
+			await env.SyncFiltersP2PAsync(cancellationToken);
+			await loading.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+			Assert.True(wallet.Loaded);
+			Assert.Equal(tipHeight, wallet.KeyManager.GetBestHeight());
+			var coin = Assert.Single(wallet.Coins);
+			Assert.Equal(transactionId, coin.TransactionId);
+			Assert.Equal(amount, coin.Amount);
+			Assert.True(coin.Confirmed);
+		}
+		finally
+		{
+			await syncCts.CancelAsync();
+			await walletCts.CancelAsync();
+			try
+			{
+				await Task.WhenAll(synchronization, loading);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			await wallet.StopAsync(CancellationToken.None);
+		}
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
