@@ -37,6 +37,8 @@ public interface IRPCClient
 
 	Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default);
 
+	Task<Dictionary<OutPoint, uint256>> GetTxSpendingPrevOutAsync(OutPoint[] outPoints, CancellationToken cancellationToken);
+
 	IRPCClient PrepareBatch();
 
 	Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, bool replaceable = false, CancellationToken cancellationToken = default);

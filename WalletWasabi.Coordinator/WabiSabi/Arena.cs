@@ -14,7 +14,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
@@ -35,7 +34,6 @@ public partial class Arena : PeriodicRunner
 		Prison prison,
 		RoundParametersFactory roundParametersFactory,
 		FeeRateProvider feeRateProvider,
-		EventBus eventBus,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(2))
@@ -46,13 +44,11 @@ public partial class Arena : PeriodicRunner
 		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParametersFactory = roundParametersFactory;
 		_feeRateProvider = feeRateProvider;
-		_mempoolSubscription = eventBus.Subscribe<NewTransactionInMempool>(e => _mempoolTransactions.Enqueue(e.Transaction.Transaction));
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
 	private ImmutableList<RoundState> _roundStates = [];
-	private readonly ConcurrentQueue<Transaction> _mempoolTransactions = new();
-	private readonly IDisposable _mempoolSubscription;
+	private readonly ConcurrentQueue<uint256> _disruptedRounds = new();
 	private readonly AsyncLock _asyncLock = new();
 	private readonly WabiSabiConfig _config;
 	private readonly IRPCClient _rpc;
@@ -69,8 +65,6 @@ public partial class Arena : PeriodicRunner
 
 			TimeoutAlices();
 
-			RemoveDoubleSpenders();
-
 			await StepTransactionSigningPhaseAsync(cancellationToken).ConfigureAwait(false);
 
 			StepOutputRegistrationPhase();
@@ -83,6 +77,8 @@ public partial class Arena : PeriodicRunner
 
 			// Ensure there's at least one non-blame round in input registration.
 			await CreateRoundsAsync(cancellationToken).ConfigureAwait(false);
+
+			AbortDisruptedRounds();
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
@@ -273,12 +269,7 @@ public partial class Arena : PeriodicRunner
 
 			try
 			{
-				if (state.IsFullySigned && round.InputCount < state.Inputs.Count())
-				{
-					Logger.LogInfo(FormatLog($"Not broadcasting the coinjoin, {state.Inputs.Count() - round.InputCount} of its inputs were spent.", round));
-					await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-				}
-				else if (state.IsFullySigned)
+				if (state.IsFullySigned)
 				{
 					Transaction coinjoin = state.CreateTransaction();
 
@@ -315,7 +306,17 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo(FormatLog($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.", round));
 
 					// Broadcasting.
-					await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					try
+					{
+						await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					}
+					catch (RPCException ex)
+					{
+						Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
+						await FailTransactionBroadcastAsync(round, cancellationToken).ConfigureAwait(false);
+						continue;
+					}
+
 					EndRound(round, EndRoundState.TransactionBroadcasted);
 					Logger.LogInfo(FormatLog($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.", round));
 
@@ -354,11 +355,6 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 			}
-			catch (RPCException ex)
-			{
-				Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
-				EndRound(round, EndRoundState.TransactionBroadcastFailed);
-			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(FormatLog($"Signing phase failed, reason: '{ex}'.", round));
@@ -383,6 +379,27 @@ public partial class Arena : PeriodicRunner
 			var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
 			yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 		}
+	}
+
+	private async Task FailTransactionBroadcastAsync(Round round, CancellationToken cancellationToken)
+	{
+		var registeredOutpoints = round.Alices.Select(alice => alice.Coin.Outpoint).ToArray();
+		var spendingTxIds = await _rpc.GetTxSpendingPrevOutAsync(registeredOutpoints, cancellationToken).ConfigureAwait(false);
+		if (spendingTxIds.Count == 0)
+		{
+			EndRound(round, EndRoundState.TransactionBroadcastFailed);
+			return;
+		}
+
+		foreach (var (outpoint, spendingTxId) in spendingTxIds)
+		{
+			Logger.LogInfo(FormatLog($"Input {outpoint} was spent by {spendingTxId}.", round));
+		}
+
+		var removedAliceCount = round.Alices.RemoveAll(alice => spendingTxIds.ContainsKey(alice.Coin.Outpoint));
+		Logger.LogInfo(FormatLog($"Removed {removedAliceCount} alices, because they spent their coins. Remaining: {round.InputCount}", round));
+
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
@@ -578,30 +595,15 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void RemoveDoubleSpenders()
+	private void AbortDisruptedRounds()
 	{
-		var registeredAlices = Rounds
-			.Where(round => round.Phase is not (Phase.InputRegistration or Phase.Ended))
-			.SelectMany(round => round.Alices.Select(alice => (Round: round, Alice: alice)))
-			.ToDictionary(x => x.Alice.Coin.Outpoint);
-
-		while (_mempoolTransactions.TryDequeue(out var transaction))
+		while (_disruptedRounds.TryDequeue(out var disruptedRoundId))
 		{
-			var doubleSpendersByRound = transaction.Inputs
-				.Where(input => registeredAlices.ContainsKey(input.PrevOut))
-				.Select(input => registeredAlices[input.PrevOut])
-				.GroupBy(x => x.Round, x => x.Alice);
-
-			foreach (var doubleSpenders in doubleSpendersByRound)
+			var roundOrNull = Rounds.FirstOrDefault(x => x.Id == disruptedRoundId);
+			if (roundOrNull is { } nonNullRound)
 			{
-				var round = doubleSpenders.Key;
-				foreach (var output in transaction.Outputs.AsIndexedOutputs())
-				{
-					_prison.DoubleSpent(new OutPoint(transaction, output.N), output.TxOut.Value, round.Id);
-				}
-
-				var removedAliceCount = round.Alices.RemoveAll(alice => doubleSpenders.Contains(alice));
-				Logger.LogInfo(FormatLog($"Removed {removedAliceCount} alices, because {transaction.GetHash()} spent their coins. Remaining: {round.InputCount}", round));
+				Logger.LogInfo(FormatLog("Round aborted because it was disrupted by double spenders.", nonNullRound));
+				nonNullRound.EndRound(EndRoundState.AbortedDoubleSpendingDetected);
 			}
 		}
 	}
@@ -635,10 +637,4 @@ public partial class Arena : PeriodicRunner
 	/// Don't ban in that case to avoid huge amount of false-positives.
 	/// </summary>
 	private static bool ReasonableOffendersCount(int offendersCount, int minInputCount) => offendersCount <= minInputCount;
-
-	public override void Dispose()
-	{
-		_mempoolSubscription.Dispose();
-		base.Dispose();
-	}
 }

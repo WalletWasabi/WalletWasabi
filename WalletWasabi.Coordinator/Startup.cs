@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Discoverability;
@@ -23,9 +22,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.Services;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -77,27 +74,26 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton(torSetting);
 
 		services.AddSingleton<IdempotencyRequestCache>();
-
-		string host;
-		if (config.Network == Network.Main)
-		{
-			host = config.MainNetBitcoinRpcUri;
-		}
-		else if (config.Network == Network.TestNet)
-		{
-			host = config.TestNetBitcoinRpcUri;
-		}
-		else if (config.Network == Network.RegTest)
-		{
-			host = config.RegTestBitcoinRpcUri;
-		}
-		else
-		{
-			throw new NotSupportedException($"Network {config.Network} is not supported");
-		}
-
 		services.AddSingleton<IRPCClient>(provider =>
 		{
+			string host;
+			if (config.Network == Network.Main)
+			{
+				host = config.MainNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.TestNet)
+			{
+				host = config.TestNetBitcoinRpcUri;
+			}
+			else if (config.Network == Network.RegTest)
+			{
+				host = config.RegTestBitcoinRpcUri;
+			}
+			else
+			{
+				throw new NotSupportedException($"Network {config.Network} is not supported");
+			}
+
 			RPCClient rpcClient = new(
 				authenticationString: config.BitcoinRpcConnectionString,
 				hostOrUri: host,
@@ -118,12 +114,6 @@ public class Startup(IConfiguration configuration)
 			var config = s.GetRequiredService<WabiSabiConfig>();
 			return (feeRate, minInputCountByRound) => RoundParameters.Create(config, feeRate, minInputCountByRound);
 		});
-		services.AddSingleton<EventBus>();
-		services.AddSingleton<MempoolService>();
-		services.AddBackgroundService(s => new P2pNode(
-			network,
-			EndPointParser.Parse($"{new Uri(host).DnsSafeHost}:{network.DefaultPort}"),
-			s.GetRequiredService<MempoolService>()));
 		services.AddBackgroundService<Arena>();
 
 		if (config.AnnouncerConfig.IsEnabled)
