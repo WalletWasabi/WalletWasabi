@@ -12,6 +12,7 @@ public class StatusContainer : IDisposable
 	public uint BestNetworkHeight { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
+	public string InstallerSha256 { get; private set; } = string.Empty;
 
 	private readonly IDisposable _torConnectionSubscription;
 	private readonly IDisposable _feeRateSubscription;
@@ -35,7 +36,7 @@ public class StatusContainer : IDisposable
 			eventBus.Subscribe<NetworkTipHeightChanged>(e => BestNetworkHeight = e.Height);
 
 		_installerAvailableSubscription =
-			eventBus.Subscribe<NewSoftwareVersionInstallerAvailable>(e => InstallerFilePath = e.InstallerPath);
+			eventBus.Subscribe<NewSoftwareVersionInstallerAvailable>(e => (InstallerFilePath, InstallerSha256) = (e.InstallerPath, e.InstallerSha256));
 
 		InstallOnClose = installOnClose;
 		_installOnCloseSubscription =
