@@ -16,13 +16,13 @@ namespace WalletWasabi.Fluent;
 
 public interface IServices
 {
-	string DataDir { get; }
-	string PersistentConfigFilePath { get; }
-	PersistentConfig PersistentConfig { get; }
-	WalletManager WalletManager { get; }
-	Config Config { get; }
-	EventBus EventBus { get; }
-	Client.Scheme Scheme { get; }
+	string GetDataDir();
+	string GetPersistentConfigFilePath();
+	PersistentConfig GetPersistentConfig();
+	WalletManager GetWalletManager();
+	Config GetConfig();
+	EventBus GetEventBus();
+	Client.Scheme GetScheme();
 
 	uint GetTipHeight();
 	uint GetServerTipHeight();

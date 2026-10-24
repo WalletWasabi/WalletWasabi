@@ -60,21 +60,28 @@ public class Services : IServices
 		_hostedServices = global.HostedServices;
 		_terminateService = terminateService;
 		_status = global.Status;
-		Scheme = global.Scheme;
-		DataDir = global.DataDir;
-		PersistentConfig = global.Config.PersistentConfig;
-		WalletManager = global.WalletManager;
-		Config = global.Config;
-		EventBus = global.EventBus;
+		_scheme = global.Scheme;
+		_dataDir = global.DataDir;
+		_persistentConfig = global.Config.PersistentConfig;
+		_walletManager = global.WalletManager;
+		_config = global.Config;
+		_eventBus = global.EventBus;
 	}
 
-	public string DataDir { get; }
-	public string PersistentConfigFilePath => Path.Combine(DataDir, PersistentConfig.GetConfigFileName());
-	public PersistentConfig PersistentConfig { get; }
-	public WalletManager WalletManager { get; }
-	public Config Config { get; }
-	public EventBus EventBus { get; }
-	public Client.Scheme Scheme { get; }
+	private readonly string _dataDir;
+	private readonly PersistentConfig _persistentConfig;
+	private readonly WalletManager _walletManager;
+	private readonly Config _config;
+	private readonly EventBus _eventBus;
+	private readonly Client.Scheme _scheme;
+
+	public string GetDataDir() => _dataDir;
+	public string GetPersistentConfigFilePath() => Path.Combine(_dataDir, _persistentConfig.GetConfigFileName());
+	public PersistentConfig GetPersistentConfig() => _persistentConfig;
+	public WalletManager GetWalletManager() => _walletManager;
+	public Config GetConfig() => _config;
+	public EventBus GetEventBus() => _eventBus;
+	public Client.Scheme GetScheme() => _scheme;
 
 	// Chain info
 	public uint GetTipHeight() => _filterHeaders.TipHeight;
@@ -92,21 +99,21 @@ public class Services : IServices
 	public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? tx) => _transactionStore.TryGetTransaction(hash, out tx);
 
 	// WalletManager info
-	public Network GetNetwork() => WalletManager.Network;
-	public IEnumerable<Wallet> GetWallets() => WalletManager.GetWallets();
-	public bool HasWallet() => WalletManager.HasWallet();
-	public Wallet GetWalletByName(string walletName) => WalletManager.GetWalletByName(walletName);
-	public void RenameWallet(Wallet wallet, string newWalletName) => WalletManager.RenameWallet(wallet, newWalletName);
-	public string GetWalletsDir() => WalletManager.WalletDirectories.WalletsDir;
-	public string GetNextWalletName(string prefix) => WalletManager.WalletDirectories.GetNextWalletName(prefix);
-	public string GetWalletFilePath(string walletName) => WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => WalletManager.ValidateWalletName(walletName);
-	public Task StartWalletAsync(Wallet wallet) => WalletManager.StartWalletAsync(wallet);
-	public void AddWallet(KeyManager keyManager) => WalletManager.AddWallet(keyManager);
+	public Network GetNetwork() => _walletManager.Network;
+	public IEnumerable<Wallet> GetWallets() => _walletManager.GetWallets();
+	public bool HasWallet() => _walletManager.HasWallet();
+	public Wallet GetWalletByName(string walletName) => _walletManager.GetWalletByName(walletName);
+	public void RenameWallet(Wallet wallet, string newWalletName) => _walletManager.RenameWallet(wallet, newWalletName);
+	public string GetWalletsDir() => _walletManager.WalletDirectories.WalletsDir;
+	public string GetNextWalletName(string prefix) => _walletManager.WalletDirectories.GetNextWalletName(prefix);
+	public string GetWalletFilePath(string walletName) => _walletManager.WalletDirectories.GetWalletFilePaths(walletName);
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => _walletManager.ValidateWalletName(walletName);
+	public Task StartWalletAsync(Wallet wallet) => _walletManager.StartWalletAsync(wallet);
+	public void AddWallet(KeyManager keyManager) => _walletManager.AddWallet(keyManager);
 
 	// Tor info
 	public string GetTorLogFilePath() => _torSettings.LogFilePath;
-	public TorMode GetUseTor() => Config.UseTor;
+	public TorMode GetUseTor() => _config.UseTor;
 
 	// ExchangeRate info
 	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;

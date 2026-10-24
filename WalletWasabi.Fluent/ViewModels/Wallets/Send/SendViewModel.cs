@@ -564,7 +564,7 @@ public partial class SendViewModel : RoutableViewModel
 		// Refresh in case the rate changed while we were not subscribed.
 		ExchangeRate = UiContext.Services.GetUsdExchangeRate();
 
-		UiContext.Services.EventBus
+		UiContext.Services.GetEventBus()
 			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.UsdBtcRate)
 			.DisposeWith(disposables);
 

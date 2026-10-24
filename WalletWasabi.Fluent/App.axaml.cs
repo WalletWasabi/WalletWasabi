@@ -110,7 +110,7 @@ public class App : Application
 
 	private static ApplicationSettings CreateApplicationSettings(IServices services, UiConfig uiConfig)
 	{
-		return new ApplicationSettings(services, services.PersistentConfig, services.Config, uiConfig);
+		return new ApplicationSettings(services, services.GetPersistentConfig(), services.GetConfig(), uiConfig);
 	}
 
 	private static TransactionBroadcasterModel CreateBroadcaster(IServices services, Network network)
@@ -152,6 +152,6 @@ public class App : Application
 			torStatusChecker,
 			new HealthMonitor(services, torStatusChecker),
 			new ReleaseHighlights(),
-			services.Scheme);
+			services.GetScheme());
 	}
 }

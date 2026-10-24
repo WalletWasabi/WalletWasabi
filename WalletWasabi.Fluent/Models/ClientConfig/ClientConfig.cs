@@ -11,11 +11,11 @@ public class ClientConfigModel
 		_services = services;
 	}
 
-	public string DataDir => _services.DataDir;
+	public string DataDir => _services.GetDataDir();
 
 	public string WalletsDir => _services.GetWalletsDir();
 
-	public string ConfigFilePath => _services.PersistentConfigFilePath;
+	public string ConfigFilePath => _services.GetPersistentConfigFilePath();
 
 	public string TorLogFilePath => _services.GetTorLogFilePath();
 
