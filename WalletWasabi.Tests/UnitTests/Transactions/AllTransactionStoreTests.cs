@@ -34,7 +34,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570464578));
@@ -45,7 +44,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590391));
@@ -56,7 +54,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590448));
@@ -68,7 +65,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 307,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940579));
@@ -79,7 +75,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 346,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940633));
@@ -90,7 +85,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9"),
 			blockIndex: 130,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570462988));
@@ -144,7 +138,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570464578));
@@ -155,7 +148,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590391));
@@ -166,7 +158,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590448));
@@ -177,7 +168,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 307,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940579));
@@ -188,7 +178,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 346,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940633));
@@ -199,7 +188,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9"),
 			blockIndex: 130,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570462988));
@@ -282,7 +270,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570464578));
@@ -293,7 +280,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590391));
@@ -304,7 +290,6 @@ public class AllTransactionStoreTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590448));
@@ -315,7 +300,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 307,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940579));
@@ -326,7 +310,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b"),
 			blockIndex: 346,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1569940633));
@@ -337,7 +320,6 @@ public class AllTransactionStoreTests
 			blockHash: uint256.Parse("0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9"),
 			blockIndex: 130,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570462988));

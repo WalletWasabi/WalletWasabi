@@ -96,7 +96,6 @@ public static class WasabiLibGenerator
 		DefineAccessor("transaction-cancellation?", (SmartTransaction tx) => tx.IsCancellation);
 		DefineAccessor("transaction-cpfp?", (SmartTransaction tx) => tx.IsCPFP);
 		DefineAccessor("transaction-confirmed?", (SmartTransaction tx) => tx.Confirmed);
-		DefineAccessor("transaction-replacement?", (SmartTransaction tx) => tx.IsReplacement);
 		DefineAccessor("transaction-coinjoin?", (SmartTransaction tx) => tx.IsWasabi2Cj);
 		DefineAccessor("transaction-raw-height", (SmartTransaction tx) => tx.Height);
 		DefineAccessor("transaction-raw-blockhash", (SmartTransaction tx) => tx.BlockHash);
@@ -331,7 +330,6 @@ public static class WasabiLibGenerator
 		           ("height"         ,(transaction-height tx))
 		           ("blockHash"      ,(transaction-block-hash tx))
 		           ("isConfirmed"    ,(transaction-confirmed? tx))
-		           ("isReplacement"  ,(transaction-replacement? tx))
 		           ("isCancellation" ,(transaction-cancellation? tx))
 		           ("isCoinjoin"     ,(transaction-coinjoin? tx))
 		           ("isCpfp"         ,(transaction-cpfp? tx))
