@@ -1,9 +1,4 @@
-using NBitcoin;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 
 namespace WalletWasabi.Wallets;
