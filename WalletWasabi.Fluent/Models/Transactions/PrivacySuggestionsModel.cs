@@ -16,7 +16,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
@@ -34,7 +33,6 @@ public partial class PrivacySuggestionsModel
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
 	private readonly IServices _services;
 	private readonly Wallet _wallet;
@@ -45,7 +43,6 @@ public partial class PrivacySuggestionsModel
 	{
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
-		_cjManager = services.GetHostedService<CoinJoinManager>();
 		_services = services;
 	}
 
@@ -164,7 +161,7 @@ public partial class PrivacySuggestionsModel
 
 		var availableCoins = _sendFlow.AvailableCoins;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
+		ImmutableList<SmartCoin> coinsToExclude = _services.GetCoinsInCriticalPhase(_wallet.WalletId);
 		bool wasCoinjoiningCoinUsed = parameters.Transaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
@@ -301,7 +298,7 @@ public partial class PrivacySuggestionsModel
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		var coinsInCoinJoin = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
+		var coinsInCoinJoin = _services.GetCoinsInCriticalPhase(_wallet.WalletId);
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
 		// If the original transaction is using only confirmed coins, BnB can use only them too. Otherwise let unconfirmed coins stay in the list.

@@ -243,7 +243,7 @@ public static class WasabiAppExtensions
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 					}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
-					.SetupAppBuilder(services.GetConfig().EnableGpu)
+					.SetupAppBuilder(services.GetEnableGpu())
 					.AfterSetup(_ =>
 					{
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);

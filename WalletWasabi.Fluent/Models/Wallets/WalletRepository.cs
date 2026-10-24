@@ -30,7 +30,7 @@ public partial class WalletRepository : ReactiveObject
 		_amountProvider = amountProvider;
 
 		var signals =
-			Observable.FromEventPattern<Wallet>(services.GetWalletManager(), nameof(WalletManager.WalletAdded))
+			services.SubscribeToWalletAdded()
 					  .Select(_ => System.Reactive.Unit.Default)
 					  .StartWith(System.Reactive.Unit.Default);
 
@@ -158,7 +158,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
-		var keyManager = await ImportWalletHelper.ImportWalletAsync(_services.GetWalletManager(), walletName, filePath);
+		var keyManager = await _services.ImportWalletAsync(walletName, filePath);
 		return new WalletSettingsModel(_services, keyManager, true);
 	}
 

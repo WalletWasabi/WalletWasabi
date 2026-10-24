@@ -108,9 +108,9 @@ public class App : Application
 		return new ClientConfigModel(services);
 	}
 
-	private static ApplicationSettings CreateApplicationSettings(IServices services, UiConfig uiConfig)
+	private static ApplicationSettings CreateApplicationSettings(Services services, UiConfig uiConfig)
 	{
-		return new ApplicationSettings(services, services.GetPersistentConfig(), services.GetConfig(), uiConfig);
+		return new ApplicationSettings(services, services.PersistentConfig, services.Config, uiConfig);
 	}
 
 	private static TransactionBroadcasterModel CreateBroadcaster(IServices services, Network network)

@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -101,9 +100,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		_coinjoin = new(() =>
 		{
-			var coinJoinManager = services.GetHostedService<CoinJoinManager>();
-			return coinJoinManager is not null
-				? new WalletCoinjoinModel(services, Wallet, coinJoinManager, Settings)
+			return services.IsCoinJoinEnabled()
+				? new WalletCoinjoinModel(services, Wallet, Settings)
 				: null;
 		});
 
@@ -113,7 +111,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Addresses = new AddressesModel(services, Wallet);
 
-		Loaded = services.GetEventBus().AsObservable<WalletLoaded>()
+		Loaded = services.SubscribeToEvent<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => Wallet.Loaded);
 
@@ -212,7 +210,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public void Rename(string newWalletName)
 	{
-		_services.RenameWallet(Wallet, newWalletName);
+		_services.RenameWallet(Wallet.WalletName, newWalletName);
 		this.RaisePropertyChanged(nameof(Name));
 	}
 }
