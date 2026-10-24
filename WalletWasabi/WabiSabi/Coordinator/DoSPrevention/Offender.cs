@@ -1,5 +1,3 @@
-using WalletWasabi.Extensions;
-
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public enum RoundDisruptionMethod

@@ -30,7 +30,10 @@ public class Prison
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new FailedToVerify(roundId)));
 
 	public void CheatingDetected(OutPoint outPoint, uint256 roundId) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new Cheating(roundId)));
+		CheatingDetected(outPoint, roundId, DateTimeOffset.UtcNow);
+
+	public void CheatingDetected(OutPoint outPoint, uint256 roundId, DateTimeOffset dateTimeOffset) =>
+		Punish(new Offender(outPoint, dateTimeOffset, new Cheating(roundId)));
 
 	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
