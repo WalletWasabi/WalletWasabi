@@ -188,4 +188,7 @@ public record FeeRateEstimations
 
 	public override int GetHashCode() =>
 		Estimations.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value));
+
+	public override string ToString() =>
+		string.Join(", ", Estimations.Select(x => $"{x.Key} blocks: {x.Value.SatoshiPerByte} sat/vB"));
 }

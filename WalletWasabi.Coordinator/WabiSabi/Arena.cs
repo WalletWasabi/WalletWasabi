@@ -458,7 +458,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = _roundParametersFactory(feeRate, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
-		Logger.LogInfo(FormatLog($"Created from round {round.Id}.", blameRound));
+		Logger.LogInfo(FormatLog($"Created from round {round.Id}. Mining fee rate: {blameRound.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", blameRound));
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -473,7 +473,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			Logger.LogInfo(FormatLog("Created new round.", r));
+			Logger.LogInfo(FormatLog($"Created new round. Mining fee rate: {r.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", r));
 		}
 	}
 
