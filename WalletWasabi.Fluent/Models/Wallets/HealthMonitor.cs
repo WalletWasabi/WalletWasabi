@@ -37,32 +37,34 @@ public partial class HealthMonitor : ReactiveObject
 		UseTor = services.GetUseTor();
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 
-		var statusMessage = string.IsNullOrWhiteSpace(services.Config.BitcoinRpcUri) ? NoBitcoinRpcConfigured : NoBitcoinRpcDetected;
+		var statusMessage = string.IsNullOrWhiteSpace(services.GetConfig().BitcoinRpcUri) ? NoBitcoinRpcConfigured : NoBitcoinRpcDetected;
 		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail(statusMessage);
 
+		var eventBus = services.GetEventBus();
+
 		// Priority Fee
-		services.EventBus.AsObservable<MiningFeeRatesChanged>()
+		eventBus.AsObservable<MiningFeeRatesChanged>()
 			.Select(e => e.AllFeeEstimate.Estimations.FirstOrDefault(x => x.Key == 2).Value)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(priorityFee => PriorityFee = priorityFee.SatoshiPerByte);
 
 		// Blockchain Tip
-		services.EventBus.AsObservable<NetworkTipHeightChanged>()
+		eventBus.AsObservable<NetworkTipHeightChanged>()
 			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(blockchainTip => BlockchainTip = blockchainTip);
 
 		// Local Tip
-		services.EventBus.AsObservable<ClientTipHeightChanged>()
+		eventBus.AsObservable<ClientTipHeightChanged>()
 			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(clientTip => ClientTip = clientTip);
 
 		// Tor Status
-		services.EventBus.AsObservable<TorConnectionStateChanged>()
+		eventBus.AsObservable<TorConnectionStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(status => (UseTor, status.IsTorRunning) switch
 			{
@@ -86,18 +88,18 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		var nodesCount = 0;
-		var peerAddedObservable = services.EventBus.AsObservable<P2pNodeAdded>();
+		var peerAddedObservable = eventBus.AsObservable<P2pNodeAdded>();
 		peerAddedObservable.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => nodesCount++)
 			.DisposeWith(Disposables);
-		var peerRemovedObservable = services.EventBus.AsObservable<P2pNodeRemoved>();
+		var peerRemovedObservable = eventBus.AsObservable<P2pNodeRemoved>();
 		peerRemovedObservable.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => nodesCount--)
 			.DisposeWith(Disposables);
 
 		// Peers
 		Observable.Merge( peerAddedObservable.ToSignal().Merge(peerRemovedObservable.ToSignal())
-			.Merge(services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
+			.Merge(eventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ =>
 				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodesCount)
@@ -105,7 +107,7 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Bitcoin Core Status
-		services.EventBus.AsObservable<RpcStatusChanged>()
+		eventBus.AsObservable<RpcStatusChanged>()
 			.Select(x => x.Status)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => BitcoinRpcStatus = x)
@@ -119,7 +121,7 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Update Available
-		services.EventBus.AsObservable<NewSoftwareVersionAvailable>()
+		eventBus.AsObservable<NewSoftwareVersionAvailable>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(e =>
 			{

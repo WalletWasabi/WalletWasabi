@@ -97,7 +97,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		UiContext.Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+		UiContext.Services.GetEventBus().AsObservable<MiningFeeRatesChanged>()
 			.Select(e =>
 			{
 				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _wallet.Network, out var estimates);

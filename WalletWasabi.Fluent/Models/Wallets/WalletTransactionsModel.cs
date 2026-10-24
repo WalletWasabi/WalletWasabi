@@ -35,20 +35,22 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		_wallet = wallet;
 		_treeBuilder = new TransactionTreeBuilder(wallet, services);
 
+		var eventBus = services.GetEventBus();
+
 		TransactionProcessed =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
-				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
+			eventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(eventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+			eventBus.AsObservable<WalletRelevantTransactionProcessed>()
 				.Where(x => x.WalletName == wallet.WalletName)
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+		RequestedCpfpInfoArrived = eventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		var coinjoinCostsAdded = services.EventBus.AsObservable<CoinjoinCostsAdded>()
