@@ -20,7 +20,6 @@ public interface IServices
 	string PersistentConfigFilePath { get; }
 	PersistentConfig PersistentConfig { get; }
 	WalletManager WalletManager { get; }
-	UiConfig UiConfig { get; }
 	Config Config { get; }
 	EventBus EventBus { get; }
 	Client.Scheme Scheme { get; }
@@ -53,21 +52,6 @@ public interface IServices
 	TorMode GetUseTor();
 
 	decimal GetUsdExchangeRate();
-
-	bool GetHideOnClose();
-	double? GetWindowWidth();
-	double? GetWindowHeight();
-	void SetWindowWidth(double? width);
-	void SetWindowHeight(double? height);
-	string? GetLastSelectedWallet();
-	void SetLastSelectedWallet(string? walletName);
-	bool GetPrivacyMode();
-	bool GetAutocopy();
-	bool GetAutoPaste();
-	bool GetSendAmountConversionReversed();
-	void SetSendAmountConversionReversed(bool value);
-	int GetFeeTarget();
-	void SetFeeTarget(int value);
 
 	T? GetHostedService<T>() where T : class, Microsoft.Extensions.Hosting.IHostedService;
 
