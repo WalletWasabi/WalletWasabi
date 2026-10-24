@@ -179,7 +179,7 @@ public partial class MainViewModel : ViewModelBase
 			.Select(x => x.Count != 0)
 			.BindTo(this, x => x.IsCoinJoinActive);
 
-		UiContext.Services.GetEventBus().AsObservable<RpcStatusChanged>()
+		UiContext.Services.SubscribeToEvent<RpcStatusChanged>()
 			.Select(x => x.Status)
 			.Where(x => !x.IsOk)
 			.Take(1)

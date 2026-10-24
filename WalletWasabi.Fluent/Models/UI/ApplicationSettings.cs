@@ -232,7 +232,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
-			.Do(x => _services.GetEventBus().Publish(new InstallOnClosedPreferenceChanged(x)))
+			.Do(x => _services.PublishEvent(new InstallOnClosedPreferenceChanged(x)))
 			.Subscribe();
 	}
 

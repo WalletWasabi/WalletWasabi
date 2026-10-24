@@ -18,11 +18,16 @@ public interface IServices
 {
 	string GetDataDir();
 	string GetPersistentConfigFilePath();
-	PersistentConfig GetPersistentConfig();
-	WalletManager GetWalletManager();
-	Config GetConfig();
-	EventBus GetEventBus();
 	Client.Scheme GetScheme();
+
+	// Event subscription
+	IObservable<T> SubscribeToEvent<T>() where T : notnull;
+	void PublishEvent<T>(T evt) where T : notnull;
+	Task WaitForEventAsync<T>(Func<bool> condition) where T : notnull;
+
+	// Config
+	string GetBitcoinRpcUri();
+	bool GetEnableGpu();
 
 	uint GetTipHeight();
 	uint GetServerTipHeight();
@@ -47,6 +52,8 @@ public interface IServices
 	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
 	Task StartWalletAsync(Wallet wallet);
 	void AddWallet(KeyManager keyManager);
+	Task<KeyManager> ImportWalletAsync(string walletName, string filePath);
+	IObservable<Wallet> SubscribeToWalletAdded();
 
 	string GetTorLogFilePath();
 	TorMode GetUseTor();

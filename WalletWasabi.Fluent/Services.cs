@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -77,11 +79,20 @@ public class Services : IServices
 
 	public string GetDataDir() => _dataDir;
 	public string GetPersistentConfigFilePath() => Path.Combine(_dataDir, _persistentConfig.GetConfigFileName());
-	public PersistentConfig GetPersistentConfig() => _persistentConfig;
-	public WalletManager GetWalletManager() => _walletManager;
-	public Config GetConfig() => _config;
-	public EventBus GetEventBus() => _eventBus;
 	public Client.Scheme GetScheme() => _scheme;
+
+	// Event subscription
+	public IObservable<T> SubscribeToEvent<T>() where T : notnull => _eventBus.AsObservable<T>();
+	public void PublishEvent<T>(T evt) where T : notnull => _eventBus.Publish(evt);
+	public Task WaitForEventAsync<T>(Func<bool> condition) where T : notnull => _eventBus.WaitForEventAsync<T>(condition);
+
+	// Config
+	public string GetBitcoinRpcUri() => _config.BitcoinRpcUri;
+	public bool GetEnableGpu() => _config.EnableGpu;
+
+	// Internal access - not part of IServices interface
+	internal PersistentConfig PersistentConfig => _persistentConfig;
+	internal Config Config => _config;
 
 	// Chain info
 	public uint GetTipHeight() => _filterHeaders.TipHeight;
@@ -110,6 +121,8 @@ public class Services : IServices
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => _walletManager.ValidateWalletName(walletName);
 	public Task StartWalletAsync(Wallet wallet) => _walletManager.StartWalletAsync(wallet);
 	public void AddWallet(KeyManager keyManager) => _walletManager.AddWallet(keyManager);
+	public Task<KeyManager> ImportWalletAsync(string walletName, string filePath) => ImportWalletHelper.ImportWalletAsync(_walletManager, walletName, filePath);
+	public IObservable<Wallet> SubscribeToWalletAdded() => Observable.FromEventPattern<Wallet>(_walletManager, nameof(WalletManager.WalletAdded)).Select(e => e.EventArgs);
 
 	// Tor info
 	public string GetTorLogFilePath() => _torSettings.LogFilePath;
