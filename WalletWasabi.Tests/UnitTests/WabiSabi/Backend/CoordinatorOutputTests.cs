@@ -1,7 +1,9 @@
 using NBitcoin;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Extensions;
+using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -82,6 +84,38 @@ public class CoordinatorOutputTests
 		var withCoordinatorOutput = Arena.AddCoordinationFee(round, coinjoin, coordinatorScript, trimCoordinatorOutput: true);
 
 		Assert.Equal(Money.Satoshis(12_345), GetCoordinatorOutput(withCoordinatorOutput, coordinatorScript).Value);
+	}
+
+	[Fact]
+	public void CoordinatorScriptHasTheConfiguredType()
+	{
+		var segwit = new WabiSabiConfig();
+		var taproot = new WabiSabiConfig { CoordinatorScriptType = ScriptPubKeyType.TaprootBIP86 };
+		var key = segwit.CoordinatorExtPubKey.Derive(0, false).Derive(1, false).PubKey;
+
+		Assert.Equal(key.GetScriptPubKey(ScriptPubKeyType.Segwit), segwit.DeriveCoordinatorScript(1));
+		Assert.Equal(key.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), taproot.DeriveCoordinatorScript(1));
+	}
+
+	[Fact]
+	public void CoordinatorScriptTypeIsPersisted()
+	{
+		var config = new WabiSabiConfig { CoordinatorScriptType = ScriptPubKeyType.TaprootBIP86 };
+		var json = JsonEncoder.ToReadableString(config, Encode.WabiSabiConfig);
+
+		var loaded = JsonDecoder.FromString(json, Decode.WabiSabiConfig(config.FilePath))!;
+		Assert.Equal(ScriptPubKeyType.TaprootBIP86, loaded.CoordinatorScriptType);
+	}
+
+	[Fact]
+	public void ConfigsWrittenBeforeTheScriptTypeOptionKeepPayingToSegwit()
+	{
+		var config = new WabiSabiConfig();
+		var json = Encode.WabiSabiConfig(config).AsObject();
+		Assert.True(json.Remove("CoordinatorScriptType"));
+
+		var loaded = JsonDecoder.FromString(json.ToJsonString(), Decode.WabiSabiConfig(config.FilePath))!;
+		Assert.Equal(ScriptPubKeyType.Segwit, loaded.CoordinatorScriptType);
 	}
 
 	private static TxOut GetCoordinatorOutput(ConstructionState coinjoin, Script coordinatorScript) =>

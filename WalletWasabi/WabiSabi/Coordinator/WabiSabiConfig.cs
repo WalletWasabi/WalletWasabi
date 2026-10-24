@@ -80,6 +80,8 @@ public class WabiSabiConfig : ConfigBase
 
 	public ExtPubKey CoordinatorExtPubKey { get; init; } = NBitcoinHelpers.BetterParseExtPubKey(Constants.WabiSabiFallBackCoordinatorExtPubKey);
 
+	public ScriptPubKeyType CoordinatorScriptType { get; init; } = ScriptPubKeyType.Segwit;
+
 	public int CoordinatorExtPubKeyCurrentDepth { get; set; } = 1;
 
 	public int RoundParallelization { get; init; } = 1;
@@ -115,7 +117,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
 
-	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(CoordinatorScriptType);
 
 	public void MakeNextCoordinatorScriptDirty()
 	{
