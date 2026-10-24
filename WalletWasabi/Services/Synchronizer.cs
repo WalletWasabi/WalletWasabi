@@ -292,15 +292,12 @@ public static class Synchronizer
 		return Unit.Instance;
 	}
 
-	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	internal static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		switch (response)
 		{
 			case FiltersResponse.AlreadyOnBestBlock:
 				// Already synchronized. Nothing to do.
-				var tip = filterHeaderChain.TipHeight;
-				filterHeaderChain.SetServerTipHeight(tip);
-				eventBus.Publish(new NetworkTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
