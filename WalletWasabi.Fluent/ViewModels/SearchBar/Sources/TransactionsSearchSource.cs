@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -130,8 +131,8 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	private static bool ContainsDestinationAddress(WalletViewModel walletViewModel, HistoryItemViewModelBase historyItem, BitcoinAddress address)
 	{
-		var txid = historyItem.Transaction.Id;
-		return walletViewModel.WalletModel.Transactions.GetDestinationAddresses(txid).Contains(address);
+		return historyItem.Transaction is SingleTransactionModel transaction
+			&& walletViewModel.WalletModel.Transactions.GetDestinationAddresses(transaction).Contains(address);
 	}
 
 	private bool TryParseBitcoinAddress(Network network, string queryStr, [NotNullWhen(true)] out BitcoinAddress? address)
