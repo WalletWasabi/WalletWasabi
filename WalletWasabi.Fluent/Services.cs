@@ -1,13 +1,18 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
@@ -16,6 +21,9 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
@@ -77,11 +85,20 @@ public class Services : IServices
 
 	public string GetDataDir() => _dataDir;
 	public string GetPersistentConfigFilePath() => Path.Combine(_dataDir, _persistentConfig.GetConfigFileName());
-	public PersistentConfig GetPersistentConfig() => _persistentConfig;
-	public WalletManager GetWalletManager() => _walletManager;
-	public Config GetConfig() => _config;
-	public EventBus GetEventBus() => _eventBus;
 	public Client.Scheme GetScheme() => _scheme;
+
+	// Event subscription
+	public IObservable<T> SubscribeToEvent<T>() where T : notnull => _eventBus.AsObservable<T>();
+	public void PublishEvent<T>(T evt) where T : notnull => _eventBus.Publish(evt);
+	public Task WaitForEventAsync<T>(Func<bool> condition) where T : notnull => _eventBus.WaitForEventAsync<T>(condition);
+
+	// Config
+	public string GetBitcoinRpcUri() => _config.BitcoinRpcUri;
+	public bool GetEnableGpu() => _config.EnableGpu;
+
+	// Internal access - not part of IServices interface
+	internal PersistentConfig PersistentConfig => _persistentConfig;
+	internal Config Config => _config;
 
 	// Chain info
 	public uint GetTipHeight() => _filterHeaders.TipHeight;
@@ -103,13 +120,16 @@ public class Services : IServices
 	public IEnumerable<Wallet> GetWallets() => _walletManager.GetWallets();
 	public bool HasWallet() => _walletManager.HasWallet();
 	public Wallet GetWalletByName(string walletName) => _walletManager.GetWalletByName(walletName);
-	public void RenameWallet(Wallet wallet, string newWalletName) => _walletManager.RenameWallet(wallet, newWalletName);
+	public WalletId GetWalletIdByName(string walletName) => _walletManager.GetWalletByName(walletName).WalletId;
+	public void RenameWallet(string walletName, string newWalletName) => _walletManager.RenameWallet(_walletManager.GetWalletByName(walletName), newWalletName);
 	public string GetWalletsDir() => _walletManager.WalletDirectories.WalletsDir;
 	public string GetNextWalletName(string prefix) => _walletManager.WalletDirectories.GetNextWalletName(prefix);
 	public string GetWalletFilePath(string walletName) => _walletManager.WalletDirectories.GetWalletFilePaths(walletName);
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => _walletManager.ValidateWalletName(walletName);
-	public Task StartWalletAsync(Wallet wallet) => _walletManager.StartWalletAsync(wallet);
+	public Task StartWalletAsync(string walletName) => _walletManager.StartWalletAsync(_walletManager.GetWalletByName(walletName));
 	public void AddWallet(KeyManager keyManager) => _walletManager.AddWallet(keyManager);
+	public Task<KeyManager> ImportWalletAsync(string walletName, string filePath) => ImportWalletHelper.ImportWalletAsync(_walletManager, walletName, filePath);
+	public IObservable<WalletId> SubscribeToWalletAdded() => Observable.FromEventPattern<Wallet>(_walletManager, nameof(WalletManager.WalletAdded)).Select(e => e.EventArgs.WalletId);
 
 	// Tor info
 	public string GetTorLogFilePath() => _torSettings.LogFilePath;
@@ -118,8 +138,80 @@ public class Services : IServices
 	// ExchangeRate info
 	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
 
-	// Temporary solution
-	public T? GetHostedService<T>() where T : class, Microsoft.Extensions.Hosting.IHostedService => _hostedServices.GetOrDefault<T>();
+	// CoinJoin
+	private CoinJoinManager? CoinJoinManager => _hostedServices.GetOrDefault<CoinJoinManager>();
+	public bool IsCoinJoinEnabled() => CoinJoinManager is not null;
+	public CoinJoinClientState GetHighestCoinJoinClientState() => CoinJoinManager?.HighestCoinJoinClientState ?? CoinJoinClientState.Idle;
+	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase(WalletId walletId) => CoinJoinManager?.CoinsInCriticalPhase.GetValueOrDefault(walletId) ?? [];
+	public async Task RestartAbortedCoinjoinsAsync()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			await cjm.RestartAbortedCoinjoinsAsync().ConfigureAwait(false);
+		}
+	}
+	public async Task SignalToStopCoinjoinsAsync()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			await cjm.SignalToStopCoinjoinsAsync().ConfigureAwait(false);
+		}
+	}
+	public void WalletEnteredSendWorkflow(WalletId walletId) => CoinJoinManager?.WalletEnteredSendWorkflow(walletId);
+	public void WalletLeftSendWorkflow(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+			if (wallet is not null)
+			{
+				cjm.WalletLeftSendWorkflow(wallet);
+			}
+		}
+	}
+	public async Task WalletEnteredSendingAsync(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+			if (wallet is not null)
+			{
+				await cjm.WalletEnteredSendingAsync(wallet).ConfigureAwait(false);
+			}
+		}
+	}
+	public IObservable<StatusChangedEventArgs> SubscribeToCoinJoinStatusChanged()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			return Observable.FromEventPattern<StatusChangedEventArgs>(cjm, nameof(CoinJoinManager.StatusChanged))
+				.Select(e => e.EventArgs);
+		}
+		return Observable.Empty<StatusChangedEventArgs>();
+	}
+	public void RequestCoinJoinStart(WalletId walletId, WalletId outputWalletId, bool stopWhenAllMixed, bool overridePlebStop)
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+			var outputWallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == outputWalletId);
+			if (wallet is not null && outputWallet is not null)
+			{
+				cjm.RequestCoinJoinStart(wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
+			}
+		}
+	}
+	public void RequestCoinJoinStop(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+			if (wallet is not null)
+			{
+				cjm.RequestCoinJoinStop(wallet);
+			}
+		}
+	}
 
 	// Transaction
 	public Task SendTransactionAsync(SmartTransaction transaction) => _transactionBroadcaster.SendTransactionAsync(transaction);

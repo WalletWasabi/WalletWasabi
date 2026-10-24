@@ -19,7 +19,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -495,12 +494,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return;
 		}
 
-		var cjManager = UiContext.Services.GetHostedService<CoinJoinManager>();
-
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _sendFlow.GetPockets();
 		var labelSelection = new LabelSelectionViewModel(UiContext, _wallet.KeyManager, _wallet.Password, _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? []);
+		await labelSelection.ResetAsync(pockets, coinsToExclude: UiContext.Services.GetCoinsInCriticalPhase(_wallet.WalletId).ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
