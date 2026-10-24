@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
@@ -52,7 +53,7 @@ public interface IServices
 	string GetTorLogFilePath();
 	TorMode GetUseTor();
 
-	decimal GetUsdExchangeRate();
+	ExchangeRate GetExchangeRate();
 
 	bool GetHideOnClose();
 	double? GetWindowWidth();

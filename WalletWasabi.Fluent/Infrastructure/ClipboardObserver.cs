@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Infrastructure;
 
 internal class ClipboardObserver
 {
-	public static decimal? ParseToUsd(string? text)
+	public static decimal? ParseToFiat(string? text)
 	{
 		if (text is null)
 		{
@@ -17,10 +17,10 @@ internal class ClipboardObserver
 		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
-	public static decimal? ParseToUsd(string? text, decimal balanceUsd)
+	public static decimal? ParseToFiat(string? text, decimal balanceFiat)
 	{
-		return ParseToUsd(text)
-			.Ensure(n => n <= balanceUsd)
+		return ParseToFiat(text)
+			.Ensure(n => n <= balanceFiat)
 			.Ensure(n => n >= 1)
 			.Ensure(n => n.CountDecimalPlaces() <= 2);
 	}

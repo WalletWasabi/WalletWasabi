@@ -42,6 +42,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
+	[AutoNotify] private string _fiatCurrency;
 	[AutoNotify] private string _feeRateEstimationProvider;
 	[AutoNotify] private string _externalTransactionBroadcaster;
 
@@ -87,6 +88,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		_fiatCurrency = persistentConfig.FiatCurrency;
 		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -131,6 +133,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		FiatCurrency = persistentConfig.FiatCurrency;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -190,9 +193,10 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.AbsoluteMinInputCount,
 					x => x.CoordinatorUri,
 					x => x.ExchangeRateProvider,
+					x => x.FiatCurrency,
 					x => x.FeeRateEstimationProvider,
 					x => x.ExternalTransactionBroadcaster,
-					(_, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -324,6 +328,7 @@ public partial class ApplicationSettings : ReactiveObject
 				absoluteMinInputCount :
 				Constants.DefaultAbsoluteMinInputCount,
 			ExchangeRateProvider = ExchangeRateProvider,
+			FiatCurrency = FiatCurrency,
 			FeeRateEstimationProvider = FeeRateEstimationProvider,
 			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
 		};

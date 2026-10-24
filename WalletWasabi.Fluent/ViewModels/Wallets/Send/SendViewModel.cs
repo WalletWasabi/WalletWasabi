@@ -23,6 +23,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
@@ -53,14 +54,14 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
-	[AutoNotify] private decimal _exchangeRate;
+	[AutoNotify] private ExchangeRate _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 	[AutoNotify] private string _defaultLabel;
 	[AutoNotify] private bool _isFixedAddress;
-	[AutoNotify] private string? _usdContent;
+	[AutoNotify] private string? _fiatContent;
 	[AutoNotify] private string? _bitcoinContent;
 	[AutoNotify] private bool _isPayToMany;
 	[AutoNotify] private bool _isPrimarySubtractFee;
@@ -82,7 +83,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
-		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		_exchangeRate = UiContext.Services.GetExchangeRate();
 
 		Balance =
 			_parameters.IsManual
@@ -379,10 +380,10 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (box.IsFiat)
 		{
-			var usd = ClipboardObserver.ParseToUsd(content);
-			if (usd is not null)
+			var fiat = ClipboardObserver.ParseToFiat(content);
+			if (fiat is not null)
 			{
-				UsdContent = usd.Value.ToString("0.00");
+				FiatContent = fiat.Value.ToString("0.00");
 			}
 		}
 		else
@@ -562,10 +563,10 @@ public partial class SendViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		// Refresh in case the rate changed while we were not subscribed.
-		ExchangeRate = UiContext.Services.GetUsdExchangeRate();
+		ExchangeRate = UiContext.Services.GetExchangeRate();
 
 		UiContext.Services.EventBus
-			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.UsdBtcRate)
+			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.ExchangeRate)
 			.DisposeWith(disposables);
 
 		if (!inHistory)

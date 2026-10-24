@@ -52,7 +52,7 @@
                                       BorderThickness="0"
                                       IsRightSide="{TemplateBinding IsConversionReversed}"
                                       BalanceBtc="{TemplateBinding BalanceBtc}"
-                                      BalanceUsd="{TemplateBinding BalanceUsd}"
+                                      BalanceFiat="{TemplateBinding BalanceFiat}"
                                       ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" />
 
                   <Button x:Name="PART_SwapButton" Focusable="False"
@@ -80,7 +80,7 @@
                                       BorderThickness="0"
                                       IsRightSide="{TemplateBinding IsConversionReversed, Converter={x:Static BoolConverters.Not}}"
                                       BalanceBtc="{TemplateBinding BalanceBtc}"
-                                      BalanceUsd="{TemplateBinding BalanceUsd}"
+                                      BalanceFiat="{TemplateBinding BalanceFiat}"
                                       ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" />
                 </Grid>
               </Panel>

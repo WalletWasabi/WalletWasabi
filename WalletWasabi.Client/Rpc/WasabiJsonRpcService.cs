@@ -227,7 +227,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["filtersCount"] = smartHeaderChain.HashCount,
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
-			["exchangeRate"] = Global.Status.UsdExchangeRate,
+			["exchangeRate"] = Global.Status.ExchangeRate.Rate,
+			["fiatCurrency"] = Global.Status.ExchangeRate.Ticker,
 			["peers"] = Global.GetNodes().Select(
 				x => new JsonRpcResult
 				{
