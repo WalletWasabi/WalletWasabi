@@ -111,6 +111,17 @@ public class RpcClientBase : IRPCClient
 		return await RpcClient.GetTxOutAsync(txid, index, includeMempool, cancellationToken).ConfigureAwait(false);
 	}
 
+	public virtual async Task<Dictionary<OutPoint, uint256>> GetTxSpendingPrevOutAsync(OutPoint[] outPoints, CancellationToken cancellationToken)
+	{
+		var outputs = new JArray(outPoints.Select(x => new JObject { ["txid"] = x.Hash.ToString(), ["vout"] = x.N }));
+		var response = await RpcClient.SendCommandAsync("gettxspendingprevout", cancellationToken, outputs).ConfigureAwait(false);
+		return response.Result
+			.Where(x => x["spendingtxid"] is not null)
+			.ToDictionary(
+				x => new OutPoint(uint256.Parse((string) x["txid"]!), (uint) x["vout"]!),
+				x => uint256.Parse((string) x["spendingtxid"]!));
+	}
+
 	public virtual async Task<ScanTxoutSetResponse> StartScanTxoutSetAsync(ScanTxoutSetParameters parameters, CancellationToken cancellationToken = default)
 	{
 		return await RpcClient.StartScanTxoutSetAsync(parameters, cancellationToken).ConfigureAwait(false);
