@@ -9,6 +9,7 @@ using NBitcoin;
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -87,9 +88,9 @@ public class App : Application
 		}
 	}
 
-	private static WalletRepository CreateWalletRepository(IServices services, AmountProvider amountProvider)
+	private static WalletRepository CreateWalletRepository(IServices services, UiServices uiServices, AmountProvider amountProvider)
 	{
-		return new WalletRepository(services, amountProvider);
+		return new WalletRepository(services, uiServices, amountProvider);
 	}
 
 	private static HardwareWalletInterface CreateHardwareWalletInterface(IServices services)
@@ -107,9 +108,9 @@ public class App : Application
 		return new ClientConfigModel(services);
 	}
 
-	private static ApplicationSettings CreateApplicationSettings(IServices services)
+	private static ApplicationSettings CreateApplicationSettings(Services services, UiConfig uiConfig)
 	{
-		return new ApplicationSettings(services, services.PersistentConfig, services.Config, services.UiConfig);
+		return new ApplicationSettings(services, services.PersistentConfig, services.Config, uiConfig);
 	}
 
 	private static TransactionBroadcasterModel CreateBroadcaster(IServices services, Network network)
@@ -125,19 +126,21 @@ public class App : Application
 	private UiContext CreateUiContext()
 	{
 		var services = Services.Instance;
+		var uiServices = UiServices.Instance;
 		var amountProvider = CreateAmountProvider(services);
 
-		var applicationSettings = CreateApplicationSettings(services);
+		var applicationSettings = CreateApplicationSettings(services, uiServices.UiConfig);
 		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
 			services,
+			uiServices,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
-			CreateWalletRepository(services, amountProvider),
+			CreateWalletRepository(services, uiServices, amountProvider),
 			new CoinjoinModel(services),
 			CreateHardwareWalletInterface(services),
 			CreateFileSystem(),
@@ -149,6 +152,6 @@ public class App : Application
 			torStatusChecker,
 			new HealthMonitor(services, torStatusChecker),
 			new ReleaseHighlights(),
-			services.Scheme);
+			services.GetScheme());
 	}
 }

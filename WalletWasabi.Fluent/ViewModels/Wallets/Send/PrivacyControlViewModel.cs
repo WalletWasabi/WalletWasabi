@@ -69,7 +69,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		// TODO: Decoupling
-		UiContext.Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		UiContext.Services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);

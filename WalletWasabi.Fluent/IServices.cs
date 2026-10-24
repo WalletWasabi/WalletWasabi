@@ -16,14 +16,18 @@ namespace WalletWasabi.Fluent;
 
 public interface IServices
 {
-	string DataDir { get; }
-	string PersistentConfigFilePath { get; }
-	PersistentConfig PersistentConfig { get; }
-	WalletManager WalletManager { get; }
-	UiConfig UiConfig { get; }
-	Config Config { get; }
-	EventBus EventBus { get; }
-	Client.Scheme Scheme { get; }
+	string GetDataDir();
+	string GetPersistentConfigFilePath();
+	Client.Scheme GetScheme();
+
+	// Event subscription
+	IObservable<T> SubscribeToEvent<T>() where T : notnull;
+	void PublishEvent<T>(T evt) where T : notnull;
+	Task WaitForEventAsync<T>(Func<bool> condition) where T : notnull;
+
+	// Config
+	string GetBitcoinRpcUri();
+	bool GetEnableGpu();
 
 	uint GetTipHeight();
 	uint GetServerTipHeight();
@@ -48,26 +52,13 @@ public interface IServices
 	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
 	Task StartWalletAsync(Wallet wallet);
 	void AddWallet(KeyManager keyManager);
+	Task<KeyManager> ImportWalletAsync(string walletName, string filePath);
+	IObservable<Wallet> SubscribeToWalletAdded();
 
 	string GetTorLogFilePath();
 	TorMode GetUseTor();
 
 	decimal GetUsdExchangeRate();
-
-	bool GetHideOnClose();
-	double? GetWindowWidth();
-	double? GetWindowHeight();
-	void SetWindowWidth(double? width);
-	void SetWindowHeight(double? height);
-	string? GetLastSelectedWallet();
-	void SetLastSelectedWallet(string? walletName);
-	bool GetPrivacyMode();
-	bool GetAutocopy();
-	bool GetAutoPaste();
-	bool GetSendAmountConversionReversed();
-	void SetSendAmountConversionReversed(bool value);
-	int GetFeeTarget();
-	void SetFeeTarget(int value);
 
 	T? GetHostedService<T>() where T : class, Microsoft.Extensions.Hosting.IHostedService;
 

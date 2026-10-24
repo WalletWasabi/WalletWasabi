@@ -22,6 +22,7 @@ using WalletWasabi.Services;
 using ReactiveUI.Avalonia;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -227,7 +228,8 @@ public static class WasabiAppExtensions
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				var services = Services.Create(app.Global, uiConfig, app.TerminateService);
+				var services = Services.Create(app.Global, app.TerminateService);
+				UiServices.Create(uiConfig);
 
 				using CancellationTokenSource stopLoadingCts = new();
 
@@ -241,7 +243,7 @@ public static class WasabiAppExtensions
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 					}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
-					.SetupAppBuilder(services.Config.EnableGpu)
+					.SetupAppBuilder(services.GetEnableGpu())
 					.AfterSetup(_ =>
 					{
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);

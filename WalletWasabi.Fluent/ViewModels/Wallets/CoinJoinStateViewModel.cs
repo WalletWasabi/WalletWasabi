@@ -113,7 +113,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Subscribe();
 
 		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
-		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
+		UiContext.Services.SubscribeToEvent<PaymentBatchChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();

@@ -113,7 +113,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Addresses = new AddressesModel(services, Wallet);
 
-		Loaded = services.EventBus.AsObservable<WalletLoaded>()
+		Loaded = services.SubscribeToEvent<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => Wallet.Loaded);
 
