@@ -103,8 +103,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		const decimal MaxDifferenceAllowedInEffectiveFeeRate = 1.001m;
-		if (MaxDifferenceAllowedInEffectiveFeeRate * EffectiveFeeRate.SatoshiPerByte < Parameters.MiningFeeRate.SatoshiPerByte)
+		if (Balance < RequiredFee)
 		{
 			var state = new SigningState(Parameters, Events);
 			var tx = state.CreateUnsignedTransaction();
@@ -112,11 +111,17 @@ public record ConstructionState : MultipartyTransactionState
 
 			throw new WabiSabiProtocolException(
 				WabiSabiProtocolErrorCode.InsufficientFees,
-				$"Effective fee rate {EffectiveFeeRate} is less than required {Parameters.MiningFeeRate}. RawTx: {txHex}");
+				$"Fee {Balance} is less than the {RequiredFee} required at {Parameters.MiningFeeRate}. RawTx: {txHex}");
 		}
 
 		return new SigningState(Parameters, Events);
 	}
+
+	private Money RequiredFee =>
+		Money.Satoshis(Inputs.Select(x => x.ScriptPubKey.EstimateInputVsize())
+			.Concat(Outputs.Select(x => x.ScriptPubKey.EstimateOutputVsize()))
+			.Append(MultipartyTransactionParameters.SharedOverhead - UnpaidSharedOverhead)
+			.Sum(vsize => Math.Floor(Parameters.MiningFeeRate.SatoshiPerByte * vsize)));
 
 	public ConstructionState AsPayingForSharedOverhead() =>
 		this with
