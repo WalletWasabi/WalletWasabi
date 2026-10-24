@@ -66,19 +66,17 @@ public partial class WalletLoadWorkflow
 
 		UpdateProgress();
 
-		var eventBus = services.GetEventBus();
-
-		eventBus.AsObservable<BlockHeadersTipChanged>()
+		services.SubscribeToEvent<BlockHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _blockHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		eventBus.AsObservable<FilterHeadersTipChanged>()
+		services.SubscribeToEvent<FilterHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _filterHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		eventBus.AsObservable<ClientTipHeightChanged>()
+		services.SubscribeToEvent<ClientTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x =>
 			{
@@ -88,12 +86,12 @@ public partial class WalletLoadWorkflow
 			})
 			.DisposeWith(_disposables);
 
-		eventBus.AsObservable<BlockDownloaded>()
+		services.SubscribeToEvent<BlockDownloaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
-		LoadCompleted = eventBus.AsObservable<WalletLoaded>()
+		LoadCompleted = services.SubscribeToEvent<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Where(x => x.Wallet == _wallet)
 			.Select(x => x.Wallet.Loaded)
@@ -131,7 +129,7 @@ public partial class WalletLoadWorkflow
 
 		try
 		{
-			await Task.Run(async () => await _services.StartWalletAsync(_wallet));
+			await Task.Run(async () => await _services.StartWalletAsync(_wallet.WalletName));
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -145,14 +143,12 @@ public partial class WalletLoadWorkflow
 
 	private async Task WaitForHeightsAsync()
 	{
-		var eventBus = _services.GetEventBus();
-
 		// Wait until "server tip height" is initialized.
-		var waitForNetworkHeight = eventBus.WaitForEventAsync<NetworkTipHeightChanged>(
+		var waitForNetworkHeight = _services.WaitForEventAsync<NetworkTipHeightChanged>(
 			() => _services.GetServerTipHeight() > 0);
 
 		// Wait until "client tip height" is initialized.
-		var waitForClientHeight = eventBus.WaitForEventAsync<ClientTipHeightChanged>(
+		var waitForClientHeight = _services.WaitForEventAsync<ClientTipHeightChanged>(
 			() => _services.GetTip() is not null);
 
 		await Task.WhenAll(waitForNetworkHeight, waitForClientHeight).ConfigureAwait(false);
