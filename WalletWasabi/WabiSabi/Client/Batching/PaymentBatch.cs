@@ -19,6 +19,8 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // spends an input of each failed attempt that can still confirm, so that it cannot be made twice.
 public class PaymentBatch(CoinsRegistry coins)
 {
+	public static readonly Money MinimumPaymentAmount = Money.Satoshis(10_000);
+
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
@@ -27,6 +29,11 @@ public class PaymentBatch(CoinsRegistry coins)
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
+		if (amount < MinimumPaymentAmount)
+		{
+			throw new ArgumentException($"Coinjoin payments must be at least {MinimumPaymentAmount} BTC.");
+		}
+
 		var payment = new Payment(destination, amount);
 		lock (_syncObj)
 		{

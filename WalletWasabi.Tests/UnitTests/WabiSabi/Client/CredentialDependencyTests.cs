@@ -22,6 +22,43 @@ public class CredentialDependencyTests
 		await SimulateAsyncRequestsAsync(g);
 	}
 
+	[Fact]
+	public async Task ZeroCredentialsNeverComeFromDependentRequestsAsync()
+	{
+		// A wallet with 2 Taproot coins at 0.5 sat/vB. The coordinator allows
+		// 255 vB per input, and the input itself takes 58 vB, so each coin
+		// has 197 vB left for outputs. A reissuance request was given its
+		// missing zero credential by a request that waits for the credentials
+		// of that same reissuance, so neither of them is ever sent and 7 of
+		// the 9 outputs are never registered.
+		var g = DependencyGraph.ResolveCredentialDependencies(
+			inputValues: new[] { (43046692L, 197L), (131043L, 197L) },
+			outputValues: new[] { (28697835L, 43L), (10000021L, 43L), (1594344L, 43L), (1062903L, 43L), (1594344L, 43L), (200021L, 43L), (10021L, 43L), (10021L, 43L), (8213L, 43L) },
+			ProtocolConstants.MaxAmountPerAlice,
+			ProtocolConstants.MaxVsizeCredentialValue);
+
+		await SimulateAsyncRequestsAsync(g);
+	}
+
+	[Fact]
+	public async Task ReissuanceNeverGivesZeroCredentialsToRequestsItDependsOnAsync()
+	{
+		// A wallet with 3 SegWit coins and 1 Taproot coin at 1 sat/vB. The
+		// coordinator allows 600 inputs per round, so 166 vB per input, which
+		// leaves 166 - 69 = 97 vB for outputs per SegWit coin and
+		// 166 - 58 = 108 vB for the Taproot one. A reissuance request that
+		// consolidates the vsize of another one gave it zero amount
+		// credentials back, so each waits for the other and 3 of the 9
+		// outputs are never registered.
+		var g = DependencyGraph.ResolveCredentialDependencies(
+			inputValues: new[] { (1811183L, 97L), (129140094L, 97L), (531372L, 97L), (3188588L, 108L) },
+			outputValues: new[] { (50000043L, 43L), (33554475L, 43L), (50000043L, 43L), (531484L, 43L), (262187L, 43L), (262187L, 43L), (39409L, 43L), (13165L, 43L), (8235L, 43L) },
+			ProtocolConstants.MaxAmountPerAlice,
+			166);
+
+		await SimulateAsyncRequestsAsync(g);
+	}
+
 	// Demonstrate how to use the dependency graph. Also checks it can be
 	// executed with no deadlocks.
 	private async Task SimulateAsyncRequestsAsync(DependencyGraph g)
@@ -86,7 +123,7 @@ public class CredentialDependencyTests
 			}
 
 			// At this point at least one task must be in progress.
-			Assert.True(inFlightRequests.Count > 0);
+			Assert.True(inFlightRequests.Count > 0, $"Deadlock: {pendingCredentialsToPresent.Count} requests can never be sent because some of them wait for each other's credentials.");
 
 			// Wait for a response to arrive
 			var i = Task.WaitAny(inFlightRequests.Select(x => x.Task).ToArray(), ct.Token);

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.UnitTests.Mocks;

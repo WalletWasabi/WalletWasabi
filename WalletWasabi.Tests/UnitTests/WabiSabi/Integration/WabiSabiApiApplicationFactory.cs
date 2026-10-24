@@ -71,7 +71,13 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<EventBus>();
 			services.AddHttpClient();
 		});
-		builder.ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
+		builder.ConfigureLogging(o =>
+		{
+			o.SetMinimumLevel(LogLevel.Warning);
+			// Suppress warnings about request body size limits - TestServer doesn't support IHttpRequestBodySizeFeature
+			o.AddFilter("Microsoft.AspNetCore.Mvc.Filters.RequestSizeLimitFilter", LogLevel.None);
+			o.AddFilter("Microsoft.AspNetCore.Routing.EndpointRoutingMiddleware", LogLevel.None);
+		});
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
