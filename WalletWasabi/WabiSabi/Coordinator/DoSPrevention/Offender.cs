@@ -8,7 +8,6 @@ public enum RoundDisruptionMethod
 	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent,
-	BackendStabilitySafety
 }
 
 public abstract record Offense();
