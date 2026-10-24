@@ -12,7 +12,7 @@ public partial class AmountProvider : ReactiveObject
 
 	public AmountProvider(IServices services)
 	{
-		BtcToUsdExchangeRate = services.EventBus
+		BtcToUsdExchangeRate = services.GetEventBus()
 			.AsObservable<ExchangeRateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.UsdBtcRate);

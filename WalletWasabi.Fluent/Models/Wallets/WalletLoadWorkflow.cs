@@ -66,17 +66,19 @@ public partial class WalletLoadWorkflow
 
 		UpdateProgress();
 
-		services.EventBus.AsObservable<BlockHeadersTipChanged>()
+		var eventBus = services.GetEventBus();
+
+		eventBus.AsObservable<BlockHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _blockHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<FilterHeadersTipChanged>()
+		eventBus.AsObservable<FilterHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _filterHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<ClientTipHeightChanged>()
+		eventBus.AsObservable<ClientTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x =>
 			{
@@ -86,12 +88,12 @@ public partial class WalletLoadWorkflow
 			})
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<BlockDownloaded>()
+		eventBus.AsObservable<BlockDownloaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
-		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
+		LoadCompleted = eventBus.AsObservable<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Where(x => x.Wallet == _wallet)
 			.Select(x => x.Wallet.Loaded)
@@ -143,12 +145,14 @@ public partial class WalletLoadWorkflow
 
 	private async Task WaitForHeightsAsync()
 	{
+		var eventBus = _services.GetEventBus();
+
 		// Wait until "server tip height" is initialized.
-		var waitForNetworkHeight = _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
+		var waitForNetworkHeight = eventBus.WaitForEventAsync<NetworkTipHeightChanged>(
 			() => _services.GetServerTipHeight() > 0);
 
 		// Wait until "client tip height" is initialized.
-		var waitForClientHeight = _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
+		var waitForClientHeight = eventBus.WaitForEventAsync<ClientTipHeightChanged>(
 			() => _services.GetTip() is not null);
 
 		await Task.WhenAll(waitForNetworkHeight, waitForClientHeight).ConfigureAwait(false);
