@@ -10,6 +10,7 @@ using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -36,6 +37,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private string _deviceMaxRounds;
+	[AutoNotify] private string _deviceMaxMiningFeeRate;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
@@ -50,6 +53,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
 		_onlyUsePrivateFundsForPayments = _wallet.Settings.OnlyUsePrivateFundsForPayments;
+		HasDeviceAuthorizationLimits = _wallet.HasSeparateCoinJoinAccount;
+		_deviceMaxRounds = _wallet.Settings.CoinJoinDeviceMaxRounds.ToString();
+		_deviceMaxMiningFeeRate = _wallet.Settings.CoinJoinDeviceMaxMiningFeeRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -105,6 +111,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
+		this.ValidateProperty(x => x.DeviceMaxRounds, ValidateDeviceMaxRounds);
+		this.ValidateProperty(x => x.DeviceMaxMiningFeeRate, ValidateDeviceMaxMiningFeeRate);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
@@ -125,12 +133,16 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
+		// A device only signs rounds whose outputs return to its own coinjoin account.
 		walletModel.IsCoinjoinStarted
-			.Select(isRunning => !isRunning)
+			.Select(isRunning => !isRunning && !_wallet.HasSeparateCoinJoinAccount)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
 		ManuallyUpdateOutputWalletList();
 	}
+
+	/// <summary>Whether the device authorization limits apply to this wallet, so they can be edited.</summary>
+	public bool HasDeviceAuthorizationLimits { get; }
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
@@ -174,6 +186,33 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
 		}
+	}
+
+	private void ValidateDeviceMaxRounds(IValidationErrors errors)
+	{
+		string? error = null;
+		if (!int.TryParse(DeviceMaxRounds, out var rounds) || !HardwareWalletService.TryValidateMaxRounds(rounds, out error))
+		{
+			errors.Add(ErrorSeverity.Error, error ?? "Must be a whole number.");
+			return;
+		}
+
+		_wallet.Settings.CoinJoinDeviceMaxRounds = rounds;
+		_wallet.Settings.Save();
+	}
+
+	private void ValidateDeviceMaxMiningFeeRate(IValidationErrors errors)
+	{
+		string? error = null;
+		if (!decimal.TryParse(DeviceMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate)
+			|| !HardwareWalletService.TryValidateMaxMiningFeeRate(feeRate, out error))
+		{
+			errors.Add(ErrorSeverity.Error, error ?? "Must be a fee rate in sat/vByte.");
+			return;
+		}
+
+		_wallet.Settings.CoinJoinDeviceMaxMiningFeeRate = feeRate;
+		_wallet.Settings.Save();
 	}
 
 	private Task SetProfile(string profileName)

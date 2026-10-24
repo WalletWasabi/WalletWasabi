@@ -45,6 +45,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
+	private const string ConfirmOnDeviceMessage = "Confirm coinjoin on your device";
+	private const string DeviceNotFoundMessage = "Connect and unlock your device, then press Play";
+	private const string DeviceTransportNotFoundMessage = "Cannot reach the device, start its bridge software";
+	private const string CoinJoinAccountEmptyMessage = "Deposit to a coinjoin account address";
+	private const string DeviceAuthorizationFailedMessage = "The device did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
 	private readonly Wallet _walletInstance;
@@ -90,7 +95,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
+		if (wallet.HasSeparateCoinJoinAccount)
+		{
+			// Starting coinjoin requires a confirmation on the device, so it never starts automatically.
+			initialState = State.StoppedOrPaused;
+		}
+		else if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
 		{
 			initialState = State.Disabled;
 		}
@@ -167,7 +177,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				settings.SelectedTab = 1;
 				UiContext.Navigate(NavigationTarget.DialogScreen).To(settings);
 			},
-			Observable.Return(!_wallet.IsWatchOnlyWallet));
+			Observable.Return(_wallet.CanCoinJoin));
 
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
@@ -392,6 +402,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
+					CoinjoinError.NoCoinsEligibleToMix when _wallet.HasSeparateCoinJoinAccount => CoinJoinAccountEmptyMessage,
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
@@ -403,6 +414,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					CoinjoinError.CoordinatorLiedAboutInputs => CoordinatorLiedMessage,
+					CoinjoinError.AwaitingDeviceConfirmation => ConfirmOnDeviceMessage,
+					CoinjoinError.DeviceTransportNotFound => DeviceTransportNotFoundMessage,
+					CoinjoinError.DeviceNotFound => DeviceNotFoundMessage,
+					CoinjoinError.DeviceAuthorizationFailed => DeviceAuthorizationFailedMessage,
 					_ => GeneralErrorMessage
 				};
 
