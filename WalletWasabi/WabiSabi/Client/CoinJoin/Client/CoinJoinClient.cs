@@ -27,7 +27,7 @@ public class CoinJoinClient
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateProvider roundStatusProvider,
-		CoinJoinCoinSelector coinJoinCoinSelector,
+		CoinSelector coinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
 		InputVerifier verifyInputsExistence,
 		LiquidityClueProvider liquidityClueProvider,
@@ -41,7 +41,7 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_verifyInputsExistence = verifyInputsExistence;
-		_coinJoinCoinSelector = coinJoinCoinSelector;
+		_coinSelector = coinSelector;
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 		_minAnonScoreForPayments = minAnonScoreForPayments;
@@ -59,7 +59,7 @@ public class CoinJoinClient
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly InputVerifier _verifyInputsExistence;
-	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
+	private readonly CoinSelector _coinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly int _minAnonScoreForPayments;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
@@ -126,7 +126,7 @@ public class CoinJoinClient
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
 		ImmutableList<SmartCoin> myCoins;
-		IEnumerable<SmartCoin> coinCandidates;
+		SmartCoin[] coinCandidates;
 
 		do
 		{
@@ -152,12 +152,12 @@ public class CoinJoinClient
 				}
 			}
 
-			coinCandidates = coinCandidatesFunc();
+			coinCandidates = coinCandidatesFunc().ToArray();
 
 			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxAmountCredentialValue);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes);
 
-			myCoins = _coinJoinCoinSelector.SelectCoinsForRound(coinCandidates, utxoSelectionParameters, liquidityClue);
+			myCoins = _coinSelector(coinCandidates, utxoSelectionParameters, liquidityClue);
 
 			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
 			{
@@ -181,7 +181,7 @@ public class CoinJoinClient
 
 		if (myCoins.IsEmpty)
 		{
-			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"Stopped looking for a suitable round. No coin was selected from '{coinCandidates.Count()}' number of coins, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
+			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"Stopped looking for a suitable round. No coin was selected from '{coinCandidates.Length}' number of coins, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
 		IRoundRestrictions roundRestrictions = UnrestrictedRound.Instance;
