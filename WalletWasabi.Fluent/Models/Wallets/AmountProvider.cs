@@ -3,26 +3,27 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class AmountProvider : ReactiveObject
 {
-	[AutoNotify] private decimal _usdExchangeRate;
+	[AutoNotify] private ExchangeRate _exchangeRate;
 
 	public AmountProvider(IServices services)
 	{
-		BtcToUsdExchangeRate = services.EventBus
+		_exchangeRate = services.GetExchangeRate();
+
+		BtcToFiatExchangeRate = services.EventBus
 			.AsObservable<ExchangeRateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => x.UsdBtcRate);
+			.Select(x => x.ExchangeRate);
 
-		BtcToUsdExchangeRate.Subscribe(x => UsdExchangeRate = x);
-
-		UsdExchangeRate = services.GetUsdExchangeRate();
+		BtcToFiatExchangeRate.Subscribe(x => ExchangeRate = x);
 	}
 
-	public IObservable<decimal> BtcToUsdExchangeRate { get; }
+	public IObservable<ExchangeRate> BtcToFiatExchangeRate { get; }
 
 	public Amount Create(Money? money)
 	{

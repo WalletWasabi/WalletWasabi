@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -70,21 +72,21 @@ public static class CurrencyExtensions
 		return amount.ToString(format, FormatInfo).Trim();
 	}
 
-	public static decimal BtcToUsd(this Money money, decimal exchangeRate)
+	public static FiatAmount BtcToFiat(this Money money, ExchangeRate exchangeRate)
 	{
-		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
+		return new FiatAmount(money.ToDecimal(MoneyUnit.BTC) * exchangeRate.Rate, exchangeRate.Ticker);
 	}
 
-	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsdFormatted(n)}" : "";
+	public static string ToFiatAprox(this FiatAmount amount) => amount.Value != decimal.Zero ? $"≈{ToFiatFormatted(amount)}" : "";
 
-	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
+	public static string ToFiatAproxBetweenParens(this FiatAmount amount) => amount.Value != decimal.Zero ? $"({ToFiatAprox(amount)})" : "";
 
-	public static string ToUsdFormatted(this decimal n)
+	public static string ToFiatFormatted(this FiatAmount amount)
 	{
-		return ToUsdAmountFormatted(n) + " USD";
+		return ToFiatAmountFormatted(amount.Value) + " " + amount.Currency;
 	}
 
-	public static string ToUsdAmountFormatted(this decimal n)
+	public static string ToFiatAmountFormatted(this decimal n)
 	{
 		return n switch
 		{
@@ -92,11 +94,6 @@ public static class CurrencyExtensions
 			>= 1 => n.ToString("N1", FormatInfo),
 			_ => n.ToString("N2", FormatInfo)
 		};
-	}
-
-	public static string ToUsd(this decimal n)
-	{
-		return n.WithFriendlyDecimals() + " USD";
 	}
 
 	public static decimal WithFriendlyDecimals(this double n)

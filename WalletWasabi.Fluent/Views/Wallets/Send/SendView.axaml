@@ -64,7 +64,7 @@
                 <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}" />
               </EventTriggerBehavior>
             </Interaction.Behaviors>
-            <AmountControl Classes="WithUsd" Amount="{Binding Balance^}"/>
+            <AmountControl Classes="WithFiat" Amount="{Binding Balance^}"/>
           </Button>
         </StackPanel>
       </PrivacyContentControl>
@@ -158,12 +158,12 @@
                                   KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
                                   IsReadOnly="{Binding IsFixedAmount}"
                                   AmountBtc="{Binding AmountBtc}"
-                                  ConversionRate="{Binding ExchangeRate}"
+                                  ConversionRate="{Binding ExchangeRate.Rate}"
                                   CurrencyCode="BTC"
-                                  ConversionCurrencyCode="USD"
+                                  ConversionCurrencyCode="{Binding ExchangeRate.Ticker}"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                                   BalanceBtc="{Binding Balance^.Btc}"
-                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  BalanceFiat="{Binding Balance^.Fiat^.Value}"
                                   ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
@@ -179,7 +179,7 @@
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-              <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent}"
+              <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding FiatContent}"
                                                   EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
                                                   PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
@@ -264,9 +264,9 @@
                     <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding Value.InsertMaxCommand}"
                             Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
                     <DualCurrencyEntryBox AmountBtc="{Binding Value.AmountBtc}"
-                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
+                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate.Rate}"
                                           CurrencyCode="BTC"
-                                          ConversionCurrencyCode="USD"
+                                          ConversionCurrencyCode="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate.Ticker}"
                                           IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
                                           ValidatePasteBalance="False" />
                   </DockPanel>

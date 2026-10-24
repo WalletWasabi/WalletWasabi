@@ -17,6 +17,12 @@
                 SelectedItem="{Binding Settings.ExchangeRateProvider}" />
     </DockPanel>
 
+    <DockPanel ToolTip.Tip="The exchange rate is fetched for this currency and amounts are also shown in it.">
+      <TextBlock Text="Fiat Currency" />
+      <ComboBox ItemsSource="{Binding FiatCurrencies}"
+                SelectedItem="{Binding Settings.FiatCurrency}" />
+    </DockPanel>
+
     <DockPanel ToolTip.Tip="The client will try to fetch fee rate estimations from this provider. If unavailable, it will fallback to any other.">
       <TextBlock Text="Fee Rate Provider" />
       <ComboBox ItemsSource="{Binding FeeRateEstimationProviders}"

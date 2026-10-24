@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Connections", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
+			"Settings", "Connections", "URI", "Exchange", "Rate", "Provider", "Fiat", "Currency", "Fee", "Estimation", "Network", "Anonymization",
 			"Tor", "Terminate", "Wasabi", "Shut", "Reset"
 	},
 	IconName = "settings_general_regular")]
@@ -46,6 +46,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 	public ApplicationSettings Settings { get; }
 
 	public IEnumerable<string> ExchangeRateProviders => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Providers;
+	public IEnumerable<string> FiatCurrencies => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Currencies;
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;
 	public IEnumerable<string> ExternalBroadcastProviders { get; }
 

@@ -3,25 +3,23 @@ using Avalonia.Data.Converters;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToUsdFormatted =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdFormatted());
-
 	public static readonly IValueConverter ToUsdNumber =
 		new FuncValueConverter<Money, string?>(n => n?.ToDecimal(MoneyUnit.BTC).WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
 
-	public static readonly IValueConverter ToUsdAmountFormattedWithoutSpaces =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAmountFormatted().Replace(" ", ""));
+	public static readonly IValueConverter ToFiatAmountFormattedWithoutSpaces =
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.Value.ToFiatAmountFormatted().Replace(" ", ""));
 
-	public static readonly IValueConverter ToUsdApprox =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
+	public static readonly IValueConverter ToFiatApprox =
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.ToFiatAprox());
 
-	public static readonly IValueConverter ToUsdApproxBetweenParens =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
+	public static readonly IValueConverter ToFiatApproxBetweenParens =
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.ToFiatAproxBetweenParens());
 
 	private const string BtcAscii = "\u20bf ";
 

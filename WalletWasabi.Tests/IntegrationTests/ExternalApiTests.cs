@@ -25,10 +25,10 @@ public class ExternalApiTests
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertExchangeRateProviderAsync(ExchangeRateProviders.GeminiAsync);
 
-	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, ExchangeRateProvider> providerFactory)
+	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, string, ExchangeRateProvider> providerFactory)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		var provider = providerFactory(new HttpClientFactory());
+		var provider = providerFactory(new HttpClientFactory(), "USD");
 		var exchangeRate = await provider(timeoutCts.Token).ConfigureAwait(false);
 		Assert.True(exchangeRate.Rate > 0);
 	}
