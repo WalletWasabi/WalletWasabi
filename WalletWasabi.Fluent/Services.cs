@@ -36,7 +36,7 @@ public class Services : IServices
 	private readonly TerminateService _terminateService;
 	private readonly StatusContainer _status;
 
-	private Services(Global global, UiConfig uiConfig, TerminateService terminateService)
+	private Services(Global global, TerminateService terminateService)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -48,7 +48,6 @@ public class Services : IServices
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
-		Guard.NotNull(nameof(uiConfig), uiConfig);
 		Guard.NotNull(nameof(terminateService), terminateService);
 
 		_global = global;
@@ -65,7 +64,6 @@ public class Services : IServices
 		DataDir = global.DataDir;
 		PersistentConfig = global.Config.PersistentConfig;
 		WalletManager = global.WalletManager;
-		UiConfig = uiConfig;
 		Config = global.Config;
 		EventBus = global.EventBus;
 	}
@@ -74,7 +72,6 @@ public class Services : IServices
 	public string PersistentConfigFilePath => Path.Combine(DataDir, PersistentConfig.GetConfigFileName());
 	public PersistentConfig PersistentConfig { get; }
 	public WalletManager WalletManager { get; }
-	public UiConfig UiConfig { get; }
 	public Config Config { get; }
 	public EventBus EventBus { get; }
 	public Client.Scheme Scheme { get; }
@@ -114,22 +111,6 @@ public class Services : IServices
 	// ExchangeRate info
 	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
 
-	// UI Config
-	public bool GetHideOnClose() => UiConfig.HideOnClose;
-	public double? GetWindowWidth() => UiConfig.WindowWidth;
-	public double? GetWindowHeight() => UiConfig.WindowHeight;
-	public void SetWindowWidth(double? width) => UiConfig.WindowWidth = width;
-	public void SetWindowHeight(double? height) => UiConfig.WindowHeight = height;
-	public string? GetLastSelectedWallet() => UiConfig.LastSelectedWallet;
-	public void SetLastSelectedWallet(string? walletName) => UiConfig.LastSelectedWallet = walletName;
-	public bool GetPrivacyMode() => UiConfig.PrivacyMode;
-	public bool GetAutocopy() => UiConfig.Autocopy;
-	public bool GetAutoPaste() => UiConfig.AutoPaste;
-	public bool GetSendAmountConversionReversed() => UiConfig.SendAmountConversionReversed;
-	public void SetSendAmountConversionReversed(bool value) => UiConfig.SendAmountConversionReversed = value;
-	public int GetFeeTarget() => UiConfig.FeeTarget;
-	public void SetFeeTarget(int value) => UiConfig.FeeTarget = value;
-
 	// Temporary solution
 	public T? GetHostedService<T>() where T : class, Microsoft.Extensions.Hosting.IHostedService => _hostedServices.GetOrDefault<T>();
 
@@ -142,9 +123,9 @@ public class Services : IServices
 	// TerminateService wrapper functions
 	public bool IsForcefulTerminationRequested() => _terminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully;
 
-	public static Services Create(Global global, UiConfig uiConfig, TerminateService terminateService)
+	public static Services Create(Global global, TerminateService terminateService)
 	{
-		Instance = new Services(global, uiConfig, terminateService);
+		Instance = new Services(global, terminateService);
 		return Instance;
 	}
 }

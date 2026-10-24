@@ -52,7 +52,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	{
 		var blockTarget = FeeChart.CurrentConfirmationTarget;
 		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
-		UiContext.Services.SetFeeTarget((int)blockTarget);
+		UiContext.UiServices.SetFeeTarget((int)blockTarget);
 		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 	}
 
