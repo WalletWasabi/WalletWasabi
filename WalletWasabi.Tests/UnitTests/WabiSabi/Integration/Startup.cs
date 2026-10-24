@@ -22,16 +22,14 @@ public class Startup
 
 	public IConfiguration Configuration { get; }
 
-	public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-	{
-		app.UseRouting();
-		app.UseEndpoints(endpoints => endpoints.MapControllers());
-	}
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => WalletWasabi.Coordinator.Startup.ConfigurePipeline(app);
 
 	public void ConfigureServices(IServiceCollection services)
 	{
 		var backendAssembly = typeof(WabiSabiController).Assembly;
 		services.AddSingleton<IdempotencyRequestCache>();
+		services.AddResponseCompression();
+		services.AddRequestTimeouts();
 		services
 			.AddMvc(options =>
 			{
