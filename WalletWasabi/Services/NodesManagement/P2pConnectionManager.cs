@@ -98,6 +98,7 @@ public class P2pConnectionManager : IDisposable
 	private readonly ConcurrentDictionary<EndPoint, (Node Node, PeerInfo PeerInfo, DateTimeOffset ConnectedAt)> _connectedNodes = new();
 	private readonly ConcurrentDictionary<EndPoint, DateTimeOffset> _connectionAttempts = new();
 	private readonly ComposedDisposable _disposables = new();
+	private readonly CancellationTokenSource _stoppingCts = new();
 
 	private MailboxProcessor<CrawlerMessage>[]? _crawlers;
 	private MailboxProcessor<CoordinatorMessage>? _discoveryCoordinator;
@@ -125,6 +126,7 @@ public class P2pConnectionManager : IDisposable
 		_connectionTimeout = connectionTimeout;
 		_crawlerCount = crawlerCount;
 		_torSocks5 = torSocks5;
+		_stoppingCts.DisposeUsing(_disposables);
 	}
 
 	public ImmutableArray<Node> Nodes => _connectedNodes.Values.Select(x => x.Node).Where(x => x.IsConnected).ToImmutableArray();
@@ -140,6 +142,9 @@ public class P2pConnectionManager : IDisposable
 
 	public void Start(CancellationToken cancellationToken)
 	{
+		cancellationToken.Register(_stoppingCts.Cancel).DisposeUsing(_disposables);
+		var stoppingToken = _stoppingCts.Token;
+
 		_crawlers = Enumerable
 			.Range(0, _crawlerCount)
 			.Select(n =>
@@ -148,7 +153,7 @@ public class P2pConnectionManager : IDisposable
 						new CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero),
 						CreateCrawler()),
 					capacity: 1_000,
-					cancellationToken: cancellationToken))
+					cancellationToken: stoppingToken))
 			.ToArray();
 
 		_disposables.AddRange(_crawlers);
@@ -159,14 +164,14 @@ public class P2pConnectionManager : IDisposable
 				EventDriven(
 					new CrawlingCoordinationState(SlowedDown: false, Peers: ImmutableDictionary<EndPoint, PeerInfo>.Empty, LastCrawlerIndex: 0),
 					CreateDiscovery(_crawlers))),
-			cancellationToken: cancellationToken);
+			cancellationToken: stoppingToken);
 		_discoveryCoordinator.DisposeUsing(_disposables);
 
-		_ = Task.Run(() => SeedFromDnsAsync(cancellationToken), cancellationToken);
+		_ = Task.Run(() => SeedFromDnsAsync(stoppingToken), stoppingToken);
 
 		_eventBus.Subscribe<Tick>(async void (_) =>
 		{
-			await ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+			await ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, stoppingToken).ConfigureAwait(false);
 		}).DisposeUsing(_disposables);
 
 		_eventBus.Subscribe<NodeDisconnectedQuickly>(e =>
@@ -203,6 +208,9 @@ public class P2pConnectionManager : IDisposable
 				_lastRotateTime = now;
 				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
 			}
+		}
+		catch (OperationCanceledException)
+		{
 		}
 		catch (Exception e)
 		{
@@ -438,6 +446,7 @@ public class P2pConnectionManager : IDisposable
 			return;
 		}
 
+		Node? node = null;
 		try
 		{
 			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -461,11 +470,11 @@ public class P2pConnectionManager : IDisposable
 					networkCredential: null, streamIsolation: true));
 			}
 
-			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
+			node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
 			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
-			if (node.State != NodeState.HandShaked)
+			if (node.State != NodeState.HandShaked || cancellationToken.IsCancellationRequested)
 			{
 				node.DisconnectAsync();
 				return;
@@ -485,10 +494,12 @@ public class P2pConnectionManager : IDisposable
 		}
 		catch (OperationCanceledException)
 		{
+			node?.DisconnectAsync();
 		}
 		catch (Exception ex)
 		{
 			Logger.LogDebug($"Failed to connect to {peerInfo.Endpoint}: {ex.Message}");
+			node?.DisconnectAsync();
 		}
 	}
 
@@ -609,6 +620,7 @@ public class P2pConnectionManager : IDisposable
 		}
 
 		_isDisposed = true;
+		_stoppingCts.Cancel();
 		DisconnectAll();
 		_disposables.Dispose();
 	}
