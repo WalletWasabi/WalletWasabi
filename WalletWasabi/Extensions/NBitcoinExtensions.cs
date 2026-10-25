@@ -38,23 +38,18 @@ public static class NBitcoinExtensions
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			var message = listener.ReceiveMessage(cancellationToken);
+			var payload = listener.ReceiveMessage(cancellationToken).Message.Payload;
 
-			if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
+			if (payload is BlockPayload b && b.Object?.GetHash() == hash)
 			{
 				return b.Object;
 			}
 
-			if (message.Message.Payload is NotFoundPayload)
+			if (payload is NotFoundPayload || payload is PongPayload pong && pong.Nonce == pingNonce)
 			{
 				return node.SupportsNetwork
-					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} didn't found block {hash} which we assume exists.")
+					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} advertises NODE_NETWORK but does not have block {hash}.")
 					: null;
-			}
-
-			if (message.Message.Payload is PongPayload p && p.Nonce == pingNonce)
-			{
-				throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} send us wrong pong nonce.");
 			}
 		}
 	}
