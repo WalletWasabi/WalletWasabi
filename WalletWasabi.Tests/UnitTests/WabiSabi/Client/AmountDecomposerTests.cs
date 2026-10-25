@@ -79,6 +79,30 @@ public class AmountDecomposerTests
 		}
 	}
 
+	[Theory]
+	[InlineData(1)]
+	[InlineData(2)]
+	[InlineData(3)]
+	public void InputsSharingADenominationGetThatDenominationTest(int seed)
+	{
+		// The two 32,850 inputs break down to 32,768. The last two share 50,000 and the middle one stands alone with 39,366.
+		var allInputEffectiveValues = new long[] { 32_850, 32_850, 39_450, 50_100, 59_150 }.Select(Money.Satoshis).ToArray();
+		var allowedOutputTypes = new List<ScriptType> { ScriptType.P2WPKH, ScriptType.Taproot };
+		var availableVsize = (int)ProtocolConstants.MaxVsizeCredentialValue - Constants.P2trInputVirtualSize;
+		var amountDecomposer = new AmountDecomposer(new FeeRate(1m), Money.Satoshis(5_000), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), availableVsize, allowedOutputTypes, RandomExtensions.CreateSeeded(seed));
+
+		foreach (var myInputSum in allInputEffectiveValues)
+		{
+			var outputValues = amountDecomposer.Decompose(myInputSum, allInputEffectiveValues).ToArray();
+
+			Assert.NotEmpty(outputValues);
+			Assert.True(outputValues.Sum(x => x.EffectiveCost) <= myInputSum);
+		}
+
+		var output = Assert.Single(amountDecomposer.Decompose(Money.Satoshis(32_850), allInputEffectiveValues));
+		Assert.Equal(Money.Satoshis(32_768), output.Amount);
+	}
+
 	private static IEnumerable<Coin> GenerateRandomCoins()
 	{
 		using var key = new Key();

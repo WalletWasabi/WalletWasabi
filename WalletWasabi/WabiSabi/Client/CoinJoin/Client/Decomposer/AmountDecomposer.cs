@@ -34,7 +34,7 @@ public class AmountDecomposer
 	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
-	public IOrderedEnumerable<Output> Denominations { get; }
+	public IReadOnlyList<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private readonly RandomnessProvider _random;
