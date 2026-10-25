@@ -28,7 +28,6 @@ public class TransactionSqliteStorageTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1570464578));
@@ -39,7 +38,6 @@ public class TransactionSqliteStorageTests
 			blockHash: null,
 			blockIndex: 0,
 			new LabelsArray(""),
-			isReplacement: false,
 			isSpeedup: false,
 			isCancellation: false,
 			firstSeen: DateTimeOffset.FromUnixTimeSeconds(1555590391));
@@ -73,7 +71,6 @@ public class TransactionSqliteStorageTests
 		Assert.Equal(tx1.BlockIndex, txActual.BlockIndex);
 		Assert.Equal(tx1.FirstSeen, txActual.FirstSeen);
 		Assert.Equal(tx1.Labels, txActual.Labels);
-		Assert.Equal(tx1.IsReplacement, txActual.IsReplacement);
 		Assert.Equal(tx1.IsSpeedup, txActual.IsSpeedup);
 		Assert.Equal(tx1.IsCancellation, txActual.IsCancellation);
 
