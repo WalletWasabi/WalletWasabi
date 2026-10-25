@@ -67,7 +67,7 @@ public record P2pNodeClient(
 	}
 }
 
-public delegate Task<P2pNodeClient> P2pNodeProvider(CancellationToken cancellationToken);
+public delegate Task<P2pNodeClient> P2pNodeProvider(Node[] triedNodes, CancellationToken cancellationToken);
 
 /// <summary>Snapshot of currently connected P2P nodes.</summary>
 public delegate ImmutableArray<Node> P2pNodeListProvider();
@@ -214,11 +214,13 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
-	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
+	public async Task<P2pNodeClient> GetSingleUseNodeAsync(Node[] triedNodes, CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
+			var nodesServingBlocks = Nodes.Where(n => n.CanServeBlocks).ToArray();
+			var untriedNodes = nodesServingBlocks.Except(triedNodes).ToArray();
+			var nodes = untriedNodes.Length > 0 ? untriedNodes : nodesServingBlocks;
 
 			if (nodes.Length == 0)
 			{
