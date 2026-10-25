@@ -23,7 +23,7 @@ public record SyncProgressCardModel(uint Initial, uint Current, uint Target)
 }
 
 public record WalletLoadProgress(
-	uint ChainTip,
+	uint? ChainTip,
 	SyncProgressCardModel Peers,
 	SyncProgressCardModel BlockHeaders,
 	SyncProgressCardModel FilterHeaders,
@@ -162,7 +162,7 @@ public partial class WalletLoadWorkflow
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 
 		_progress.OnNext(new WalletLoadProgress(
-			ChainTip: tipHeight,
+			ChainTip: serverTipHeight > 0 ? tipHeight : null,
 			Peers: new SyncProgressCardModel(0, (uint)_services.GetPeerCount(), TargetPeers),
 
 			// Block headers are synced for the whole chain, not only for the range the wallet is scanned in.

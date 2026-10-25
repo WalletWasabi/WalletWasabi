@@ -256,10 +256,7 @@
           <!-- Status line -->
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0 0 0 10">
             <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" VerticalAlignment="Center" />
-            <TextBlock Opacity="0.7" VerticalAlignment="Center">
-              <Run Text="Syncing with the Bitcoin network — Latest block:" />
-              <Run Text="{Binding LatestBlock, StringFormat={}{0:N0}}" />
-            </TextBlock>
+            <TextBlock Opacity="0.7" VerticalAlignment="Center" Text="{Binding Status}" />
           </StackPanel>
         </StackPanel>
       </Panel>
