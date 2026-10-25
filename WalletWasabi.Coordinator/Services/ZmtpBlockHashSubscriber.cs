@@ -91,13 +91,13 @@ public class ZmtpBlockHashSubscriber : BackgroundService
 				}
 				catch (SocketException ex) when (ex.SocketErrorCode == SocketError.ConnectionRefused)
 				{
-					Logger.LogWarning("Connection was actively refused. -zmqpubhashblock=tcp://127.0.0.1:28332 is probably not set. Stopping.");
-					throw;
+					Logger.LogWarning($"Connection was actively refused. Is bitcoind running with -zmqpubhashblock=tcp://{Host}:{Port}? Retrying in {reconnectionDelay.TotalSeconds:0}s.");
+					Logger.LogWarning(ex);
 				}
 				catch (Exception ex) when (ex is SocketException or IOException or OperationCanceledException)
 				{
 					// OperationCanceledException here can only be the handshake timeout; shutdown is handled above.
-					Logger.LogWarning($"Connection lost or not not established. Retrying in {reconnectionDelay.TotalSeconds:0}s.");
+					Logger.LogWarning($"Connection lost or not established. Retrying in {reconnectionDelay.TotalSeconds:0}s.");
 					Logger.LogWarning(ex);
 				}
 
