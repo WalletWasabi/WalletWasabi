@@ -12,7 +12,7 @@ public partial class LoadingViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private bool _isLoading;
-	[AutoNotify] private uint _latestBlock;
+	[AutoNotify] private string _status = "";
 
 	// Sync progress card models (initial, current, target - percent/isComplete are calculated)
 	[AutoNotify] private SyncProgressCardModel _peers = new(0, 0, 12);
@@ -43,6 +43,8 @@ public partial class LoadingViewModel : RoutableViewModel
 		FilterHeaders = progress.FilterHeaders;
 		CompactFilters = progress.CompactFilters;
 		Blocks = progress.Blocks;
-		LatestBlock = progress.ChainTip;
+		Status = progress.ChainTip is { } chainTip
+			? $"Syncing with the Bitcoin network — Latest block: {chainTip:N0}"
+			: "Connecting to peers";
 	}
 }
