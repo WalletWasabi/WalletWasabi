@@ -507,7 +507,7 @@ public class Global
 			return;
 		}
 
-		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://nostr.mom")];
+		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://purplerelay.com")];
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
