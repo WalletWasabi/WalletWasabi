@@ -28,6 +28,13 @@ internal class TestableRpcService
 	[JsonRpcMethod("fail")]
 	public void Failure() => throw new InvalidOperationException("the error");
 
+	[JsonRpcMethod("failasync")]
+	public async Task<string> FailureAsync()
+	{
+		await Task.Yield();
+		throw new InvalidOperationException("the error");
+	}
+
 	[JsonRpcMethod("format")]
 	public async Task FormatHardDriveAsync(string unit, CancellationToken ct)
 	{
