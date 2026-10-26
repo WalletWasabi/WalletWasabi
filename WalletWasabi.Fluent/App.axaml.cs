@@ -99,7 +99,7 @@ public class App : Application
 
 		var amountProvider = new AmountProvider(services);
 
-		var applicationSettings = new ApplicationSettings(services, ((Services)services).PersistentConfig, ((Services)services).Config, uiConfig);
+		var applicationSettings = new ApplicationSettings(services, uiConfig);
 		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
