@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Protocol;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
@@ -32,14 +33,17 @@ public static class BlockProviders
 	public static BlockProvider P2pBlockProvider(P2pNodeProvider getNode) =>
 		async (blockHash, cancellationToken) =>
 		{
+			Node[] triedNodes = [];
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				var singleUseNode = await getNode(cancellationToken).ConfigureAwait(false);
+				var singleUseNode = await getNode(triedNodes, cancellationToken).ConfigureAwait(false);
 				var block = await singleUseNode.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 				if (block is not null)
 				{
 					return block;
 				}
+
+				triedNodes = [.. triedNodes, singleUseNode.Node];
 			}
 			cancellationToken.ThrowIfCancellationRequested();
 			throw new InvalidOperationException("Failed to retrieve the requested block.");
