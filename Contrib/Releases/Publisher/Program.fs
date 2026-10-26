@@ -66,6 +66,7 @@ let main args =
             Uri "wss://nostr.l00p.org"
             Uri "wss://relay.primal.net"
             Uri "wss://relay.wasabiwallet.io"
+            Uri "wss://relay.damus.io"
             Uri "wss://purplerelay.com"
             Uri "wss://eden.nostr.land"
         ]
