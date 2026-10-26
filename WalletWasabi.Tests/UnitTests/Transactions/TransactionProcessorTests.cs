@@ -141,7 +141,8 @@ public class TransactionProcessorTests
 		var tx1 = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
 		var blockHeight = new Height.ChainHeight.ChainHeight(77551);
 		var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
-		var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), BitcoinFactory.CreateScript());
+		var coinToSpend = tx2.Transaction.Outputs.AsCoins().First();
+		var tx3 = CreateSpendingTransaction(coinToSpend, BitcoinFactory.CreateScript(), keyManager: transactionProcessor.KeyManager);
 		var blockHeight2 = new Height.ChainHeight.ChainHeight(77552);
 		var tx4 = new SmartTransaction(tx3.Transaction, blockHeight2);
 		var results = transactionProcessor.Process(tx1, tx2, tx3, tx4).ToArray();
@@ -285,11 +286,11 @@ public class TransactionProcessorTests
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
-		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey());
+		// Spend the received coin (signed to pass signature check)
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey(), keyManager: transactionProcessor.KeyManager);
 
-		// Spend the same coin again
-		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey());
+		// Spend the same coin again (signed to pass signature check)
+		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey(), keyManager: transactionProcessor.KeyManager);
 		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 
 		Assert.True(relevant.IsNews);
@@ -373,13 +374,13 @@ public class TransactionProcessorTests
 			}
 		});
 
-		// An unconfirmed segwit transaction for us
+		// A confirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m), height: 54321);
 
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey());
+		var tx1 = CreateSpendingTransaction(createdCoin, keys[1].GetAssumedScriptPubKey(), height: 54321);
 
 		Assert.Equal(0, doubleSpendReceived);
 
@@ -448,6 +449,7 @@ public class TransactionProcessorTests
 		tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 		tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 		tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
+		SignSmartTransaction(tx1, [createdCoin], transactionProcessor.KeyManager);
 		var relevant1 = transactionProcessor.Process(tx0, tx1).Last();
 		Assert.True(relevant1.IsNews);
 		Assert.Equal(0, replaceTransactionReceivedCalled);
@@ -460,6 +462,7 @@ public class TransactionProcessorTests
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
 		tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+		SignSmartTransaction(tx2, [unconfirmedCoin1.Coin], transactionProcessor.KeyManager);
 		var relevant2 = transactionProcessor.Process(tx2);
 		Assert.True(relevant2.IsNews);
 		Assert.Equal(0, replaceTransactionReceivedCalled);
@@ -467,6 +470,7 @@ public class TransactionProcessorTests
 		// Spend the coin
 		var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 		tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
+		SignSmartTransaction(tx3, [createdCoin], transactionProcessor.KeyManager);
 		var relevant3 = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant3.IsNews);
@@ -509,6 +513,7 @@ public class TransactionProcessorTests
 		tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 		tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 		tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
+		SignSmartTransaction(tx1, [createdCoin], transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx1);
 
 		var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
@@ -517,11 +522,13 @@ public class TransactionProcessorTests
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
 		tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+		SignSmartTransaction(tx2, [unconfirmedCoin1.Coin], transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx2);
 
 		// Spend the replaceable coin
 		var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 		tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
+		SignSmartTransaction(tx3, [createdCoin], transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx3);
 
 		// Now it is confirmed
@@ -563,6 +570,7 @@ public class TransactionProcessorTests
 		tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 		tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
 		tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
+		SignSmartTransaction(tx1, [createdCoin], transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx1);
 
 		var coinB = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
@@ -571,6 +579,7 @@ public class TransactionProcessorTests
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(coinB.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
 		tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+		SignSmartTransaction(tx2, [coinB.Coin], transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx2);
 
 		var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
@@ -698,6 +707,7 @@ public class TransactionProcessorTests
 		var changeScript = NewScript("Change myself");
 		var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 		tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+		SignSmartTransaction(tx2, createdCoins, transactionProcessor.KeyManager);
 
 		// Another confirmed segwit transaction for us
 		var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
@@ -711,7 +721,7 @@ public class TransactionProcessorTests
 
 		// Spend them again with a different amount
 		var destinationScript2 = BitcoinFactory.CreateScript(); // spend to someone else
-		var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript);
+		var tx4 = CreateSpendingTransaction(coinsToSpend, destinationScript2, changeScript, keyManager: transactionProcessor.KeyManager);
 		var relevant2 = transactionProcessor.Process(tx4);
 
 		Assert.True(relevant2.IsNews);
@@ -761,12 +771,13 @@ public class TransactionProcessorTests
 		var changeScript = NewScript("Change myself");
 		var tx2 = CreateSpendingTransaction(createdCoins, destinationScript, changeScript); // spends 1.2btc
 		tx2.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+		SignSmartTransaction(tx2, createdCoins, transactionProcessor.KeyManager);
 		var relevant = transactionProcessor.Process(tx2);
 		Assert.True(relevant.IsNews);
 
 		// replace previous tx with another one spending only one coin
 		destinationScript = BitcoinFactory.CreateScript(); // spend to someone else
-		var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript); // spends 0.6btc
+		var tx3 = CreateSpendingTransaction(createdCoins.Take(1), destinationScript, changeScript, keyManager: transactionProcessor.KeyManager); // spends 0.6btc
 		relevant = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant.IsNews);
@@ -838,7 +849,7 @@ public class TransactionProcessorTests
 
 		// Spend the received coin
 		using Key key = new();
-		var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey);
+		var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey, height: 1);
 		var relevant = transactionProcessor.Process(tx1);
 
 		Assert.True(relevant.IsNews);
@@ -849,10 +860,10 @@ public class TransactionProcessorTests
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Equal(2, mempool.Count);
+		Assert.Single(mempool); // only tx0 in mempool
 
 		var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
-		Assert.Empty(matureTxs);
+		Assert.Single(matureTxs); // tx1 is confirmed
 	}
 
 	[Fact]
@@ -876,7 +887,7 @@ public class TransactionProcessorTests
 
 		// Spend the received coin
 		using Key key = new();
-		var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey);
+		var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey, keyManager: transactionProcessor.KeyManager);
 
 		transactionProcessor.Process(tx1);
 
@@ -912,7 +923,7 @@ public class TransactionProcessorTests
 		var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 		// Spend the received coin
-		var tx1 = CreateSpendingTransaction(createdCoin, BitcoinFactory.CreateScript());
+		var tx1 = CreateSpendingTransaction(createdCoin, BitcoinFactory.CreateScript(), keyManager: transactionProcessor.KeyManager);
 		tx1.Labels = "foo";
 
 		// Add the transaction to the tx store manually and don't process it.
@@ -1019,7 +1030,8 @@ public class TransactionProcessorTests
 		var spendingTx = CreateSpendingTransaction(
 			Enumerable.Repeat(receivedCoin.Coin, 1),
 			destinationKey.GetScriptPubKey(ScriptPubKeyType.Legacy),
-			transactionProcessor.KeyManager.GetNextReceiveKey(new LabelsArray("someone")).P2wpkhScript);
+			transactionProcessor.KeyManager.GetNextReceiveKey(new LabelsArray("someone")).P2wpkhScript,
+			height: 1);
 		relevant = transactionProcessor.Process(spendingTx);
 		Assert.True(relevant.IsNews);
 
@@ -1073,7 +1085,8 @@ public class TransactionProcessorTests
 		tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
 		tx.Inputs.AddRange(CreateRandomInputs(4));
 
-		var relevant = transactionProcessor.Process(new SmartTransaction(tx, Height.Mempool));
+		// Confirmed to bypass signature check
+		var relevant = transactionProcessor.Process(new SmartTransaction(tx, new Height.ChainHeight(1)));
 
 		// It is relevant even when all the coins can be dust.
 		Assert.True(relevant.IsNews);
@@ -1103,7 +1116,7 @@ public class TransactionProcessorTests
 		// Spend the received coin to someone else B
 		var changeScript1 = transactionProcessor.NewKey("B").P2wpkhScript;
 		using Key key = new();
-		var tx1 = CreateSpendingTransaction(new[] { createdCoin.Coin }, key.PubKey.ScriptPubKey, changeScript1);
+		var tx1 = CreateSpendingTransaction(new[] { createdCoin.Coin }, key.PubKey.ScriptPubKey, changeScript1, height: 1);
 		transactionProcessor.Process(tx1);
 		createdCoin = transactionProcessor.Coins.First();
 		Assert.Equal("A, B", createdCoin.HdPubKey.ClusterLabels);
@@ -1111,7 +1124,7 @@ public class TransactionProcessorTests
 		// Spend the received coin to myself else C
 		var myselfScript = transactionProcessor.NewKey("C").P2wpkhScript;
 		var changeScript2 = transactionProcessor.NewKey("").P2wpkhScript;
-		var tx2 = CreateSpendingTransaction(new[] { createdCoin.Coin }, myselfScript, changeScript2);
+		var tx2 = CreateSpendingTransaction(new[] { createdCoin.Coin }, myselfScript, changeScript2, height: 2);
 		transactionProcessor.Process(tx2);
 
 		Assert.Equal(2, transactionProcessor.Coins.Count());
@@ -1156,7 +1169,7 @@ public class TransactionProcessorTests
 		var changeScript = transactionProcessor.NewKey("D").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
 		using Key key1 = new();
-		var tx3 = CreateSpendingTransaction(coins, key1.PubKey.ScriptPubKey, changeScript);
+		var tx3 = CreateSpendingTransaction(coins, key1.PubKey.ScriptPubKey, changeScript, height: 1);
 		transactionProcessor.Process(tx3);
 
 		var changeCoinD = Assert.Single(transactionProcessor.Coins);
@@ -1170,7 +1183,7 @@ public class TransactionProcessorTests
 		changeScript = transactionProcessor.NewKey("F").P2wpkhScript;
 		coins = new[] { changeCoinD.Coin, smartCoinE.Coin };
 		using Key key2 = new();
-		var tx5 = CreateSpendingTransaction(coins, key2.PubKey.ScriptPubKey, changeScript);
+		var tx5 = CreateSpendingTransaction(coins, key2.PubKey.ScriptPubKey, changeScript, height: 2);
 		transactionProcessor.Process(tx5);
 
 		var changeCoin = Assert.Single(transactionProcessor.Coins);
@@ -1209,7 +1222,7 @@ public class TransactionProcessorTests
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
-		var tx3 = CreateSpendingTransaction(coins, myself, changeScript);
+		var tx3 = CreateSpendingTransaction(coins, myself, changeScript, height: 1);
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
@@ -1242,7 +1255,7 @@ public class TransactionProcessorTests
 		var result = transactionProcessor.Process(tx1);
 
 		hdPubKey = transactionProcessor.NewKey("B");
-		var tx2 = CreateSpendingTransaction(result.ReceivedCoins[0].Coin, hdPubKey.P2wpkhScript);
+		var tx2 = CreateSpendingTransaction(result.ReceivedCoins[0].Coin, hdPubKey.P2wpkhScript, height: 1);
 		transactionProcessor.Process(tx2);
 
 		var coins = transactionProcessor.Coins;
@@ -1281,14 +1294,14 @@ public class TransactionProcessorTests
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
-		var tx3 = CreateSpendingTransaction(coins, myself, changeScript, replaceable: true);
+		var tx3 = CreateSpendingTransaction(coins, myself, changeScript, replaceable: true, keyManager: transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
 		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.ClusterLabels);
 
 		coins = new[] { smartCoinB.Coin, smartCoinC.Coin, smartCoinA.Coin };
-		var tx4 = CreateSpendingTransaction(coins, myself, changeScript);
+		var tx4 = CreateSpendingTransaction(coins, myself, changeScript, keyManager: transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx4);
 
 		paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
@@ -1327,7 +1340,7 @@ public class TransactionProcessorTests
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
-		var tx3 = CreateSpendingTransaction(coins, myself, changeScript, replaceable: true);
+		var tx3 = CreateSpendingTransaction(coins, myself, changeScript, replaceable: true, keyManager: transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
@@ -1339,7 +1352,7 @@ public class TransactionProcessorTests
 		var smartCoinX = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "X");
 
 		coins = new[] { smartCoinB.Coin, smartCoinX.Coin, smartCoinC.Coin, smartCoinA.Coin };
-		var tx5 = CreateSpendingTransaction(coins, myself, changeScript);
+		var tx5 = CreateSpendingTransaction(coins, myself, changeScript, keyManager: transactionProcessor.KeyManager);
 		transactionProcessor.Process(tx5);
 
 		paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
@@ -1427,6 +1440,9 @@ public class TransactionProcessorTests
 		coinjoinTransaction.Inputs.Add(receivedCoin.Outpoint, Script.Empty, WitScript.Empty);
 		coinjoinTransaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
 		coinjoinTransaction.Outputs.Add(Money.Coins(0.9m), transactionProcessor.NewKey("").P2wpkhScript);
+
+		// Sign our input in the coinjoin
+		SignTransaction(coinjoinTransaction, [receivedCoin.Coin], transactionProcessor.KeyManager);
 		var tx1 = new SmartTransaction(coinjoinTransaction, Height.Mempool);
 
 		transactionProcessor.Process(tx1);
@@ -1526,26 +1542,65 @@ public class TransactionProcessorTests
 		Assert.True(expectedPockets.SetEquals(actualPockets));
 	}
 
-	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, uint height = 0)
+	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, uint height = 0, KeyManager? keyManager = null)
 	{
 		var tx = Network.RegTest.CreateTransaction();
 		tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
 		tx.Outputs.Add(coin.Amount, scriptPubKey ?? Script.Empty);
+
+		if (keyManager is not null)
+		{
+			tx = SignTransaction(tx, [coin], keyManager);
+		}
+
 		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight.ChainHeight(height));
 	}
 
-	private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, uint height = 0)
+	private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, uint height = 0, KeyManager? keyManager = null)
 	{
 		var tx = Network.RegTest.CreateTransaction();
+		var coinArray = coins.ToArray();
 		var amount = Money.Zero;
-		foreach (var coin in coins)
+		foreach (var coin in coinArray)
 		{
 			tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty, replaceable ? Sequence.MAX_BIP125_RBF_SEQUENCE : Sequence.SEQUENCE_FINAL);
 			amount += coin.Amount;
 		}
 		tx.Outputs.Add(amount.Percentage(60), scriptPubKey ?? Script.Empty);
 		tx.Outputs.Add(amount.Percentage(40), scriptPubKeyChange);
+
+		if (keyManager is not null)
+		{
+			tx = SignTransaction(tx, coinArray, keyManager);
+		}
+
 		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight.ChainHeight(height));
+	}
+
+	private static Transaction SignTransaction(Transaction tx, Coin[] coins, KeyManager keyManager)
+	{
+		var builder = Network.RegTest.CreateTransactionBuilder();
+		foreach (var coin in coins)
+		{
+			var secrets = keyManager.GetSecrets("password", coin.ScriptPubKey);
+			foreach (var secret in secrets)
+			{
+				builder.AddKeys(secret);
+			}
+			builder.AddCoins(coin);
+		}
+		builder.SignTransactionInPlace(tx);
+		return tx;
+	}
+
+	/// <summary>
+	/// Signs a SmartTransaction in place and returns it. Use this for transactions
+	/// that need to be modified after creation (e.g., RBF tests that modify sequence/outputs).
+	/// </summary>
+	private static SmartTransaction SignSmartTransaction(SmartTransaction stx, Coin[] coins, KeyManager keyManager)
+	{
+		SignTransaction(stx.Transaction, coins, keyManager);
+		return stx;
 	}
 
 	private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount, uint height = 0)
@@ -1610,5 +1665,76 @@ public class TransactionProcessorTests
 		}
 
 		return inputs;
+	}
+
+	/// <summary>
+	/// Regression test for the Electrum GHSA-6jp4-8v48-cc5v attack:
+	/// a forged unconfirmed transaction with invalid signatures that spends our coins must be rejected.
+	/// </summary>
+	[Fact]
+	public async Task ForgedMempoolTransaction_WithInvalidSignatures_IsRejectedAsync()
+	{
+		using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var keyChain = new WalletWasabi.WabiSabi.Client.KeyChain(transactionProcessor.KeyManager, "password");
+
+		// 1. Fund the wallet with a confirmed coin
+		var hdPubKey = transactionProcessor.NewKey("Funding");
+		var ourScript = hdPubKey.P2wpkhScript;
+		var fundingTx = CreateCreditingTransaction(ourScript, Money.Coins(1.0m), height: 100);
+		transactionProcessor.Process(fundingTx);
+
+		var fundedCoin = Assert.Single(transactionProcessor.Coins);
+		Assert.True(fundedCoin.Confirmed);
+
+		// 2. Build a legitimate spending transaction (tx1) with valid signatures
+		using var recipientKey = new Key();
+		var recipientScript = recipientKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+		var changeHdPubKey = transactionProcessor.NewKey("Change");
+		var changeScript = changeHdPubKey.P2wpkhScript;
+
+		var spentCoin = new Coin(fundingTx.Transaction.GetHash(), 0, Money.Coins(1.0m), ourScript);
+		var tx1 = Network.RegTest.CreateTransaction();
+		tx1.Inputs.Add(new TxIn(spentCoin.Outpoint));
+		tx1.Outputs.Add(Money.Coins(0.5m), recipientScript);
+		tx1.Outputs.Add(Money.Coins(0.4999m), changeScript);
+
+		// Sign tx1 with the correct key using KeyChain
+		tx1 = keyChain.Sign(tx1, spentCoin, tx1.PrecomputeTransactionData([spentCoin]));
+
+		var smartTx1 = new SmartTransaction(tx1, Height.Mempool);
+		var result1 = transactionProcessor.Process(smartTx1);
+
+		// tx1 should be accepted
+		Assert.True(result1.IsNews);
+		var walletSpentCoin = Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), c => c.IsSpent());
+		Assert.Equal(smartTx1.GetHash(), walletSpentCoin.SpenderTransaction?.GetHash());
+
+		// 3. Create forged tx2: same inputs, but recipient swapped for attacker, witness data copied (invalid)
+		using var attackerKey = new Key();
+		var attackerScript = attackerKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+
+		var tx2 = tx1.Clone();
+		// Swap the recipient output to pay the attacker instead
+		tx2.Outputs[0].ScriptPubKey = attackerScript;
+		// The witness data is still from tx1, which signed different outputs - so it's invalid
+
+		Assert.NotEqual(tx1.GetHash(), tx2.GetHash()); // Different txids due to different outputs
+
+		// 4. Process the forged tx2 - it should be silently rejected
+		var smartTx2 = new SmartTransaction(tx2, Height.Mempool);
+		var result2 = transactionProcessor.Process(smartTx2);
+
+		// tx2 should NOT be news (rejected)
+		Assert.False(result2.IsNews);
+
+		// The original tx1 should still be the spender
+		walletSpentCoin = Assert.Single(transactionProcessor.Coins.AsAllCoinsView(), c => c.IsSpent());
+		Assert.Equal(smartTx1.GetHash(), walletSpentCoin.SpenderTransaction?.GetHash());
+		Assert.NotEqual(smartTx2.GetHash(), walletSpentCoin.SpenderTransaction?.GetHash());
+
+		// tx2 should NOT be in the transaction store
+		Assert.False(transactionProcessor.TransactionStore.TryGetTransaction(smartTx2.GetHash(), out _));
+		Assert.True(transactionProcessor.TransactionStore.TryGetTransaction(smartTx1.GetHash(), out _));
 	}
 }
