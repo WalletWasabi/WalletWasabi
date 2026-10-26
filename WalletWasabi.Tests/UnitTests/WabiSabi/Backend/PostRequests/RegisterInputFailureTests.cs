@@ -174,8 +174,10 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
-		cfg.AllowNotedInputRegistration = false;
+		var cfg = WabiSabiFactory.CreateWabiSabiConfig() with
+		{
+			AllowNotedInputRegistration = false,
+		};
 
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
