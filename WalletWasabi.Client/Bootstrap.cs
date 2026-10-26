@@ -263,7 +263,8 @@ public class Scheme
 		return obj switch
 		{
 			null => null!,
-			decimal d => Math.Truncate(d) == d ? (int)d : d,
+			decimal d when decimal.IsInteger(d) && d >= long.MinValue && d <= long.MaxValue => (long)d,
+			decimal d => d,
 			int or short or byte or long or float or double or uint or ulong or ushort => obj,
 			bool => obj,
 			string => obj,
