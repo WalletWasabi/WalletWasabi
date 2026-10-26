@@ -49,7 +49,7 @@
   <Color x:Key="SystemAccentColorDark1">#FF207931</Color>
   <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
 
-  <Color x:Key="SystemErrorTextColor">#DD4343</Color>
+  <Color x:Key="SystemErrorTextColor">#FF5C5C</Color>
 
   <Color x:Key="RegionColor">#1F1F1F</Color>
 

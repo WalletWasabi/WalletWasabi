@@ -66,11 +66,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(
 				x => x.CurrentWord,
+				x => x.CurrentWord.SelectedWord,
 				x => x.AllWordsConfirmed)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
-				Caption = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";
+				Caption = AllWordsConfirmed
+					? "Recovery words confirmed."
+					: CurrentWord.SelectedWord is not null && !CurrentWord.IsConfirmed
+						? $"Incorrect word #{CurrentWord.Index} selected"
+						: $"Click the recovery word #{CurrentWord.Index}";
 			})
 			.DisposeWith(disposables);
 
