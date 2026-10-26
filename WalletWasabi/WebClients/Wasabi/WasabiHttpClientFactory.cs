@@ -70,7 +70,7 @@ public class HttpClientFactory : IHttpClientFactory
 				_expirationDatetimes.TryRemove(handlerName, out _);
 			}, _httpHandlerConfig);
 
-		handler.AutomaticDecompression = DecompressionMethods.All;
+		handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
 		return handler;
 	}
 
