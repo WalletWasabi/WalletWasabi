@@ -16,7 +16,7 @@ public class UiContext
 
 	public UiContext(
 		IServices services,
-		UiServices uiServices,
+		UiConfig uiConfig,
 		QrCodeGenerator qrCodeGenerator,
 		QrCodeReader qrCodeReader,
 		UiClipboard clipboard,
@@ -35,7 +35,7 @@ public class UiContext
 		Client.Scheme? scheme = null)
 	{
 		Services = services ?? throw new ArgumentNullException(nameof(services));
-		UiServices = uiServices ?? throw new ArgumentNullException(nameof(uiServices));
+		UiConfig = uiConfig ?? throw new ArgumentNullException(nameof(uiConfig));
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
@@ -55,7 +55,7 @@ public class UiContext
 	}
 
 	public IServices Services { get; }
-	public UiServices UiServices { get; }
+	public UiConfig UiConfig { get; }
 	public UiClipboard Clipboard { get; }
 	public QrCodeGenerator QrCodeGenerator { get; }
 	public WalletRepository WalletRepository { get; }

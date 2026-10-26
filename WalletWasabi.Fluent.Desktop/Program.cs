@@ -22,7 +22,6 @@ using WalletWasabi.Services;
 using ReactiveUI.Avalonia;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
-using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -228,8 +227,8 @@ public static class WasabiAppExtensions
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
+				UiConfig.Instance = uiConfig;
 				var services = Services.Create(app.Global, app.TerminateService);
-				UiServices.Create(uiConfig);
 
 				using CancellationTokenSource stopLoadingCts = new();
 

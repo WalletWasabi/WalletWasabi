@@ -163,7 +163,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 				{
 					UiContext.WalletRepository.SaveWallet(walletSettings);
 
-					UiContext.UiServices.SetLastSelectedWallet(walletName);
+					UiContext.UiConfig.LastSelectedWallet = walletName;
 
 					await ShowErrorAsync(
 						"Restart required",
