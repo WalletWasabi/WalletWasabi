@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -32,6 +33,9 @@ public interface IServices
 	// Config
 	string GetBitcoinRpcUri();
 	bool GetEnableGpu();
+	ApplicationSettingsData GetApplicationSettings();
+	ApplicationSettingsData GetDefaultApplicationSettings(Network network);
+	bool SaveApplicationSettings(ApplicationSettingsData settings);
 
 	uint GetTipHeight();
 	uint GetServerTipHeight();

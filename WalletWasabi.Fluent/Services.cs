@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -92,6 +93,74 @@ public class Services : IServices
 	// Config
 	public string GetBitcoinRpcUri() => _config.BitcoinRpcUri;
 	public bool GetEnableGpu() => _config.EnableGpu;
+	public ApplicationSettingsData GetApplicationSettings() => ToApplicationSettingsData(_persistentConfig);
+
+	public ApplicationSettingsData GetDefaultApplicationSettings(Network network)
+	{
+		var defaultConfig = network.Name switch
+		{
+			"Main" => PersistentConfigManager.DefaultMainNetConfig,
+			"TestNet" => PersistentConfigManager.DefaultTestNetConfig,
+			"RegTest" => PersistentConfigManager.DefaultRegTestConfig,
+			_ when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
+			_ => throw new NotSupportedException($"Network '{network}' is not supported.")
+		};
+		return ToApplicationSettingsData(defaultConfig);
+	}
+
+	public bool SaveApplicationSettings(ApplicationSettingsData settings)
+	{
+		var configFilePath = GetPersistentConfigFilePath();
+		var loadedConfig = PersistentConfigManager.LoadFile(configFilePath);
+		if (loadedConfig is not PersistentConfig currentConfig)
+		{
+			throw new NotSupportedException("Only configuration files after v2.5.1 are supported.");
+		}
+
+		var newConfig = currentConfig with
+		{
+			EnableGpu = settings.EnableGpu,
+			BitcoinRpcUri = string.IsNullOrWhiteSpace(settings.BitcoinRpcUri) ? "" :
+				Uri.TryCreate(settings.BitcoinRpcUri, UriKind.Absolute, out var uri) ? uri.ToString() : currentConfig.BitcoinRpcUri,
+			BitcoinRpcCredentialString = settings.BitcoinRpcCredentialString,
+			CoordinatorUri = settings.CoordinatorUri,
+			Network = settings.Network,
+			DustThreshold = Money.Coins(settings.DustThreshold),
+			MaxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate,
+			AbsoluteMinInputCount = settings.AbsoluteMinInputCount,
+			ExchangeRateProvider = settings.ExchangeRateProvider,
+			FeeRateEstimationProvider = settings.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster = settings.ExternalTransactionBroadcaster,
+			UseTor = settings.UseTor.ToString(),
+			TerminateTorOnExit = settings.TerminateTorOnExit,
+			DownloadNewVersion = settings.DownloadNewVersion
+		};
+
+		PersistentConfigManager.ToFile(configFilePath, newConfig);
+		PersistentConfigManager.UpdateNetwork(configFilePath, newConfig.Network);
+
+		return _persistentConfig != newConfig;
+	}
+
+	private ApplicationSettingsData ToApplicationSettingsData(PersistentConfig config) => new()
+	{
+		UseTor = Config.ObjectToTorMode(config.UseTor),
+		ExchangeRateProvider = config.ExchangeRateProvider,
+		FeeRateEstimationProvider = config.FeeRateEstimationProvider,
+		ExternalTransactionBroadcaster = config.ExternalTransactionBroadcaster,
+		Network = config.Network,
+		BitcoinRpcUri = config.BitcoinRpcUri,
+		BitcoinRpcCredentialString = config.BitcoinRpcCredentialString,
+		DustThreshold = config.DustThreshold.ToDecimal(MoneyUnit.BTC),
+		CoordinatorUri = config.CoordinatorUri,
+		MaxCoinJoinMiningFeeRate = config.MaxCoinJoinMiningFeeRate,
+		AbsoluteMinInputCount = config.AbsoluteMinInputCount,
+		TerminateTorOnExit = config.TerminateTorOnExit,
+		DownloadNewVersion = config.DownloadNewVersion,
+		EnableGpu = config.EnableGpu,
+		ExperimentalFeatures = config.ExperimentalFeatures.ToArray(),
+		IsOverridden = _config.IsOverridden
+	};
 
 	// Internal access - not part of IServices interface
 	internal PersistentConfig PersistentConfig => _persistentConfig;

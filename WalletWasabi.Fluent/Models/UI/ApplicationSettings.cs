@@ -6,8 +6,6 @@ using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using WalletWasabi.Bases;
-using WalletWasabi.Client.Configuration;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -28,8 +26,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private readonly IServices _services;
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly string _persistentConfigFilePath;
-	private readonly PersistentConfig _startupConfig;
-	private readonly Config _config;
+	private readonly ApplicationSettingsData _startupSettings;
 	private readonly UiConfig _uiConfig;
 
 	// Advanced
@@ -75,32 +72,30 @@ public partial class ApplicationSettings : ReactiveObject
 	// Experimental
 	[AutoNotify] private string[] _experimentalFeatures;
 
-	public ApplicationSettings(IServices services, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(IServices services, UiConfig uiConfig)
 	{
 		_services = services;
 		_persistentConfigFilePath = services.GetPersistentConfigFilePath();
-		_startupConfig = persistentConfig;
-
-		_config = config;
+		_startupSettings = services.GetApplicationSettings();
 		_uiConfig = uiConfig;
 
 		// Connections
-		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
-		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
-		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
-		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+		_useTor = _startupSettings.UseTor;
+		_exchangeRateProvider = _startupSettings.ExchangeRateProvider;
+		_feeRateEstimationProvider = _startupSettings.FeeRateEstimationProvider;
+		_externalTransactionBroadcaster = _startupSettings.ExternalTransactionBroadcaster;
 
 		// Bitcoin
-		_network = persistentConfig.Network;
-		_bitcoinRpcUri = persistentConfig.BitcoinRpcUri;
-		_bitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
-		_dustThreshold = persistentConfig.DustThreshold.ToString();
+		_network = _startupSettings.Network;
+		_bitcoinRpcUri = _startupSettings.BitcoinRpcUri;
+		_bitcoinRpcCredentialString = _startupSettings.BitcoinRpcCredentialString;
+		_dustThreshold = _startupSettings.DustThreshold.ToString(CultureInfo.InvariantCulture);
 
 		// Coordinator
-		_coordinatorUri = persistentConfig.CoordinatorUri;
+		_coordinatorUri = _startupSettings.CoordinatorUri;
 
-		_maxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
-		_absoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+		_maxCoinJoinMiningFeeRate = _startupSettings.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		_absoluteMinInputCount = _startupSettings.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
 		// General
 		_darkModeEnabled = uiConfig.DarkModeEnabled;
@@ -109,12 +104,12 @@ public partial class ApplicationSettings : ReactiveObject
 		_customChangeAddress = uiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = uiConfig.RunOnSystemStartup;
 		_hideOnClose = uiConfig.HideOnClose;
-		_terminateTorOnExit = persistentConfig.TerminateTorOnExit;
-		_downloadNewVersion = persistentConfig.DownloadNewVersion;
-		_enableGpu = persistentConfig.EnableGpu;
+		_terminateTorOnExit = _startupSettings.TerminateTorOnExit;
+		_downloadNewVersion = _startupSettings.DownloadNewVersion;
+		_enableGpu = _startupSettings.EnableGpu;
 
 		// Experimental
-		_experimentalFeatures = persistentConfig.ExperimentalFeatures.ToArray();
+		_experimentalFeatures = _startupSettings.ExperimentalFeatures.ToArray();
 
 		// Privacy Mode
 		_privacyMode = uiConfig.PrivacyMode;
@@ -126,25 +121,25 @@ public partial class ApplicationSettings : ReactiveObject
 		SetupObservables();
 	}
 
-	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
+	private void ApplyConfigs(ApplicationSettingsData settings, UiConfig uiConfig)
 	{
 		// Connections
-		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
-		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
-		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
-		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+		UseTor = settings.UseTor;
+		ExchangeRateProvider = settings.ExchangeRateProvider;
+		FeeRateEstimationProvider = settings.FeeRateEstimationProvider;
+		ExternalTransactionBroadcaster = settings.ExternalTransactionBroadcaster;
 
 		// Bitcoin
-		Network = persistentConfig.Network;
-		BitcoinRpcUri = persistentConfig.BitcoinRpcUri;
-		BitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
-		DustThreshold = persistentConfig.DustThreshold.ToString();
+		Network = settings.Network;
+		BitcoinRpcUri = settings.BitcoinRpcUri;
+		BitcoinRpcCredentialString = settings.BitcoinRpcCredentialString;
+		DustThreshold = settings.DustThreshold.ToString(CultureInfo.InvariantCulture);
 
 		// Coordinator
-		CoordinatorUri = persistentConfig.CoordinatorUri;
+		CoordinatorUri = settings.CoordinatorUri;
 
-		MaxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
-		AbsoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+		MaxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		AbsoluteMinInputCount = settings.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
 		// General
 		DarkModeEnabled = uiConfig.DarkModeEnabled;
@@ -153,12 +148,12 @@ public partial class ApplicationSettings : ReactiveObject
 		CustomChangeAddress = uiConfig.IsCustomChangeAddress;
 		RunOnSystemStartup = uiConfig.RunOnSystemStartup;
 		HideOnClose = uiConfig.HideOnClose;
-		TerminateTorOnExit = persistentConfig.TerminateTorOnExit;
-		DownloadNewVersion = persistentConfig.DownloadNewVersion;
-		EnableGpu = persistentConfig.EnableGpu;
+		TerminateTorOnExit = settings.TerminateTorOnExit;
+		DownloadNewVersion = settings.DownloadNewVersion;
+		EnableGpu = settings.EnableGpu;
 
 		// Experimental
-		ExperimentalFeatures = persistentConfig.ExperimentalFeatures.ToArray();
+		ExperimentalFeatures = settings.ExperimentalFeatures.ToArray();
 
 		// Privacy Mode
 		PrivacyMode = uiConfig.PrivacyMode;
@@ -238,16 +233,8 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public void ResetToDefault()
 	{
-		var defaultConfig = _startupConfig.Network switch
-		{
-			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
-			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
-			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
-			var network when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
-			_ => throw new NotSupportedException($"Network '{_startupConfig.Network}' is not supported."),
-		};
-
-		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
+		var defaultSettings = _services.GetDefaultApplicationSettings(_startupSettings.Network);
+		var newSettings = defaultSettings with { CoordinatorUri = CoordinatorUri };
 
 		var newUiConfig = new UiConfig(_uiConfig.FilePath)
 		{
@@ -255,17 +242,12 @@ public partial class ApplicationSettings : ReactiveObject
 			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed
 		};
 
-		ApplyConfigs(newPersistentConfig, newUiConfig);
+		ApplyConfigs(newSettings, newUiConfig);
 	}
 
-	public bool IsOverridden => _config.IsOverridden;
+	public bool IsOverridden => _startupSettings.IsOverridden;
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
-
-	public bool CheckIfRestartIsNeeded(PersistentConfig config)
-	{
-		return _startupConfig != config;
-	}
 
 	private void Save()
 	{
@@ -274,16 +256,9 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				try
 				{
-					var loadedConfig = PersistentConfigManager.LoadFile(_persistentConfigFilePath);
-					if (loadedConfig is not PersistentConfig currentConfig)
-					{
-						throw new NotSupportedException("Only configuration files after v2.5.1 are supported.");
-					}
-					var newConfig = ApplyChanges(currentConfig);
-					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
-					PersistentConfigManager.UpdateNetwork(_persistentConfigFilePath, newConfig.Network);
-
-					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
+					var settings = BuildCurrentSettings();
+					var restartNeeded = _services.SaveApplicationSettings(settings);
+					_isRestartNeeded.OnNext(restartNeeded);
 				}
 				catch (Exception ex)
 				{
@@ -292,52 +267,25 @@ public partial class ApplicationSettings : ReactiveObject
 			});
 	}
 
-	private PersistentConfig ApplyChanges(PersistentConfig config)
+	private ApplicationSettingsData BuildCurrentSettings() => new()
 	{
-		PersistentConfig result = config;
-
-		// Advanced
-		result = result with { EnableGpu = EnableGpu };
-
-		// Bitcoin
-		if (string.IsNullOrWhiteSpace(BitcoinRpcUri))
-		{
-			result = result with { BitcoinRpcUri = "", BitcoinRpcCredentialString = BitcoinRpcCredentialString };
-		}
-		else if (Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out var uri))
-		{
-			result = result with { BitcoinRpcUri = uri.ToString(), BitcoinRpcCredentialString = BitcoinRpcCredentialString };
-		}
-
-		result = result with { CoordinatorUri = CoordinatorUri };
-
-		result = result with
-		{
-			Network = Network,
-			DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
-				Money.Coins(threshold) :
-				Money.Coins(Constants.DefaultDustThreshold),
-			MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
-				maxCoinjoinMiningFeeRate :
-				Constants.DefaultMaxCoinJoinMiningFeeRate,
-			AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
-				absoluteMinInputCount :
-				Constants.DefaultAbsoluteMinInputCount,
-			ExchangeRateProvider = ExchangeRateProvider,
-			FeeRateEstimationProvider = FeeRateEstimationProvider,
-			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
-		};
-
-		// General
-		result = result with
-		{
-			UseTor = UseTor.ToString(),
-			TerminateTorOnExit = TerminateTorOnExit,
-			DownloadNewVersion = DownloadNewVersion,
-		};
-
-		return result;
-	}
+		EnableGpu = EnableGpu,
+		Network = Network,
+		BitcoinRpcUri = BitcoinRpcUri,
+		BitcoinRpcCredentialString = BitcoinRpcCredentialString,
+		DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? threshold : Constants.DefaultDustThreshold,
+		CoordinatorUri = CoordinatorUri,
+		MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ? maxCoinjoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
+		AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ? absoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
+		ExchangeRateProvider = ExchangeRateProvider,
+		FeeRateEstimationProvider = FeeRateEstimationProvider,
+		ExternalTransactionBroadcaster = ExternalTransactionBroadcaster,
+		UseTor = UseTor,
+		TerminateTorOnExit = TerminateTorOnExit,
+		DownloadNewVersion = DownloadNewVersion,
+		ExperimentalFeatures = ExperimentalFeatures,
+		IsOverridden = _startupSettings.IsOverridden
+	};
 
 	public bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString)
 	{
