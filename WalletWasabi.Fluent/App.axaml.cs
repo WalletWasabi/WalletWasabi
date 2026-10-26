@@ -18,8 +18,8 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
-	private readonly UiConfig _uiConfig;
-	private readonly IServices _services;
+	private readonly UiConfig? _uiConfig;
+	private readonly IServices? _services;
 	private readonly Func<Task>? _backendInitializeAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
@@ -93,31 +93,35 @@ public class App : Application
 
 	private UiContext CreateUiContext()
 	{
-		var amountProvider = new AmountProvider(_services);
+		// These are guaranteed to be non-null when not in design mode
+		var services = _services!;
+		var uiConfig = _uiConfig!;
 
-		var applicationSettings = new ApplicationSettings(_services, ((Services)_services).PersistentConfig, ((Services)_services).Config, _uiConfig);
-		var torStatusChecker = new TorStatusCheckerModel(_services);
+		var amountProvider = new AmountProvider(services);
+
+		var applicationSettings = new ApplicationSettings(services, ((Services)services).PersistentConfig, ((Services)services).Config, uiConfig);
+		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
-			_services,
-			_uiConfig,
+			services,
+			uiConfig,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
-			new WalletRepository(_services, _uiConfig, amountProvider),
-			new CoinjoinModel(_services),
-			new HardwareWalletInterface(_services),
+			new WalletRepository(services, uiConfig, amountProvider),
+			new CoinjoinModel(services),
+			new HardwareWalletInterface(services),
 			new FileSystemModel(),
-			new ClientConfigModel(_services),
+			new ClientConfigModel(services),
 			applicationSettings,
-			new TransactionBroadcasterModel(_services, applicationSettings.Network),
+			new TransactionBroadcasterModel(services, applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSource(),
 			torStatusChecker,
-			new HealthMonitor(_services, torStatusChecker),
+			new HealthMonitor(services, torStatusChecker),
 			new ReleaseHighlights(),
-			_services.GetScheme());
+			services.GetScheme());
 	}
 }

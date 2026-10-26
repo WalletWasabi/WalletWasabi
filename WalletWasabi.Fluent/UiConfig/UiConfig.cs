@@ -9,9 +9,6 @@ namespace WalletWasabi.Fluent;
 
 public class UiConfig : ConfigBase
 {
-	// Temporary solution. It should be removed once all controls use DI.
-	public static UiConfig Instance { get; set; } = null!;
-
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
 	private bool _autocopy;
