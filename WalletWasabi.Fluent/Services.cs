@@ -30,9 +30,6 @@ namespace WalletWasabi.Fluent;
 
 public class Services : IServices
 {
-	// Temporary solution. It should be removed
-	public static Services Instance { get; private set; } = null!;
-
 	private readonly Global _global;
 	private readonly TorSettings _torSettings;
 	private readonly FilterStore _filterStore;
@@ -208,7 +205,6 @@ public class Services : IServices
 
 	public static Services Create(Global global, TerminateService terminateService)
 	{
-		Instance = new Services(global, terminateService);
-		return Instance;
+		return new Services(global, terminateService);
 	}
 }

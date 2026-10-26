@@ -233,6 +233,8 @@ public static class WasabiAppExtensions
 				using CancellationTokenSource stopLoadingCts = new();
 
 				AppBuilder appBuilder = AppBuilder.Configure(() => new App(
+					uiConfig,
+					services,
 					backendInitializeAsync: async () =>
 					{
 						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.

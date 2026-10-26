@@ -181,6 +181,8 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsNotInDonationWorkflow => !_parameters.Donate;
 
+	public Network Network => _walletModel.Network;
+
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }

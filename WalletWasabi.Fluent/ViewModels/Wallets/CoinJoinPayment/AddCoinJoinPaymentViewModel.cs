@@ -62,6 +62,8 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
+	public Network Network => _walletModel.Network;
+
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }
