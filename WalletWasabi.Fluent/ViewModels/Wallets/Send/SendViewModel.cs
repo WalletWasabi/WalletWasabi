@@ -77,7 +77,7 @@ public partial class SendViewModel : RoutableViewModel
 		_parameters = parameters;
 		_showQrCodeCameraDialog = showQrCodeCameraDialog;
 
-		_conversionReversed = UiContext.UiServices.GetSendAmountConversionReversed();
+		_conversionReversed = UiContext.UiConfig.SendAmountConversionReversed;
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
 
@@ -170,7 +170,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
-			.Subscribe(x => UiContext.UiServices.SetSendAmountConversionReversed(x));
+			.Subscribe(x => UiContext.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public IObservable<Amount> Balance { get; }

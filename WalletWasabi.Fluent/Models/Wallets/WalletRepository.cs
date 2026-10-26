@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -18,15 +17,15 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletRepository : ReactiveObject
 {
 	private readonly IServices _services;
-	private readonly UiServices _uiServices;
+	private readonly UiConfig _uiConfig;
 	private readonly AmountProvider _amountProvider;
 	private readonly Dictionary<WalletId, WalletModel> _walletDictionary = new();
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletRepository(IServices services, UiServices uiServices, AmountProvider amountProvider)
+	public WalletRepository(IServices services, UiConfig uiConfig, AmountProvider amountProvider)
 	{
 		_services = services;
-		_uiServices = uiServices;
+		_uiConfig = uiConfig;
 		_amountProvider = amountProvider;
 
 		var signals =
@@ -43,7 +42,7 @@ public partial class WalletRepository : ReactiveObject
 				   .AsObservableCache()
 				   .DisposeWith(_disposable);
 
-		DefaultWalletName = uiServices.GetLastSelectedWallet();
+		DefaultWalletName = uiConfig.LastSelectedWallet;
 	}
 
 	public IObservableCache<IWalletModel, WalletId> Wallets { get; }
@@ -55,7 +54,7 @@ public partial class WalletRepository : ReactiveObject
 
 	public void StoreLastSelectedWallet(IWalletModel wallet)
 	{
-		_uiServices.SetLastSelectedWallet(wallet.Name);
+		_uiConfig.LastSelectedWallet = wallet.Name;
 	}
 
 	public string GetNextWalletName()

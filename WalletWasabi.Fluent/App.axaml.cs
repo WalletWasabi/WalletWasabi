@@ -9,7 +9,6 @@ using NBitcoin;
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -88,9 +87,9 @@ public class App : Application
 		}
 	}
 
-	private static WalletRepository CreateWalletRepository(IServices services, UiServices uiServices, AmountProvider amountProvider)
+	private static WalletRepository CreateWalletRepository(IServices services, UiConfig uiConfig, AmountProvider amountProvider)
 	{
-		return new WalletRepository(services, uiServices, amountProvider);
+		return new WalletRepository(services, uiConfig, amountProvider);
 	}
 
 	private static HardwareWalletInterface CreateHardwareWalletInterface(IServices services)
@@ -126,21 +125,21 @@ public class App : Application
 	private UiContext CreateUiContext()
 	{
 		var services = Services.Instance;
-		var uiServices = UiServices.Instance;
+		var uiConfig = UiConfig.Instance;
 		var amountProvider = CreateAmountProvider(services);
 
-		var applicationSettings = CreateApplicationSettings(services, uiServices.UiConfig);
+		var applicationSettings = CreateApplicationSettings(services, uiConfig);
 		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
 			services,
-			uiServices,
+			uiConfig,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
-			CreateWalletRepository(services, uiServices, amountProvider),
+			CreateWalletRepository(services, uiConfig, amountProvider),
 			new CoinjoinModel(services),
 			CreateHardwareWalletInterface(services),
 			CreateFileSystem(),
