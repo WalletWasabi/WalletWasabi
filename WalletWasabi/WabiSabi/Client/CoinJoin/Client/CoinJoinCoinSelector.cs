@@ -12,20 +12,17 @@ public class CoinJoinCoinSelector
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
-	/// <param name="arePaymentsPending">Tells whether there is a coinjoin payment waiting to be funded.</param>
 	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
-		CoinJoinCoinSelectorRandomnessGenerator? generator = null,
-		Func<bool>? arePaymentsPending = null)
+		CoinJoinCoinSelectorRandomnessGenerator? generator = null)
 	{
 		ConsolidationMode = consolidationMode;
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
 
 		_generator = generator ?? new(MaxInputsRegistrableByWallet, RandomnessProviders.Secure);
-		_arePaymentsPending = arePaymentsPending ?? (() => false);
 	}
 
 	public bool ConsolidationMode { get; }
@@ -33,14 +30,12 @@ public class CoinJoinCoinSelector
 	public int SemiPrivateThreshold { get; }
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
-	private readonly Func<bool> _arePaymentsPending;
 
 	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
 		new(
 			wallet.ConsolidationMode,
 			wallet.AnonScoreTarget,
-			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0,
-			arePaymentsPending: () => wallet.BatchedPayments.AreTherePendingPayments);
+			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
@@ -50,9 +45,7 @@ public class CoinJoinCoinSelector
 			: Constants.MaximumNumberOfBitcoinsMoney;
 
 		var filteredCoins = coins
-			.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-			.Where(x => parameters.AllowedInputScriptTypes.Contains(x.ScriptType))
-			.Where(x => x.EffectiveValue(parameters.MiningFeeRate) > Money.Zero)
+			.Where(parameters.Allows)
 			.ToArray();
 
 		// Sanity check.
@@ -62,15 +55,11 @@ public class CoinJoinCoinSelector
 			return ImmutableList<SmartCoin>.Empty;
 		}
 
-		var effectiveAnonScoreTarget = _arePaymentsPending() && filteredCoins.All(x => x.IsPrivate(AnonScoreTarget))
-			? int.MaxValue
-			: AnonScoreTarget;
-
 		var privateCoins = filteredCoins
-			.Where(x => x.IsPrivate(effectiveAnonScoreTarget))
+			.Where(x => x.IsPrivate(AnonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.IsSemiPrivate(effectiveAnonScoreTarget, SemiPrivateThreshold))
+			.Where(x => x.IsSemiPrivate(AnonScoreTarget, SemiPrivateThreshold))
 			.ToArray();
 
 		// redCoins will only fill up if redCoinIsolation is turned on. Otherwise the coin will be in semiPrivateCoins.
