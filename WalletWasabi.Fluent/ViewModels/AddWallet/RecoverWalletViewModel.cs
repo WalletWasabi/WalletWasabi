@@ -85,6 +85,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 				UiContext.WalletRepository.SaveWallet(walletSettings);
 
 				UiContext.UiConfig.LastSelectedWallet = walletName;
+				UiContext.UiConfig.ToFile();
 
 				await ShowErrorAsync(
 					"Restart required",

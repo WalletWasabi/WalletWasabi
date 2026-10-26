@@ -177,6 +177,9 @@ public class ApplicationStateManager : IMainWindowService
 			DataContext = MainViewModel,
 		};
 
+		// Set the privacy mode observable on the window so it inherits to all child controls
+		PrivacyModeHelper.SetPrivacyModeEnabled(result, UiContext.UiConfig.WhenAnyValue(x => x.PrivacyMode));
+
 		_compositeDisposable?.Dispose();
 		_compositeDisposable = new();
 
