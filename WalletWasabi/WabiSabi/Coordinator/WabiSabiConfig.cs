@@ -1,20 +1,26 @@
 using System.IO;
-using WalletWasabi.Bases;
+using System.Text;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Coordinator;
 
-public class WabiSabiConfig : ConfigBase
+public record WabiSabiConfig
 {
-	public WabiSabiConfig() : base("./fakeConfig.for.testing.only.json")
+	private readonly Lock _fileLock = new();
+
+	public WabiSabiConfig()
 	{
 	}
 
-	public WabiSabiConfig(string filePath) : base(filePath)
+	public WabiSabiConfig(string filePath)
 	{
+		FilePath = filePath;
 	}
+
+	/// <remarks>Guarded by <see cref="_fileLock"/>.</remarks>
+	public string? FilePath { get; }
 
 	public Network Network { get; init; } = Network.Main;
 
@@ -191,6 +197,17 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	protected string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
+
+	public void ToFile()
+	{
+		if (FilePath is not null)
+		{
+			lock (_fileLock)
+			{
+				File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
+			}
+		}
+	}
 }
