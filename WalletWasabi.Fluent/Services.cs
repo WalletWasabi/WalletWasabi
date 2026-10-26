@@ -140,6 +140,7 @@ public class Services : IServices
 
 	// CoinJoin
 	private CoinJoinManager? CoinJoinManager => _hostedServices.GetOrDefault<CoinJoinManager>();
+	private Wallet? GetWalletById(WalletId walletId) => _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
 	public bool IsCoinJoinEnabled() => CoinJoinManager is not null;
 	public CoinJoinClientState GetHighestCoinJoinClientState() => CoinJoinManager?.HighestCoinJoinClientState ?? CoinJoinClientState.Idle;
 	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase(WalletId walletId) => CoinJoinManager?.CoinsInCriticalPhase.GetValueOrDefault(walletId) ?? [];
@@ -160,24 +161,16 @@ public class Services : IServices
 	public void WalletEnteredSendWorkflow(WalletId walletId) => CoinJoinManager?.WalletEnteredSendWorkflow(walletId);
 	public void WalletLeftSendWorkflow(WalletId walletId)
 	{
-		if (CoinJoinManager is { } cjm)
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
 		{
-			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
-			if (wallet is not null)
-			{
-				cjm.WalletLeftSendWorkflow(wallet);
-			}
+			cjm.WalletLeftSendWorkflow(wallet);
 		}
 	}
 	public async Task WalletEnteredSendingAsync(WalletId walletId)
 	{
-		if (CoinJoinManager is { } cjm)
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
 		{
-			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
-			if (wallet is not null)
-			{
-				await cjm.WalletEnteredSendingAsync(wallet).ConfigureAwait(false);
-			}
+			await cjm.WalletEnteredSendingAsync(wallet).ConfigureAwait(false);
 		}
 	}
 	public IObservable<StatusChangedEventArgs> SubscribeToCoinJoinStatusChanged()
@@ -191,25 +184,16 @@ public class Services : IServices
 	}
 	public void RequestCoinJoinStart(WalletId walletId, WalletId outputWalletId, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		if (CoinJoinManager is { } cjm)
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet && GetWalletById(outputWalletId) is { } outputWallet)
 		{
-			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
-			var outputWallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == outputWalletId);
-			if (wallet is not null && outputWallet is not null)
-			{
-				cjm.RequestCoinJoinStart(wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
-			}
+			cjm.RequestCoinJoinStart(wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
 		}
 	}
 	public void RequestCoinJoinStop(WalletId walletId)
 	{
-		if (CoinJoinManager is { } cjm)
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
 		{
-			var wallet = _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
-			if (wallet is not null)
-			{
-				cjm.RequestCoinJoinStop(wallet);
-			}
+			cjm.RequestCoinJoinStop(wallet);
 		}
 	}
 
