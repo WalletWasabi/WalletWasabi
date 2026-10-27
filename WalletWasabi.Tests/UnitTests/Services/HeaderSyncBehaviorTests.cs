@@ -50,6 +50,32 @@ public class HeaderSyncBehaviorTests
 		Assert.Equal(1, requests);
 	}
 
+	[Fact]
+	public async Task APeerBehindUsIsNotAskedAgainAsync()
+	{
+		var headers = MineChain(count: 6116);
+		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 6116);
+
+		using var fakeNode = new FakeNode(headers.Take(4051).ToList()); // The node is at 4050.
+		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+
+		Assert.Equal(6116, chain.Tip!.Height);
+		Assert.Equal(1, requests); // Its answer, 2017-4016, is all known: there is nothing to continue from.
+	}
+
+	[Fact]
+	public async Task ReplayedKnownHeadersAreNotRequestedAgainAsync()
+	{
+		var headers = MineChain(count: 6116);
+		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 6116);
+
+		using var fakeNode = new FakeNode(headers, alwaysAnswersFrom: 2017); // Ignores the locator and replays 2017-4016.
+		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+
+		Assert.Equal(6116, chain.Tip!.Height);
+		Assert.Equal(1, requests);
+	}
+
 	/// <summary>Mines a regtest header chain; index = height, so <c>[0]</c> is genesis.</summary>
 	private static List<BlockHeader> MineChain(int count, uint salt = 0)
 	{
@@ -75,16 +101,31 @@ public class HeaderSyncBehaviorTests
 		return headers;
 	}
 
+	private static ConcurrentChain ChainFrom(List<BlockHeader> headers, int baseHeight, int tipHeight)
+	{
+		var tip = new ChainedBlock(headers[baseHeight], baseHeight);
+		for (var height = baseHeight + 1; height <= tipHeight; height++)
+		{
+			tip = new ChainedBlock(headers[height], headers[height].GetHash(), tip);
+		}
+
+		var chain = new ConcurrentChain();
+		chain.SetTip(tip);
+		return chain;
+	}
+
 	private sealed class FakeNode : IDisposable
 	{
 		private readonly List<BlockHeader> _headers;
 		private readonly Dictionary<uint256, int> _heights;
 		private readonly NodeServer _server;
+		private readonly int? _alwaysAnswersFrom;
 		private int _getHeadersReceived;
 
-		public FakeNode(List<BlockHeader> headers)
+		public FakeNode(List<BlockHeader> headers, int? alwaysAnswersFrom = null)
 		{
 			_headers = headers;
+			_alwaysAnswersFrom = alwaysAnswersFrom;
 			_heights = headers.Select((h, i) => (h, i)).ToDictionary(x => x.h.GetHash(), x => x.i);
 			_server = new NodeServer(Network) { LocalEndpoint = new IPEndPoint(IPAddress.Loopback, FreePort()), AllowLocalPeers = true };
 			_server.InboundNodeConnectionParameters.TemplateBehaviors.Clear();
@@ -110,7 +151,7 @@ public class HeaderSyncBehaviorTests
 			}
 
 			Interlocked.Increment(ref _getHeadersReceived);
-			var start = getHeaders.BlockLocators.Blocks.Select(h => _heights.TryGetValue(h, out var height) ? height : -1).FirstOrDefault(h => h >= 0, 0) + 1;
+			var start = _alwaysAnswersFrom ?? getHeaders.BlockLocators.Blocks.Select(h => _heights.TryGetValue(h, out var height) ? height : -1).FirstOrDefault(h => h >= 0, 0) + 1;
 			var batch = _headers.Skip(start).Take(2000).ToArray();
 			message.Node.SendMessageAsync(new HeadersPayload(batch));
 		}

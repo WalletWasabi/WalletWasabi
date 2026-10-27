@@ -199,7 +199,10 @@ public class Global
 			// Also the leftovers of an interrupted write, which SafeFile would otherwise keep around.
 			foreach (var path in new[] { BlockHeadersFilePath, $"{BlockHeadersFilePath}.old", $"{BlockHeadersFilePath}.new" })
 			{
-				File.Delete(path);
+				if (File.Exists(path))
+				{
+					File.Delete(path);
+				}
 			}
 		}
 

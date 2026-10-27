@@ -63,7 +63,6 @@ public class HeaderSyncBehavior(
 			return;
 		}
 
-
 		if (_peerTip is null || blockHeaderChain.GetBlock(_peerTip.HashBlock) is not null)
 		{
 			_peerTip = tip;
@@ -116,7 +115,7 @@ public class HeaderSyncBehavior(
 
 		_peerTip = blockHeaderChain.GetBlock(cursor.HashBlock) ?? cursor;
 
-		if (headers.Headers.Count >= MaxHeadersPerMessage && cursor.HashBlock != start.HashBlock)
+		if (headers.Headers.Count >= MaxHeadersPerMessage && cursor.Height > start.Height)
 		{
 			RequestHeaders(node);
 		}
