@@ -58,12 +58,17 @@ public class HeaderSyncBehavior(
 
 	private void RequestHeaders(Node node)
 	{
-		if (node.State != NodeState.HandShaked || _invalidHeaderReceived || blockHeaderChain.Tip is null)
+		if (node.State != NodeState.HandShaked || _invalidHeaderReceived || blockHeaderChain.Tip is not { } tip)
 		{
 			return;
 		}
 
-		_peerTip ??= blockHeaderChain.Tip;
+
+		if (_peerTip is null || blockHeaderChain.GetBlock(_peerTip.HashBlock) is not null)
+		{
+			_peerTip = tip;
+		}
+
 		node.SendMessageAsync(new GetHeadersPayload { BlockLocators = GetLocator(_peerTip) });
 	}
 
@@ -74,7 +79,8 @@ public class HeaderSyncBehavior(
 			return;
 		}
 
-		var cursor = _peerTip ?? blockHeaderChain.Tip;
+		var start = _peerTip ?? blockHeaderChain.Tip;
+		var cursor = start;
 		foreach (var header in headers.Headers)
 		{
 			var previous = cursor.FindAncestorOrSelf(header.HashPrevBlock) ?? blockHeaderChain.GetBlock(header.HashPrevBlock);
@@ -110,7 +116,7 @@ public class HeaderSyncBehavior(
 
 		_peerTip = blockHeaderChain.GetBlock(cursor.HashBlock) ?? cursor;
 
-		if (headers.Headers.Count >= MaxHeadersPerMessage)
+		if (headers.Headers.Count >= MaxHeadersPerMessage && cursor.HashBlock != start.HashBlock)
 		{
 			RequestHeaders(node);
 		}

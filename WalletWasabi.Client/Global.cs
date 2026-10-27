@@ -178,22 +178,32 @@ public class Global
 		var firstFilterHeight = FilterStore.GetMinimumBlockHeight() ?? FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
 		var (baseHeight, baseHeader) = BlockHeaderCheckpoints.GetBase(Network, firstFilterHeight);
 
-		if (Network != Network.RegTest && File.Exists(BlockHeadersFilePath))
+		if (Network != Network.RegTest && TryLoadBlockHeadersFile(baseHeight, baseHeader))
 		{
-			var loaded = Result<byte[], Exception>
-				.Catch(() => File.SafelyReadAllBytes(BlockHeadersFilePath))
-				.Match(bytes => BlockHeaderChainFile.TryLoad(bytes, Network, baseHeight, baseHeader, _blockHeaders), _ => false);
-			if (loaded)
-			{
-				Logger.LogInfo($"Block headers loaded, tip {_blockHeaders.Tip!.Height}.");
-				return;
-			}
-
-			File.Delete(BlockHeadersFilePath);
+			Logger.LogInfo($"Block headers loaded, tip {_blockHeaders.Tip!.Height}.");
+			return;
 		}
 
 		_blockHeaders.SetTip(new ChainedBlock(baseHeader, (int)baseHeight));
 		Logger.LogInfo($"Block header chain starts at checkpoint {baseHeight}.");
+	}
+
+	private bool TryLoadBlockHeadersFile(uint baseHeight, BlockHeader baseHeader)
+	{
+		var loaded = File.Exists(BlockHeadersFilePath) && Result<byte[], Exception>
+			.Catch(() => File.SafelyReadAllBytes(BlockHeadersFilePath))
+			.Match(bytes => BlockHeaderChainFile.TryLoad(bytes, Network, baseHeight, baseHeader, _blockHeaders), _ => false);
+
+		if (!loaded)
+		{
+			// Also the leftovers of an interrupted write, which SafeFile would otherwise keep around.
+			foreach (var path in new[] { BlockHeadersFilePath, $"{BlockHeadersFilePath}.old", $"{BlockHeadersFilePath}.new" })
+			{
+				File.Delete(path);
+			}
+		}
+
+		return loaded;
 	}
 
 	private P2pConnectionManager ConfigureP2pConnectionManager()
@@ -803,7 +813,6 @@ public class Global
 
 				if (Network != Network.RegTest && _blockHeaders.Tip is not null)
 				{
-					IoHelpers.EnsureDirectoryExists(GetBitcoinP2PNetworkDirectory());
 					File.SafelyWriteAllBytes(BlockHeadersFilePath, BlockHeaderChainFile.Serialize(_blockHeaders));
 					Logger.LogInfo("Block headers saved.");
 				}

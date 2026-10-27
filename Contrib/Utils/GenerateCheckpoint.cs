@@ -16,10 +16,12 @@ static void PrintUsage()
 {
 	Console.WriteLine("""
 		Usage:
-		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [options]
+		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [--base-hash <hex>] [options]
 
 		Required:
 		  --height <uint>              Block height
+		  --base-hash <hex>            Hash of the first block of the checkpoint's difficulty period (height - height % 2016);
+		                               prints the matching BlockHeaderCheckpoints entry
 		  --hash   <hex>               Block hash (64 hex chars)
 
 		Optional:
@@ -40,8 +42,9 @@ string nodeEndpoint = "[::ffff:89.58.60.208]:8333";
 Network network = Network.Main;
 uint256? blockHash = null;
 uint? blockHeight = null;
+uint256? baseHash = null;
 
-if (!TryParseArgs(args, ref nodeEndpoint, ref blockHash, ref blockHeight, out var showHelp, out var error))
+if (!TryParseArgs(args, ref nodeEndpoint, ref blockHash, ref blockHeight, ref baseHash, out var showHelp, out var error))
 {
 	if (error is not null)
 		Console.Error.WriteLine($"error: {error}");
@@ -67,7 +70,7 @@ Console.WriteLine($"Target block: height={blockHeight}, hash={blockHash}");
 
 try
 {
-	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value);
+	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value, baseHash);
 
 	var grFilter = new GolombRiceFilter(data.CompactFilterPayload.FilterBytes);
 	var actualCompactFilterHeader = grFilter.GetHeader(data.CompactFilterHeadersPayload.PreviousFilterHeader);
@@ -106,6 +109,23 @@ try
 		),
 		""");
 
+	var baseHeight = blockHeight.Value - blockHeight.Value % 2016;
+	if (data.BaseBlock is { } baseBlock)
+	{
+		Console.WriteLine();
+		Console.WriteLine("=== BlockHeaderCheckpoints entry ===");
+		Console.WriteLine();
+		Console.WriteLine($"""
+			// {baseBlock.GetHash()}
+			({baseHeight}, "{Convert.ToHexString(baseBlock.Header.ToBytes()).ToLowerInvariant()}"),
+			""");
+	}
+	else
+	{
+		Console.WriteLine();
+		Console.WriteLine($"The header chain needs the header of block {baseHeight} in BlockHeaderCheckpoints: run again with --base-hash <hash of block {baseHeight}>.");
+	}
+
 	return 0;
 }
 catch (Exception ex)
@@ -116,7 +136,7 @@ catch (Exception ex)
 	return 1;
 }
 
-static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, out bool showHelp, out string? error)
+static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, ref uint256? baseHash, out bool showHelp, out string? error)
 {
 	showHelp = false;
 	error = null;
@@ -162,6 +182,23 @@ static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, 
 				}
 				break;
 
+			case "--base-hash":
+				if (i + 1 >= args.Length)
+				{
+					error = $"{arg} requires a value";
+					return false;
+				}
+				try
+				{
+					baseHash = uint256.Parse(args[++i]);
+				}
+				catch
+				{
+					error = $"Invalid base block hash: {args[i]}";
+					return false;
+				}
+				break;
+
 			case "--endpoint":
 				if (i + 1 >= args.Length)
 				{
@@ -184,7 +221,8 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	Network network,
 	string endpoint,
 	uint256 blockHash,
-	uint blockHeight)
+	uint blockHeight,
+	uint256? baseHash)
 {
 	var node = await Node.ConnectAsync(network, endpoint);
 	node.Behaviors.Add(new PingPongBehavior());
@@ -207,6 +245,16 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 
 		if (!block.CheckMerkleRoot())
 			throw new Exception("Block merkle root check failed");
+	}
+
+	// Get the first block of the checkpoint's difficulty period, if asked for
+	Block? baseBlock = null;
+	if (baseHash is not null)
+	{
+		baseBlock = node.GetBlocks([baseHash]).Single();
+
+		if (baseBlock.GetHash() != baseHash)
+			throw new Exception($"Received base block hash mismatch: expected {baseHash}, got {baseBlock.GetHash()}");
 	}
 
 	CompactFilterPayload compactFilterPayload;
@@ -253,11 +301,12 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 		node.Disconnect();
 	}
 
-	return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block);
+	return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block, baseBlock);
 }
 
 record CheckPointData(
 	Node Node,
 	CompactFilterHeadersPayload CompactFilterHeadersPayload,
 	CompactFilterPayload CompactFilterPayload,
-	Block Block);
+	Block Block,
+	Block? BaseBlock);
