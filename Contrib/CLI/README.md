@@ -80,7 +80,9 @@ Replaces the label of one of the wallet's own addresses, and so of the coins on 
 $ ./wcli.sh -wallet=MyWallet getcoinjoinstatus
 
 {
-  "status": "In progress",
+  "status": "In critical phase",
+  "registeredCoinCount": 2,
+  "registeredAmount": 31250000,
   "lastEvent": {
     "event": "EnteringOutputRegistrationPhase",
     "round": {
@@ -89,17 +91,16 @@ $ ./wcli.sh -wallet=MyWallet getcoinjoinstatus
       "phase": "OutputRegistration",
       "endRoundState": "None",
       "inputRegistrationEnd": "2026-10-12T20:05:11+00:00",
-      "inputCount": 212,
-      "inputAmount": 1548203311,
-      "outputCount": 0,
       "maxAmountCredentialValue": 4300000000,
-      "miningFeeRate": 3.0
+      "miningFeeRate": 3.0,
+      "inputCount": 212,
+      "inputAmount": 1548203311
     },
     "timeoutAt": "2026-10-12T20:06:11+00:00"
   }
 }
 ```
-`lastEvent` is the latest coinjoin status event for the wallet, `null` until the first one. `event` is one of `WalletStartedCoinJoin`, `Started`, `StartError` (with `error`, for example `NoConfirmedCoinsEligibleToMix` or `AllCoinsPrivate`), `WaitingForRound`, one of `EnteringInputRegistrationPhase`, `EnteringConnectionConfirmationPhase`, `EnteringOutputRegistrationPhase` or `EnteringSigningPhase` (each with `round` and `timeoutAt`; the first two carry the round as seen at input registration), `EnteringCriticalPhase`, `LeavingCriticalPhase`, `TransactionSigned` (with `txid`), `RoundEnded` (with `round`, see its `endRoundState`), `WaitingForBlameRound` (with `timeoutAt`), `CoinBanned` (with `coin` and `banUntilUtc`), `Completed` (with `completionStatus`) or `WalletStoppedCoinJoin`.
+`registeredCoinCount` and `registeredAmount` are the wallet's coins registered in a round right now. `lastEvent` is the latest coinjoin status event for the wallet, `null` until the first one. The coordinator publishes an input once its connection is confirmed and the outputs during output registration, so a round has `inputCount` and `inputAmount` from `OutputRegistration` on and `outputCount` from `TransactionSigning` on. `event` is one of `WalletStartedCoinJoin`, `Started`, `StartError` (with `error`, for example `NoConfirmedCoinsEligibleToMix` or `AllCoinsPrivate`), `WaitingForRound`, one of `EnteringInputRegistrationPhase`, `EnteringConnectionConfirmationPhase`, `EnteringOutputRegistrationPhase` or `EnteringSigningPhase` (each with `round` and `timeoutAt`; the first two carry the round as it was when the wallet picked it), `EnteringCriticalPhase`, `LeavingCriticalPhase`, `TransactionSigned` (with `txid`), `RoundEnded` (with `round`, see its `endRoundState`), `WaitingForBlameRound` (with `timeoutAt`), `CoinBanned` (with `coin` and `banUntilUtc`), `Completed` (with `completionStatus`) or `WalletStoppedCoinJoin`.
 
 ```bash
 $ ./wcli.sh -wallet=MyWallet listkeys | head -10
