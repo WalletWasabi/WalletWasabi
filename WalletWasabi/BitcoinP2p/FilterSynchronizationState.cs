@@ -9,8 +9,6 @@ namespace WalletWasabi.BitcoinP2p;
 
 public class FilterSynchronizationState
 {
-	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
-	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
 	private const int HeadersPerRequest = 2_000;
 	private const int FiltersPerRequest = 500;
 	private const int MaxLookaheadRanges = 25;
@@ -19,7 +17,6 @@ public class FilterSynchronizationState
 	private readonly ConcurrentChain _blockHeaderChain;
 	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly EventBus? _eventBus;
-	private readonly TimeProvider _timeProvider;
 
 	private readonly RequestTracker<HeaderResponse> _headerTracker;
 	private readonly RequestTracker<FilterResponse> _filterTracker;
@@ -29,17 +26,16 @@ public class FilterSynchronizationState
 	private readonly SortedDictionary<uint, UnvalidatedHeaderResponse> _bufferedHeaderResponses = [];
 
 	public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
-		EventBus? eventBus = null, TimeProvider? timeProvider = null)
+		EventBus? eventBus = null)
 	{
 		_blockHeaderChain = blockHeaderChain;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		_timeProvider = timeProvider ?? TimeProvider.System;
 
 		var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
-		_headerTracker = new RequestTracker<HeaderResponse>(_timeProvider, initialHeaderHeight);
+		_headerTracker = new RequestTracker<HeaderResponse>(initialHeaderHeight);
 		_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
-		_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
+		_filterTracker = new RequestTracker<FilterResponse>(tipHeight);
 	}
 
 	internal bool TryAssignHeaderRange(Network network, [NotNullWhen(true)] out RangeRequest? assignment)
@@ -48,14 +44,6 @@ public class FilterSynchronizationState
 		lock (_lock)
 		{
 			RewindTrackersToFilterHeaderTipNoLock();
-
-			// Check for and release any stale header assignments
-			if (_headerTracker.GetOldestStaleAssignment(HeaderAssignmentTimeout) is { } staleHeaderHeight)
-			{
-				_headerTracker.RemoveActiveAssignment(staleHeaderHeight);
-				Logger.LogWarning(
-					$"Auto-released stale filter header assignment at height {staleHeaderHeight}");
-			}
 
 			var chainTip = _blockHeaderChain.Tip;
 
@@ -316,13 +304,6 @@ public class FilterSynchronizationState
 		lock (_lock)
 		{
 			RewindTrackersToFilterHeaderTipNoLock();
-
-			// Check for and release any stale filter assignments
-			if (_filterTracker.GetOldestStaleAssignment(FilterAssignmentTimeout) is { } staleFilterHeight)
-			{
-				_filterTracker.RemoveActiveAssignment(staleFilterHeight);
-				Logger.LogWarning($"Auto-released stale filter assignment at height {staleFilterHeight}");
-			}
 
 			// Check if filter headers are synced ahead
 			var filterHeadersTip = _filterHeaderChain.Tip;
