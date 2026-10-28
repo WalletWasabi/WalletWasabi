@@ -279,14 +279,14 @@ public partial class Arena : PeriodicRunner
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					Logger.LogInfo(FormatLog($"Network Fee: {networkFee.ToString(false, false)} BTC.", round));
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
-					Logger.LogInfo(FormatLog($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.", round));
-					Logger.LogInfo(FormatLog($"Desired Fee Rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vByte.", round));
+					Logger.LogInfo(FormatLog($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vB.", round));
+					Logger.LogInfo(FormatLog($"Mining fee rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", round));
 
 					// Added for monitoring reasons.
 					try
 					{
 						var targetFeeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vByte. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
+						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
 					}
 					catch (Exception ex)
 					{
