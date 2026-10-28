@@ -9,7 +9,7 @@ public record FeeRateEstimations
 	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate> { { 0, FeeRate.Zero } });
 
 	public static readonly FeeRate MaxFeeRate = new(Constants.MaximumNumberOfBitcoinsMoney);
-	public static readonly FeeRate MinimumSanityFeeRate = new(0.5m);
+	public static readonly FeeRate MinimumSanityFeeRate = new(0.1m);
 
 	/// <summary>All allowed target confirmation ranges, i.e. 0-2, 2-3, 3-6, 6-18, ..., 432-1008.</summary>
 	private static readonly IEnumerable<(int Start, int End)> TargetRanges = AllConfirmationTargets
