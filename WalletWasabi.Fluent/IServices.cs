@@ -40,6 +40,7 @@ public interface IServices
 	Network GetNetwork();
 	IEnumerable<Wallet> GetWallets();
 	bool HasWallet();
+	Wallet GetWalletById(WalletId walletId);
 	Wallet GetWalletByName(string walletName);
 	void RenameWallet(Wallet wallet, string newWalletName);
 	string GetWalletsDir();

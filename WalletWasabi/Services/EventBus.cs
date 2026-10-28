@@ -134,7 +134,7 @@ public record WalletLoaded(Wallet Wallet);
 public record NewTransactionInMempool(SmartTransaction Transaction);
 public record ChainReorganized(ChainHeight InvalidBlockHeight, uint256 InvalidBlockHash);
 public record FiltersReceived(FilterModel[] Filters);
-public record WalletRelevantTransactionProcessed(string WalletName, ProcessedResult Result);
+public record WalletRelevantTransactionProcessed(WalletId WalletId, ProcessedResult Result);
 public record NodeDisconnectedQuickly(EndPoint EndPoint, Node Node);
 public record MisbehavingNodeDetected(EndPoint EndPoint, Node Node);
 public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
