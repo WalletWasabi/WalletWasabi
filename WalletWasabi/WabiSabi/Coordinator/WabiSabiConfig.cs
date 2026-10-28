@@ -8,8 +8,6 @@ namespace WalletWasabi.WabiSabi.Coordinator;
 
 public record WabiSabiConfig
 {
-	private readonly Lock _fileLock = new();
-
 	public WabiSabiConfig()
 	{
 	}
@@ -19,7 +17,6 @@ public record WabiSabiConfig
 		FilePath = filePath;
 	}
 
-	/// <remarks>Guarded by <see cref="_fileLock"/>.</remarks>
 	public string? FilePath { get; }
 
 	public Network Network { get; init; } = Network.Main;
@@ -204,10 +201,7 @@ public record WabiSabiConfig
 	{
 		if (FilePath is not null)
 		{
-			lock (_fileLock)
-			{
-				File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
-			}
+			File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
 		}
 	}
 }
