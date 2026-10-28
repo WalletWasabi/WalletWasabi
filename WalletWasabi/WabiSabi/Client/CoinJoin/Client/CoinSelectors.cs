@@ -73,6 +73,12 @@ public static class CoinSelectors
 							: funding;
 					});
 
-			return paymentsFunding.Coins.ToShuffled(generator.Rnd).ToImmutableList();
+			var selection = paymentsFunding.Coins.ToShuffled(generator.Rnd).ToImmutableList();
+			if (!selection.IsEmpty)
+			{
+				Logger.LogDebug($"Selected {selection.Count} coins to pay {string.Join(", ", paymentsFunding.Payments.Select(x => x.Amount.ToString(false, true)))} BTC: {string.Join(", ", selection.Select(x => x.Amount.ToString(false, true)))} BTC.");
+			}
+
+			return selection;
 		};
 }
