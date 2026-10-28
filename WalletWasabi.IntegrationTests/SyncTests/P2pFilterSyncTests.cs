@@ -19,7 +19,7 @@ public class P2pFilterSyncTests
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout - P2P sync can be slower
-	public async Task P2pFilterSync_InitialSync_AllFiltersDownloaded()
+	public async Task P2pFilterSync_InitialSync_AllFiltersDownloadedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -31,20 +31,20 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter store should have filters up to tip
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 		Assert.Equal((uint)tipHeight, (uint)filterTip.Header.Height);
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout
-	public async Task P2pFilterSync_NewBlockMined_FilterSyncs()
+	public async Task P2pFilterSync_NewBlockMined_FilterSyncsAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Initial sync via P2P
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -56,19 +56,19 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter tip should advance by 1
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + 1, (uint)newTip.Header.Height);
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout
-	public async Task P2pFilterSync_MultipleBlocks_AllFiltersDownloaded()
+	public async Task P2pFilterSync_MultipleBlocks_AllFiltersDownloadedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -80,13 +80,13 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
 		// Assert
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + blocksToMine, (uint)newTip.Header.Height);
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout
-	public async Task P2pFilterSync_FilterHeaderChain_UpdatesCorrectly()
+	public async Task P2pFilterSync_FilterHeaderChain_UpdatesCorrectlyAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -95,7 +95,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
 		// Assert - FilterHeaderChain should be in sync
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 
 		var chainTipHeight = env.FilterHeaderChain.TipHeight;
@@ -103,13 +103,13 @@ public class P2pFilterSyncTests
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout
-	public async Task P2pFilterSync_EmptyChain_HandledCorrectly()
+	public async Task P2pFilterSync_EmptyChain_HandledCorrectlyAsync()
 	{
 		// This tests the initial state before any sync
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// The filter store is initialized with checkpoint at height 0 for regtest
-		var tip = env.FilterStore.GetTip();
+		var tip = env.FilterManager.GetTip();
 
 		// For regtest, we expect to have at least the genesis filter
 		Assert.NotNull(tip);
@@ -118,7 +118,7 @@ public class P2pFilterSyncTests
 		// Now sync via P2P and verify we catch up
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
-		var syncedTip = env.FilterStore.GetTip();
+		var syncedTip = env.FilterManager.GetTip();
 		Assert.NotNull(syncedTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();
@@ -126,7 +126,7 @@ public class P2pFilterSyncTests
 	}
 
 	[Fact(Timeout = 300_000)] // 5 minute timeout for larger sync
-	public async Task P2pFilterSync_LargerBlockBatch_SyncsCorrectly()
+	public async Task P2pFilterSync_LargerBlockBatch_SyncsCorrectlyAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -139,7 +139,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2PAsync(TestContext.Current.CancellationToken);
 
 		// Assert
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();

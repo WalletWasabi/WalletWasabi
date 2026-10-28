@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.IntegrationTests.Infrastructure;
@@ -24,7 +23,7 @@ public class ReorgTests
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task Reorg_ShallowReorg_FiltersReorganized()
+	public async Task Reorg_ShallowReorg_FiltersReorganizedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -33,7 +32,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(5);
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		var preTip = env.FilterStore.GetTip();
+		var preTip = env.FilterManager.GetTip();
 		Assert.NotNull(preTip);
 		var preHeight = (uint)preTip.Header.Height;
 		var preBlockHash = preTip.Header.BlockHash;
@@ -48,7 +47,7 @@ public class ReorgTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
-		var postTip = env.FilterStore.GetTip();
+		var postTip = env.FilterManager.GetTip();
 		Assert.NotNull(postTip);
 
 		// The new tip should be at the same or higher height
@@ -61,7 +60,7 @@ public class ReorgTests
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task Reorg_WalletHandlesReorg_CoinsStateUpdated()
+	public async Task Reorg_WalletHandlesReorg_CoinsStateUpdatedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -113,7 +112,7 @@ public class ReorgTests
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task Reorg_DeepReorg_HandledGracefully()
+	public async Task Reorg_DeepReorg_HandledGracefullyAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -122,7 +121,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(10);
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		// Get a block 5 blocks back to invalidate
@@ -140,7 +139,7 @@ public class ReorgTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 
 		// The new chain should be longer
@@ -150,7 +149,7 @@ public class ReorgTests
 	}
 
 	[Fact(Timeout = 180_000)] // 3 minute timeout
-	public async Task Reorg_DeepReorg_WalletUtxoSetCorrectlyUpdated()
+	public async Task Reorg_DeepReorg_WalletUtxoSetCorrectlyUpdatedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -235,7 +234,7 @@ public class ReorgTests
 			TimeSpan.FromSeconds(60));
 
 		// Verify the new chain is longer and different
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.True((uint)newTip.Header.Height > baseHeight + NumberOfCoins);
 
