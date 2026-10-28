@@ -28,7 +28,7 @@ public class CompactFilterBehavior(
 	private RangeRequest? _assignedHeaderRange;
 	private DateTime _assignedHeaderRangeAt;
 	private RangeRequest? _assignedFilterRange;
-	private DateTime _assignedFilterRangeAt;
+	private DateTime _lastFilterProgressAt;
 
 	private volatile bool _invalidReceived;
 
@@ -213,6 +213,7 @@ public class CompactFilterBehavior(
 		}
 
 		_collectedFilters.Add(filterPayload);
+		_lastFilterProgressAt = DateTime.UtcNow;
 
 		// Check if we've received all filters for this range
 		if (filterPayload.BlockHash != assignment.StopHash && _collectedFilters.Count < assignment.Count)
@@ -367,7 +368,7 @@ public class CompactFilterBehavior(
 		}
 
 		_assignedFilterRange = filterAssignment;
-		_assignedFilterRangeAt = DateTime.UtcNow;
+		_lastFilterProgressAt = DateTime.UtcNow;
 		Logger.LogDebug(
 			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
@@ -443,10 +444,10 @@ public class CompactFilterBehavior(
 			// Check filter assignment timeout
 			if (_assignedFilterRange is not null)
 			{
-				var elapsed = nowUtc - _assignedFilterRangeAt;
-				if (elapsed > _filterAssignmentTimeout)
+				var stalledFor = nowUtc - _lastFilterProgressAt;
+				if (stalledFor > _filterAssignmentTimeout)
 				{
-					HandleInvalidNoLock(node, $"Filter assignment at {_assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+					HandleInvalidNoLock(node, $"Filter range {_assignedFilterRange} stalled for {stalledFor.TotalSeconds:F1}s ({_collectedFilters.Count}/{_assignedFilterRange.Count} filters received), disconnecting {node.Peer.Endpoint}");
 					return true;
 				}
 			}
