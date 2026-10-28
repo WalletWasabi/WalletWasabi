@@ -1,4 +1,3 @@
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -7,13 +6,18 @@ public delegate ImmutableList<SmartCoin> CoinSelector(SmartCoin[] coins, UtxoSel
 
 public static class CoinSelectors
 {
+	// Arbitrary number.
+	private const int RandomSelectionAttempts = 100;
+
 	public static CoinSelector ComposedCoinSelector(CoinSelector[] coinSelectors) =>
 		(coins, parameters, liquidityClue) => coinSelectors
 			.Select(coinSelector => coinSelector(coins, parameters, liquidityClue))
 			.FirstOrDefault(selection => !selection.IsEmpty, ImmutableList<SmartCoin>.Empty);
 
-	// Pays as many pending payments as possible, cheapest first, spending an input of each failed attempt. Red coins stay isolated.
-	public static CoinSelector PrivatePaymentCoinSelector(PaymentBatch paymentBatch, int minAnonScoreForPayments, int semiPrivateThreshold) =>
+	// Pays as many pending payments as possible, cheapest first, with as many random coins as a coinjoin would mix, so that
+	// a payment cannot be traced to the few inputs that could pay it alone. The selection spends an input of each failed
+	// attempt, leaves more than the smallest denomination behind so that no dust is left, and keeps red coins isolated.
+	public static CoinSelector PrivatePaymentCoinSelector(PaymentBatch paymentBatch, int minAnonScoreForPayments, int semiPrivateThreshold, CoinJoinCoinSelectorRandomnessGenerator generator) =>
 		(coins, parameters, _) =>
 		{
 			var feeRate = parameters.MiningFeeRate;
@@ -24,6 +28,9 @@ public static class CoinSelectors
 
 			Money ValueOf(ImmutableList<SmartCoin> selection) =>
 				selection.Sum(x => x.EffectiveValue(feeRate));
+
+			bool Funds(ImmutableList<SmartCoin> selection, Money amount) =>
+				ValueOf(selection) > amount + parameters.MinAllowedOutputAmount;
 
 			SmartCoin[] Selectable(ImmutableList<SmartCoin> selection) =>
 				candidates
@@ -40,16 +47,15 @@ public static class CoinSelectors
 						.ThenByDescending(x => x.EffectiveValue(feeRate))
 						.Take(1));
 
-			ImmutableList<SmartCoin> Fund(ImmutableList<SmartCoin> selection, Money amount)
-			{
-				var missing = amount - ValueOf(selection);
-				var selectable = Selectable(selection);
-				var coin = selectable.Where(x => x.EffectiveValue(feeRate) >= missing).MinBy(x => x.EffectiveValue(feeRate))
-					?? selectable.MaxBy(x => x.EffectiveValue(feeRate));
-				return missing <= Money.Zero || selection.Count >= CoinJoinCoinSelector.MaxInputsRegistrableByWallet || coin is null
-					? selection
-					: Fund(selection.Add(coin), amount);
-			}
+			ImmutableList<SmartCoin> Draw(ImmutableList<SmartCoin> selection, int inputCount) =>
+				Selectable(selection)
+					.ToShuffled(generator.Rnd)
+					.Aggregate(selection, (drawn, coin) => drawn.Count < inputCount && Selectable(drawn).Contains(coin) ? drawn.Add(coin) : drawn);
+
+			ImmutableList<SmartCoin> Fund(ImmutableList<SmartCoin> selection, Money amount) =>
+				Enumerable.Range(0, RandomSelectionAttempts)
+					.Select(_ => Draw(selection, generator.GetInputTarget()))
+					.FirstOrDefault(drawn => Funds(drawn, amount), selection);
 
 			var paymentsFunding = paymentBatch.GetPendingPayments()
 				.OrderBy(payment => payment.EffectiveCost(feeRate))
@@ -60,14 +66,13 @@ public static class CoinSelectors
 						var payments = funding.Payments.Add(payment);
 						var amount = new PaymentSet(payments, feeRate).TotalAmount;
 						var selection = Fund(paymentBatch.GetFailedAttemptInputSets(payment).Aggregate(funding.Coins, SpendFrom), amount);
-						return payments.Count <= PaymentBatch.MaxPaymentsPerCoinjoin
-							&& selection.Count <= CoinJoinCoinSelector.MaxInputsRegistrableByWallet
-							&& ValueOf(selection) >= amount
+						return selection.Count <= CoinJoinCoinSelector.MaxInputsRegistrableByWallet
+							&& Funds(selection, amount)
 							&& paymentBatch.CanBeRetriedWith(payment, selection.Select(x => x.Outpoint).ToHashSet())
 							? (selection, payments)
 							: funding;
 					});
 
-			return paymentsFunding.Coins.ToShuffled(RandomnessProviders.Secure).ToImmutableList();
+			return paymentsFunding.Coins.ToShuffled(generator.Rnd).ToImmutableList();
 		};
 }

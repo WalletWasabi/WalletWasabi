@@ -15,12 +15,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CoinSelectorsTests
 {
 	private const int AnonScoreTarget = 10;
+	private static readonly CoinJoinCoinSelectorRandomnessGenerator Generator = new(CoinJoinCoinSelector.MaxInputsRegistrableByWallet, RandomExtensions.CreateSeeded(seed: 0));
 
 	[Fact]
 	public void SelectNothingWithoutPendingPayments()
 	{
 		var coins = CreateCoins(anonymitySet: 1, 1m, 2m);
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(new PaymentBatch(new CoinsRegistry()), minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(new PaymentBatch(new CoinsRegistry()), minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator);
 
 		Assert.Empty(Select(selector, coins));
 	}
@@ -34,20 +35,47 @@ public class CoinSelectorsTests
 		var coins = CreateCoins(anonymitySet: AnonScoreTarget + 1, 0.3m, 0.3m, 0.3m);
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.5m));
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: AnonScoreTarget, Constants.SemiPrivateThreshold);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: AnonScoreTarget, Constants.SemiPrivateThreshold, Generator);
 
-		Assert.Equal(2, Select(selector, coins).Count);
+		Assert.InRange(Select(selector, coins).Count, 2, 3);
 	}
 
+	/// <summary>
+	/// The coins are drawn at random, as many as a coinjoin would mix, so the payment is not tied to the coins that could pay it alone.
+	/// </summary>
 	[Fact]
-	public void PayWithTheSmallestCoinThatIsEnough()
+	public void PayWithRandomCoins()
 	{
-		var coins = CreateCoins(anonymitySet: AnonScoreTarget + 1, 0.2m, 0.6m, 3m);
+		var coins = CreateCoins(anonymitySet: AnonScoreTarget + 1, Enumerable.Repeat(0.1m, 15).ToArray());
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.5m));
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold);
+		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.05m));
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator);
 
-		Assert.Equal(coins[1], Assert.Single(Select(selector, coins)));
+		var selections = Enumerable.Range(0, 20).Select(_ => Select(selector, coins)).ToArray();
+
+		Assert.All(selections, selection => Assert.InRange(selection.Count, 1, CoinJoinCoinSelector.MaxInputsRegistrableByWallet));
+		Assert.Equal(coins.Length, selections.SelectMany(selection => selection).Distinct().Count());
+	}
+
+	/// <summary>
+	/// What is left after the payment must still make the smallest denomination, otherwise it cannot be registered (issue #15088).
+	/// </summary>
+	[Fact]
+	public void LeaveMoreThanTheSmallestDenominationBehind()
+	{
+		var parameters = WabiSabiFactory.CreateUtxoSelectionParameters();
+		var payment = Money.Coins(0.02m);
+		var fees = parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize);
+		var tightCoin = CreateCoins(anonymitySet: 1, (payment + fees + parameters.MinAllowedOutputAmount).ToDecimal(MoneyUnit.BTC));
+		var smallCoin = CreateCoins(anonymitySet: 1, 0.001m);
+		var comfortableCoin = CreateCoins(anonymitySet: 1, 0.03m);
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
+		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), payment);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0, Generator);
+
+		Assert.Contains(comfortableCoin[0], Select(selector, [.. tightCoin, .. comfortableCoin]));
+		Assert.Equal(2, Select(selector, [.. tightCoin, .. smallCoin]).Count);
+		Assert.Empty(Select(selector, tightCoin));
 	}
 
 	[Fact]
@@ -55,7 +83,7 @@ public class CoinSelectorsTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.5m));
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0, Generator);
 
 		var notEnoughMoney = CreateCoins(anonymitySet: 1, 0.2m, 0.2m);
 		var tooManyCoins = CreateCoins(anonymitySet: 1, Enumerable.Repeat(0.01m, 60).ToArray());
@@ -72,7 +100,7 @@ public class CoinSelectorsTests
 		var privateCoins = CreateCoins(anonymitySet: AnonScoreTarget, 0.4m, 0.4m);
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.5m));
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: AnonScoreTarget, Constants.SemiPrivateThreshold);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: AnonScoreTarget, Constants.SemiPrivateThreshold, Generator);
 
 		var selection = Select(selector, [.. red, .. semiPrivate, .. privateCoins]);
 
@@ -91,7 +119,7 @@ public class CoinSelectorsTests
 		var coins = CreateCoins(anonymitySet: 1, 1m, 1.1m, 1.2m, 1.3m, 1.4m);
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		AddPaymentWithFailedAttempts(paymentBatch, Money.Coins(0.5m), [coins[1].Outpoint, BitcoinFactory.CreateOutPoint()]);
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator);
 
 		Assert.Equal(coins[1], Assert.Single(Select(selector, coins)));
 	}
@@ -106,7 +134,7 @@ public class CoinSelectorsTests
 			Money.Coins(0.5m),
 			[coins[0].Outpoint, BitcoinFactory.CreateOutPoint()],
 			[coins[1].Outpoint, BitcoinFactory.CreateOutPoint()]);
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0, Generator);
 
 		var selection = Select(selector, coins);
 
@@ -129,11 +157,11 @@ public class CoinSelectorsTests
 		var onlyRed = new PaymentBatch(new CoinsRegistry());
 		AddPaymentWithFailedAttempts(onlyRed, Money.Coins(0.5m), [red[0].Outpoint], [red[1].Outpoint]);
 
-		Assert.Empty(Select(CoinSelectors.PrivatePaymentCoinSelector(onlyRed, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold), coins));
+		Assert.Empty(Select(CoinSelectors.PrivatePaymentCoinSelector(onlyRed, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator), coins));
 
 		var redOrSemiPrivate = new PaymentBatch(new CoinsRegistry());
 		AddPaymentWithFailedAttempts(redOrSemiPrivate, Money.Coins(0.5m), [red[1].Outpoint], [red[0].Outpoint, semiPrivate[0].Outpoint]);
-		var selection = Select(CoinSelectors.PrivatePaymentCoinSelector(redOrSemiPrivate, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold), coins);
+		var selection = Select(CoinSelectors.PrivatePaymentCoinSelector(redOrSemiPrivate, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator), coins);
 
 		Assert.Equal(2, selection.Count);
 		Assert.Contains(red[1], selection);
@@ -148,23 +176,9 @@ public class CoinSelectorsTests
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.8m));
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.2m));
 		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.3m));
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold);
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold, Generator);
 
-		Assert.Equal(2, Select(selector, coins).Count);
-	}
-
-	[Fact]
-	public void FundNoMorePaymentsThanACoinjoinMakes()
-	{
-		var coins = CreateCoins(anonymitySet: AnonScoreTarget + 1, Enumerable.Repeat(0.11m, 6).ToArray());
-		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		foreach (var amount in Enumerable.Repeat(Money.Coins(0.1m), PaymentBatch.MaxPaymentsPerCoinjoin + 1))
-		{
-			paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), amount);
-		}
-		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, Constants.SemiPrivateThreshold);
-
-		Assert.Equal(PaymentBatch.MaxPaymentsPerCoinjoin, Select(selector, coins).Count);
+		Assert.InRange(Select(selector, coins).Count, 2, 3);
 	}
 
 	[Fact]

@@ -1,4 +1,5 @@
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -45,7 +46,7 @@ public class CoinJoinTrackerFactory
 		var minAnonScoreForPayments = wallet.OnlyUsePrivateFundsForPayments ? wallet.AnonScoreTarget : 0;
 		var coinJoinCoinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinSelector = CoinSelectors.ComposedCoinSelector([
-			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold),
+			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold, new CoinJoinCoinSelectorRandomnessGenerator(CoinJoinCoinSelector.MaxInputsRegistrableByWallet, RandomnessProviders.Secure)),
 			coinJoinCoinSelector.SelectCoinsForRound]);
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
