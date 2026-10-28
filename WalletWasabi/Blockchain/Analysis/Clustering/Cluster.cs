@@ -41,19 +41,15 @@ public class Cluster(ImmutableHashSet<HdPubKey> keys) : IEquatable<Cluster>
 			return true;
 		}
 
-#if NET10_0
 		if (other is null)
 		{
 			return false;
 		}
 
-		// In .NET 10, `SetEquals` allocates. In .NET 11, it does not.
+		// Not `SetEquals`: on .NET 10 it copies the other set into a new `HashSet` on every call.
 		var mine = GetKeys();
 		var theirs = other.GetKeys();
-		return mine.Count == theirs.Count && theirs.All(mine.Contains);
-#else
-		return other is not null && GetKeys().SetEquals(other.GetKeys());
-#endif
+		return mine.Count == theirs.Count && mine.IsSupersetOf(theirs);
 	}
 
 	public static bool operator ==(Cluster? x, Cluster? y) => x?.Equals(y) ?? y is null;
