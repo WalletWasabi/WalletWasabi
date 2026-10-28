@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
@@ -90,14 +91,13 @@ public class PaymentBatch(CoinsRegistry coins)
 		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
 		// Once we know how much money we have registered in the coinjoin, lets see how many payments
-		// we can do we that.
+		// we can do we that. What is left must still make the smallest denomination, otherwise it cannot be registered.
+		var minChange = UtxoSelectionParameters.FromRoundParameters(roundParameters, [.. allowedOutputTypes]).MinAllowedOutputAmount;
 		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, MaxPaymentsPerCoinjoin);
 		var bestPaymentSet = allCombinationOfPendingPayments
 			.Select(pendingPaymentSet => new PaymentSet(pendingPaymentSet, roundParameters.MiningFeeRate))
-			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
-			.Where(paymentSet => paymentSet.TotalAmount == availableAmount // edge case where payments match exactly the available amount
-				? paymentSet.TotalVSize <= availableVsize
-				: paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize)
+			.Where(paymentSet => availableAmount - paymentSet.TotalAmount > minChange)
+			.Where(paymentSet => paymentSet.TotalVSize + Math.Max(Constants.P2trOutputVirtualSize, Constants.P2wpkhOutputVirtualSize) <= availableVsize)
 			.DefaultIfEmpty(PaymentSet.Empty)
 			.MaxBy(x => x.PaymentCount)!;
 
