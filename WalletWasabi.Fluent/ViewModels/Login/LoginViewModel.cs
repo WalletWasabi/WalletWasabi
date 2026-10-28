@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login;
@@ -36,6 +37,12 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(IWalletModel walletModel)
 	{
+		if (PasswordHelper.IsTrimmable(Password))
+		{
+			ErrorMessage = PasswordHelper.WhitespaceMessage;
+			return;
+		}
+
 		var success = await walletModel.Auth.TryLoginAsync(Password);
 
 		if (!success)

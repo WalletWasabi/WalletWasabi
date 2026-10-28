@@ -7,6 +7,9 @@ using NBitcoin;
 
 namespace WalletWasabi.Tests.UnitTests.Userfacing;
 
+/// <summary>
+/// Tests for <see cref="PasswordHelper"/>.
+/// </summary>
 public class PasswordHelperTests
 {
 	[Fact]
@@ -19,6 +22,12 @@ public class PasswordHelperTests
 
 		// Should not throw.
 		PasswordHelper.GetMasterExtKey(keyManager, password);
+
+		// The correct password is accepted.
+		Assert.True(PasswordHelper.TryPassword(keyManager, password));
+
+		// The correct password with additional whitespace must be rejected.
+		Assert.False(PasswordHelper.TryPassword(keyManager, $"{password} "));
 
 		// This should not throw format exception but the password is not correct.
 		Assert.Throws<SecurityException>(() => PasswordHelper.GetMasterExtKey(keyManager, RandomString.AlphaNumeric(PasswordHelper.MaxPasswordLength)));

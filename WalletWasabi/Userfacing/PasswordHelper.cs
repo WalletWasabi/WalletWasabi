@@ -1,5 +1,3 @@
-using System.Security;
-
 namespace WalletWasabi.Userfacing;
 
 public static class PasswordHelper
@@ -62,23 +60,13 @@ public static class PasswordHelper
 
 		if (IsTrimmable(password))
 		{
-			throw new FormatException("Leading and trailing white spaces are not allowed!");
+			throw new FormatException(WhitespaceMessage);
 		}
 	}
 
 	public static ExtKey GetMasterExtKey(KeyManager keyManager, string password)
 	{
 		AssertCorrectPassword(password);
-
-		try
-		{
-			return keyManager.GetMasterExtKey(password);
-		}
-		catch (SecurityException)
-		{
-			throw;
-		}
-
-		throw new InvalidOperationException(); // The password is invalid.
+		return keyManager.GetMasterExtKey(password);
 	}
 }

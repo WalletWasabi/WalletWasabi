@@ -32,7 +32,7 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
-		var success = await _wallet.Auth.TryPasswordAsync(Password);
+		var success = _wallet.Auth.TryPassword(Password);
 		Password = "";
 		return success;
 	}
