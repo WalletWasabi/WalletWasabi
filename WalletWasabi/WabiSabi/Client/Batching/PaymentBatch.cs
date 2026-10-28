@@ -90,8 +90,7 @@ public class PaymentBatch(CoinsRegistry coins)
 		}
 		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
-		// Once we know how much money we have registered in the coinjoin, lets see how many payments
-		// we can do we that. What is left must still make the smallest denomination, otherwise it cannot be registered.
+		// Once we know how much money we have registered in the coinjoin, lets see how many payments we can do.
 		var minChange = UtxoSelectionParameters.FromRoundParameters(roundParameters, [.. allowedOutputTypes]).MinAllowedOutputAmount;
 		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, MaxPaymentsPerCoinjoin);
 		var bestPaymentSet = allCombinationOfPendingPayments

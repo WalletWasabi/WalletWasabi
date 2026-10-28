@@ -14,9 +14,9 @@ public static class CoinSelectors
 			.Select(coinSelector => coinSelector(coins, parameters, liquidityClue))
 			.FirstOrDefault(selection => !selection.IsEmpty, ImmutableList<SmartCoin>.Empty);
 
-	// Pays as many pending payments as possible, cheapest first, with as many random coins as a coinjoin would mix, so that
-	// a payment cannot be traced to the few inputs that could pay it alone. The selection spends an input of each failed
-	// attempt, leaves more than the smallest denomination behind so that no dust is left, and keeps red coins isolated.
+	// Pays as many pending payments as possible, cheapest first, with as many random coins as a coinjoin would mix.
+	// The selection spends an input of each failed attempt, leaves more than the smallest denomination behind so
+	// that no dust is left, while respecting red coins isolation.
 	public static CoinSelector PrivatePaymentCoinSelector(PaymentBatch paymentBatch, int minAnonScoreForPayments, int semiPrivateThreshold, CoinJoinCoinSelectorRandomnessGenerator generator) =>
 		(coins, parameters, _) =>
 		{
