@@ -20,7 +20,8 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public async Task LoginAsync(string password)
 	{
-		var isPasswordCorrect = _wallet.TryLogin(password);
+		// Do not block the UI thread for non-trivial time.
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password));
 		if (!isPasswordCorrect)
 		{
 			throw new InvalidOperationException("Incorrect passphrase.");
@@ -31,13 +32,15 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public async Task<bool> TryLoginAsync(string password)
 	{
-		var isPasswordCorrect = _wallet.TryLogin(password);
+		// Do not block the UI thread for non-trivial time.
+		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password));
 		return isPasswordCorrect;
 	}
 
-	public bool TryPassword(string password)
+	public async Task<bool> TryPasswordAsync(string password)
 	{
-		return PasswordHelper.TryPassword(_wallet.KeyManager, password);
+		// Do not block the UI thread for non-trivial time.
+		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password));
 	}
 
 	public void CompleteLogin()

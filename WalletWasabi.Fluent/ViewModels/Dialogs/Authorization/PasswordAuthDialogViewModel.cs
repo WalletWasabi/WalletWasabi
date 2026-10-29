@@ -1,11 +1,14 @@
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 
 [NavigationMetaData(Title = "Enter your passphrase", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 {
+	private static readonly string IncorrectPassphrase = $"The passphrase is incorrect.{Environment.NewLine}Please try again.";
+
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private string _password;
 
@@ -25,14 +28,21 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 		EnableBack = false;
 
-		AuthorizationFailedMessage = $"The passphrase is incorrect.{Environment.NewLine}Please try again.";
+		AuthorizationFailedMessage = IncorrectPassphrase;
 	}
 
 	public string ContinueText { get; init; }
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
-		var success = _wallet.Auth.TryPassword(Password);
+		if (PasswordHelper.IsTrimmable(Password))
+		{
+			AuthorizationFailedMessage = PasswordHelper.WhitespaceMessage;
+			return false;
+		}
+
+		var success = await _wallet.Auth.TryPasswordAsync(Password);
+		AuthorizationFailedMessage = IncorrectPassphrase;
 		Password = "";
 		return success;
 	}

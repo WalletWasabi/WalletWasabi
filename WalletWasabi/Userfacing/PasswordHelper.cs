@@ -37,6 +37,9 @@ public static class PasswordHelper
 		return false;
 	}
 
+	/// <remarks>
+	/// Note that the operation is slow because of <see cref="GetMasterExtKey(KeyManager, string)"/>. Do not run on the UI thread.
+	/// </remarks>
 	public static bool TryPassword(KeyManager keyManager, string password)
 	{
 		try

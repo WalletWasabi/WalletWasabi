@@ -210,6 +210,7 @@ public class Wallet : BackgroundService
 		return pcPrivate;
 	}
 
+	/// <remarks>Note that the operation is slow (i.e. hundreds of milliseconds or more). Do not run on the UI thread.</remarks>
 	public bool TryLogin(string password)
 	{
 		if (KeyManager.IsWatchOnly)
