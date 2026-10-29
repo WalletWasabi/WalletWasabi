@@ -467,11 +467,8 @@ public class CpfpInfoProviderTests
 	{
 		// Arrange
 		using var cts = new CancellationTokenSource();
-		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-		var eventBus = new EventBus();
-		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-
-		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		// Withhold the reply so completion cannot race the cancellation assertion.
+		using var mailbox = CreateAndStartMailboxProcessor((_, _, _) => Task.FromResult(Unit.Instance), cts.Token);
 		var provider = new CpfpInfoProvider(mailbox);
 		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
@@ -770,11 +767,8 @@ public class CpfpInfoProviderCancellationTests
 	{
 		// Arrange
 		using var processorCts = new CancellationTokenSource();
-		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-		var eventBus = new EventBus();
-		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-
-		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		// Withhold the reply so completion cannot race the cancellation assertion.
+		using var mailbox = CreateAndStartMailboxProcessor((_, _, _) => Task.FromResult(Unit.Instance), processorCts.Token);
 		var provider = new CpfpInfoProvider(mailbox);
 		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 

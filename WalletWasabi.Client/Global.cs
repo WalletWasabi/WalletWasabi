@@ -32,7 +32,7 @@ using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
@@ -86,8 +86,8 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterStore.DisposeUsing(_disposables);
+		FilterManager = new FilterManager(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
+		FilterManager.DisposeUsing(_disposables);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -100,7 +100,7 @@ public class Global
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
-			FilterStore,
+			FilterManager,
 			TransactionStore,
 			FilterHeaders,
 			_mempoolService,
@@ -141,7 +141,7 @@ public class Global
 	public TorSettings TorSettings { get; }
 
 	public FilterHeaderChain FilterHeaders { get; }
-	public FilterStore FilterStore { get; }
+	public FilterManager FilterManager { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
@@ -175,7 +175,7 @@ public class Global
 	/// <summary>Starts the block header chain at the checkpoint below the oldest stored filter, or continues the saved chain.</summary>
 	private void SeedBlockHeaderChain()
 	{
-		var firstFilterHeight = FilterStore.GetMinimumBlockHeight() ?? FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
+		var firstFilterHeight = FilterManager.GetMinimumBlockHeight() ?? FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
 		var checkpoint = BlockHeaderCheckpoints.GetBase(Network, firstFilterHeight);
 
 		if (Network != Network.RegTest && TryLoadBlockHeadersFile(checkpoint))
@@ -410,7 +410,7 @@ public class Global
 				rpcProvider => rpcProvider,
 				_ =>
 				{
-					var tip = FilterStore.GetTip()!.Header;
+					var tip = FilterManager.GetTip()!.Header;
 					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
 					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
@@ -419,7 +419,7 @@ public class Global
 
 
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterManager, FilterHeaders, EventBus));
 
 		if (supportsBlockFiltersResult.IsOk)
 		{
@@ -511,7 +511,13 @@ public class Global
 			return;
 		}
 
-		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://nostr.mom")];
+		Uri[] relayUrls = [
+			new("wss://relay.primal.net"),
+			new("wss://purplerelay.com"),
+			new("wss://relay.wasabiwallet.io"),
+			new("wss://relay.damus.io"),
+			new("wss://nostr.azzamo.net")
+		];
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
@@ -553,7 +559,7 @@ public class Global
 		try
 		{
 			await TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-			await FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
+			await FilterManager.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{

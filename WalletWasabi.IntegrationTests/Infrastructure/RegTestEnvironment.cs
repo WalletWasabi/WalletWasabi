@@ -5,10 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Extensions;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -17,10 +14,10 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.IntegrationTests.BitcoinCore;
 using WalletWasabi.Wallets;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
+using WalletWasabi.Storages;
 
 namespace WalletWasabi.IntegrationTests.Infrastructure;
 
@@ -34,7 +31,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		IntegrationTestFixture fixture,
 		string workDir,
 		EventBus eventBus,
-		FilterStore filterStore,
+		FilterManager filterManager,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
 		CpfpInfoProvider cpfpInfoProvider)
@@ -42,7 +39,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		Fixture = fixture;
 		WorkDir = workDir;
 		EventBus = eventBus;
-		FilterStore = filterStore;
+		FilterManager = filterManager;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
 		CpfpInfoProvider = cpfpInfoProvider;
@@ -52,7 +49,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public IntegrationTestFixture Fixture { get; }
 	public string WorkDir { get; }
 	public EventBus EventBus { get; }
-	public FilterStore FilterStore { get; }
+	public FilterManager FilterManager { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 	public CpfpInfoProvider CpfpInfoProvider { get; }
@@ -88,12 +85,12 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 
-		var filterStore = new FilterStore(
+		var filterManager = new FilterManager(
 			Path.Combine(workDir, "filters"),
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
 			eventBus);
-		await filterStore.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
+		await filterManager.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
 		var transactionStore = new AllTransactionStore(
 			Path.Combine(workDir, "transactions"),
@@ -109,7 +106,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			fixture,
 			workDir,
 			eventBus,
-			filterStore,
+			filterManager,
 			transactionStore,
 			filterHeaderChain,
 			cpfpInfoProvider);
@@ -130,7 +127,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	{
 		var factory = Wallet.CreateFactory(
 			Network,
-			FilterStore,
+			FilterManager,
 			TransactionStore,
 			FilterHeaderChain,
 			MempoolService,
@@ -162,14 +159,14 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterManager, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var tip = FilterStore.GetTip();
+			var tip = FilterManager.GetTip();
 			var currentHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 
 			// Check if we're synced to the current chain tip
@@ -198,7 +195,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var blockHeaderChain = new ConcurrentChain(Network);
 
 		// Create the filter synchronization state
-		var tip = FilterStore.GetTip();
+		var tip = FilterManager.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
 		var synchronizationState = new FilterSynchronizationState(blockHeaderChain, FilterHeaderChain, tipHeight);
 
@@ -244,14 +241,14 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			synchronizationState);
 
 		// Use the production Synchronizer's filter generator
-		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterManager, FilterHeaderChain, EventBus);
 
 		// Run the synchronizer until we're caught up
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var currentTip = FilterStore.GetTip();
+			var currentTip = FilterManager.GetTip();
 
 			// Check if we're synced to the target height
 			if (currentTip is not null && (uint)currentTip.Header.Height >= targetHeight)
@@ -366,7 +363,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		FilterStore.Dispose();
+		FilterManager.Dispose();
 		TransactionStore.Dispose();
 		return ValueTask.CompletedTask;
 	}
