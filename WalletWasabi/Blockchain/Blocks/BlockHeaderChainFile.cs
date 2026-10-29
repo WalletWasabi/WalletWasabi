@@ -15,20 +15,20 @@ public static class BlockHeaderChainFile
 	}
 
 	/// <summary>
-	/// Loads the headers into <paramref name="chain"/>. The file must start with <paramref name="baseHeader"/> at
-	/// <paramref name="baseHeight"/>; headers that do not continue the chain are dropped.
+	/// Loads the headers into <paramref name="chain"/>. The file must start with <paramref name="checkpoint"/>;
+	/// headers that do not continue the chain are dropped.
 	/// </summary>
-	public static bool TryLoad(byte[] bytes, Network network, uint baseHeight, BlockHeader baseHeader, ConcurrentChain chain)
+	public static bool TryLoad(byte[] bytes, Network network, BlockHeaderCheckpoint checkpoint, ConcurrentChain chain)
 	{
 		if (bytes.Length < 4 + HeaderSize
 			|| (bytes.Length - 4) % HeaderSize != 0
-			|| BitConverter.ToUInt32(bytes, 0) != baseHeight
-			|| !bytes.AsSpan(4, HeaderSize).SequenceEqual(baseHeader.ToBytes()))
+			|| BitConverter.ToUInt32(bytes, 0) != checkpoint.Height
+			|| !bytes.AsSpan(4, HeaderSize).SequenceEqual(checkpoint.Header.ToBytes()))
 		{
 			return false;
 		}
 
-		var tip = new ChainedBlock(baseHeader, (int)baseHeight);
+		var tip = checkpoint.ToChainedBlock();
 		for (var offset = 4 + HeaderSize; offset < bytes.Length; offset += HeaderSize)
 		{
 			var header = network.Consensus.ConsensusFactory.CreateBlockHeader();

@@ -9,7 +9,7 @@ namespace WalletWasabi.BitcoinP2p;
 /// Keeps the block header chain in sync with the peer. Unlike NBitcoin's ChainBehavior it works on a
 /// chain whose first block is a checkpoint (not genesis), so the locator stops at the chain base.
 /// </summary>
-public class HeaderSyncBehavior(
+public class BlockHeaderSyncBehavior(
 	ConcurrentChain blockHeaderChain,
 	FilterHeaderChain filterHeaderChain,
 	EventBus eventBus)
@@ -33,7 +33,7 @@ public class HeaderSyncBehavior(
 	}
 
 	public override object Clone() =>
-		new HeaderSyncBehavior(blockHeaderChain, filterHeaderChain, eventBus);
+		new BlockHeaderSyncBehavior(blockHeaderChain, filterHeaderChain, eventBus);
 
 	private void OnStateChanged(Node node, NodeState oldState)
 	{
@@ -68,7 +68,7 @@ public class HeaderSyncBehavior(
 			_peerTip = tip;
 		}
 
-		node.SendMessageAsync(new GetHeadersPayload { BlockLocators = GetLocator(_peerTip) });
+		node.SendMessage(new GetHeadersPayload { BlockLocators = GetLocator(_peerTip) });
 	}
 
 	private void ProcessHeaders(Node node, HeadersPayload headers)

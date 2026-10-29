@@ -176,23 +176,23 @@ public class Global
 	private void SeedBlockHeaderChain()
 	{
 		var firstFilterHeight = FilterStore.GetMinimumBlockHeight() ?? FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
-		var (baseHeight, baseHeader) = BlockHeaderCheckpoints.GetBase(Network, firstFilterHeight);
+		var checkpoint = BlockHeaderCheckpoints.GetBase(Network, firstFilterHeight);
 
-		if (Network != Network.RegTest && TryLoadBlockHeadersFile(baseHeight, baseHeader))
+		if (Network != Network.RegTest && TryLoadBlockHeadersFile(checkpoint))
 		{
 			Logger.LogInfo($"Block headers loaded, tip {_blockHeaders.Tip!.Height}.");
 			return;
 		}
 
-		_blockHeaders.SetTip(new ChainedBlock(baseHeader, (int)baseHeight));
-		Logger.LogInfo($"Block header chain starts at checkpoint {baseHeight}.");
+		_blockHeaders.SetTip(checkpoint.ToChainedBlock());
+		Logger.LogInfo($"Block header chain starts at checkpoint {checkpoint.Height}.");
 	}
 
-	private bool TryLoadBlockHeadersFile(uint baseHeight, BlockHeader baseHeader)
+	private bool TryLoadBlockHeadersFile(BlockHeaderCheckpoint checkpoint)
 	{
 		var loaded = File.Exists(BlockHeadersFilePath) && Result<byte[], Exception>
 			.Catch(() => File.SafelyReadAllBytes(BlockHeadersFilePath))
-			.Match(bytes => BlockHeaderChainFile.TryLoad(bytes, Network, baseHeight, baseHeader, _blockHeaders), _ => false);
+			.Match(bytes => BlockHeaderChainFile.TryLoad(bytes, Network, checkpoint, _blockHeaders), _ => false);
 
 		if (!loaded)
 		{
@@ -292,7 +292,7 @@ public class Global
 
 		if (!Config.BlockOnlyMode)
 		{
-			manager.AddBehavior(new HeaderSyncBehavior(_blockHeaders, FilterHeaders, EventBus));
+			manager.AddBehavior(new BlockHeaderSyncBehavior(_blockHeaders, FilterHeaders, EventBus));
 			manager.AddBehavior(new P2pBehavior(_mempoolService));
 		}
 

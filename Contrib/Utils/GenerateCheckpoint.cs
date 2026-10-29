@@ -1,27 +1,27 @@
 #!/usr/bin/env dotnet
-#:package NBitcoin
+#:project ../../WalletWasabi/WalletWasabi.csproj
 #:property PublishAot=false
 #:property TargetFramework=net10.0
 
 /// <summary>
-/// Standalone tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), fetches a block + its basic compact 
-/// filter + filter header, and prints checkpoint data suitable for WalletWasabi-style filter checkpoints.
+/// Tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), fetches the block headers from the
+/// checkpoint the client starts at up to a block plus the block's basic compact filter + filter header, and prints the
+/// FilterCheckpoints and BlockHeaderCheckpoints entries for it.
 /// </summary>
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System.Globalization;
+using WalletWasabi.Blockchain.Blocks;
 
 static void PrintUsage()
 {
 	Console.WriteLine("""
 		Usage:
-		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [--base-hash <hex>] [options]
+		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [options]
 
 		Required:
 		  --height <uint>              Block height
-		  --base-hash <hex>            Hash of the first block of the checkpoint's difficulty period (height - height % 2016);
-		                               prints the matching BlockHeaderCheckpoints entry
 		  --hash   <hex>               Block hash (64 hex chars)
 
 		Optional:
@@ -42,9 +42,8 @@ string nodeEndpoint = "[::ffff:89.58.60.208]:8333";
 Network network = Network.Main;
 uint256? blockHash = null;
 uint? blockHeight = null;
-uint256? baseHash = null;
 
-if (!TryParseArgs(args, ref nodeEndpoint, ref blockHash, ref blockHeight, ref baseHash, out var showHelp, out var error))
+if (!TryParseArgs(args, ref nodeEndpoint, ref blockHash, ref blockHeight, out var showHelp, out var error))
 {
 	if (error is not null)
 		Console.Error.WriteLine($"error: {error}");
@@ -70,12 +69,12 @@ Console.WriteLine($"Target block: height={blockHeight}, hash={blockHash}");
 
 try
 {
-	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value, baseHash);
+	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value);
 
 	var grFilter = new GolombRiceFilter(data.CompactFilterPayload.FilterBytes);
 	var actualCompactFilterHeader = grFilter.GetHeader(data.CompactFilterHeadersPayload.PreviousFilterHeader);
 
-	var blockHashStr = data.Block.GetHash().ToString();
+	var blockHashStr = data.Block.HashBlock.ToString();
 	var blockTime = data.Block.Header.BlockTime.ToUnixTimeSeconds();
 	var blockFilter = Convert.ToHexString(data.CompactFilterPayload.FilterBytes).ToLowerInvariant();
 
@@ -109,21 +108,22 @@ try
 		),
 		""");
 
+	// The header chain must start at the first block of the checkpoint's difficulty period to validate the retargets after it.
 	var baseHeight = blockHeight.Value - blockHeight.Value % 2016;
-	if (data.BaseBlock is { } baseBlock)
+	Console.WriteLine();
+	Console.WriteLine("=== BlockHeaderCheckpoints entry ===");
+	Console.WriteLine();
+	if (BlockHeaderCheckpoints.GetBase(network, blockHeight.Value).Height == baseHeight)
 	{
-		Console.WriteLine();
-		Console.WriteLine("=== BlockHeaderCheckpoints entry ===");
-		Console.WriteLine();
-		Console.WriteLine($"""
-			// {baseBlock.GetHash()}
-			({baseHeight}, "{Convert.ToHexString(baseBlock.Header.ToBytes()).ToLowerInvariant()}"),
-			""");
+		Console.WriteLine($"BlockHeaderCheckpoints already has block {baseHeight}.");
 	}
 	else
 	{
-		Console.WriteLine();
-		Console.WriteLine($"The header chain needs the header of block {baseHeight} in BlockHeaderCheckpoints: run again with --base-hash <hash of block {baseHeight}>.");
+		var baseBlock = data.Block.GetAncestor((int)baseHeight);
+		Console.WriteLine($"""
+			// {baseBlock.HashBlock}
+			({baseHeight}, "{Convert.ToHexString(baseBlock.Header.ToBytes()).ToLowerInvariant()}"),
+			""");
 	}
 
 	return 0;
@@ -136,7 +136,7 @@ catch (Exception ex)
 	return 1;
 }
 
-static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, ref uint256? baseHash, out bool showHelp, out string? error)
+static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, out bool showHelp, out string? error)
 {
 	showHelp = false;
 	error = null;
@@ -182,23 +182,6 @@ static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, 
 				}
 				break;
 
-			case "--base-hash":
-				if (i + 1 >= args.Length)
-				{
-					error = $"{arg} requires a value";
-					return false;
-				}
-				try
-				{
-					baseHash = uint256.Parse(args[++i]);
-				}
-				catch
-				{
-					error = $"Invalid base block hash: {args[i]}";
-					return false;
-				}
-				break;
-
 			case "--endpoint":
 				if (i + 1 >= args.Length)
 				{
@@ -221,41 +204,16 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	Network network,
 	string endpoint,
 	uint256 blockHash,
-	uint blockHeight,
-	uint256? baseHash)
+	uint blockHeight)
 {
-	var node = await Node.ConnectAsync(network, endpoint);
+	using var node = await Node.ConnectAsync(network, endpoint);
 	node.Behaviors.Add(new PingPongBehavior());
 	await node.VersionHandshakeAsync().ConfigureAwait(false);
 
 	if (!node.PeerVersion.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS))
 		throw new Exception("Peer does not support compact block filters (NODE_COMPACT_FILTERS)");
 
-	if (!node.PeerVersion.Services.HasFlag(NodeServices.Network))
-		throw new Exception("Peer does not provide blocks (NODE_NETWORK)");
-
-	// Get the block
-	Block block;
-	{
-		var blocks = node.GetBlocks([blockHash]);
-		block = blocks.Single();
-
-		if (block.GetHash() != blockHash)
-			throw new Exception($"Received block hash mismatch: expected {blockHash}, got {block.GetHash()}");
-
-		if (!block.CheckMerkleRoot())
-			throw new Exception("Block merkle root check failed");
-	}
-
-	// Get the first block of the checkpoint's difficulty period, if asked for
-	Block? baseBlock = null;
-	if (baseHash is not null)
-	{
-		baseBlock = node.GetBlocks([baseHash]).Single();
-
-		if (baseBlock.GetHash() != baseHash)
-			throw new Exception($"Received base block hash mismatch: expected {baseHash}, got {baseBlock.GetHash()}");
-	}
+	var block = await SyncHeadersAsync(node, network, blockHash, blockHeight).ConfigureAwait(false);
 
 	CompactFilterPayload compactFilterPayload;
 	CompactFilterHeadersPayload compactFilterHeadersPayload;
@@ -298,15 +256,47 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	finally
 	{
 		node.MessageReceived -= Listener;
-		node.Disconnect();
 	}
 
-	return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block, baseBlock);
+	return new CheckPointData(block, compactFilterHeadersPayload, compactFilterPayload);
+}
+
+/// <summary>Downloads the block headers from the checkpoint the client starts at up to the block, validating them as the client does.</summary>
+static async Task<ChainedBlock> SyncHeadersAsync(Node node, Network network, uint256 blockHash, uint blockHeight)
+{
+	var tip = BlockHeaderCheckpoints.GetBase(network, blockHeight).ToChainedBlock();
+	Console.WriteLine($"Downloading block headers {tip.Height + 1}-{blockHeight} ...");
+
+	using var listener = node.CreateListener().OfType<HeadersPayload>();
+	while (tip.Height < blockHeight)
+	{
+		var payload = new GetHeadersPayload { BlockLocators = new BlockLocator { Blocks = [tip.HashBlock] }, HashStop = blockHash };
+		await node.SendMessageAsync(payload).ConfigureAwait(false);
+		var headers = await listener.ReceivePayloadAsync<HeadersPayload>().WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+		if (headers.Headers.Count == 0)
+			throw new Exception($"Peer has no block after {tip.Height}: it is behind or on another chain");
+
+		foreach (var header in headers.Headers)
+		{
+			if (header.HashPrevBlock != tip.HashBlock)
+				throw new Exception($"Peer does not know block {tip.Height} {tip.HashBlock}: it sent headers of a different chain");
+
+			tip = new ChainedBlock(header, header.GetHash(), tip);
+			if (!tip.Validate(network))
+				throw new Exception($"Block header {tip.Height} {tip.HashBlock} fails proof of work validation");
+
+			if (tip.Height == blockHeight)
+				break;
+		}
+	}
+
+	if (tip.HashBlock != blockHash)
+		throw new Exception($"Block {blockHeight} is {tip.HashBlock} on the peer's chain, not {blockHash}");
+
+	return tip;
 }
 
 record CheckPointData(
-	Node Node,
+	ChainedBlock Block,
 	CompactFilterHeadersPayload CompactFilterHeadersPayload,
-	CompactFilterPayload CompactFilterPayload,
-	Block Block,
-	Block? BaseBlock);
+	CompactFilterPayload CompactFilterPayload);

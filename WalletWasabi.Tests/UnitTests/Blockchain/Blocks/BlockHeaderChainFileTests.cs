@@ -17,7 +17,7 @@ public class BlockHeaderChainFileTests
 		Assert.Equal(4 + 6 * 80, bytes.Length);
 
 		var loaded = new ConcurrentChain();
-		Assert.True(BlockHeaderChainFile.TryLoad(bytes, RegTest, BaseHeight, BaseHeaderOf(chain), loaded));
+		Assert.True(BlockHeaderChainFile.TryLoad(bytes, RegTest, CheckpointOf(chain), loaded));
 		Assert.Equal(chain.Tip!.HashBlock, loaded.Tip!.HashBlock);
 		Assert.Equal((int)BaseHeight + 5, loaded.Tip.Height);
 		Assert.Null(loaded.GetBlock((int)BaseHeight - 1));
@@ -30,9 +30,9 @@ public class BlockHeaderChainFileTests
 		var bytes = BlockHeaderChainFile.Serialize(chain);
 		var loaded = new ConcurrentChain();
 
-		Assert.False(BlockHeaderChainFile.TryLoad(bytes, RegTest, BaseHeight + 2016, BaseHeaderOf(chain), loaded));
-		Assert.False(BlockHeaderChainFile.TryLoad(bytes, RegTest, BaseHeight, CreateHeader(uint256.Zero, nonce: 99), loaded));
-		Assert.False(BlockHeaderChainFile.TryLoad(bytes[..^1], RegTest, BaseHeight, BaseHeaderOf(chain), loaded));
+		Assert.False(BlockHeaderChainFile.TryLoad(bytes, RegTest, CheckpointOf(chain) with { Height = BaseHeight + 2016 }, loaded));
+		Assert.False(BlockHeaderChainFile.TryLoad(bytes, RegTest, CheckpointOf(chain) with { Header = CreateHeader(uint256.Zero, nonce: 99) }, loaded));
+		Assert.False(BlockHeaderChainFile.TryLoad(bytes[..^1], RegTest, CheckpointOf(chain), loaded));
 		Assert.Null(loaded.Tip);
 	}
 
@@ -44,12 +44,12 @@ public class BlockHeaderChainFileTests
 		bytes[4 + 3 * 80 + 4] ^= 0xFF; // Break the previous-block link of the third header after the base.
 
 		var loaded = new ConcurrentChain();
-		Assert.True(BlockHeaderChainFile.TryLoad(bytes, RegTest, BaseHeight, BaseHeaderOf(chain), loaded));
+		Assert.True(BlockHeaderChainFile.TryLoad(bytes, RegTest, CheckpointOf(chain), loaded));
 		Assert.Equal((int)BaseHeight + 2, loaded.Tip!.Height);
 		Assert.Equal(chain.GetBlock((int)BaseHeight + 2)!.HashBlock, loaded.Tip.HashBlock);
 	}
 
-	private static BlockHeader BaseHeaderOf(ConcurrentChain chain) => chain.GetBlock((int)BaseHeight)!.Header;
+	private static BlockHeaderCheckpoint CheckpointOf(ConcurrentChain chain) => new(BaseHeight, chain.GetBlock((int)BaseHeight)!.Header);
 
 	private static ConcurrentChain BuildChain(int headersAfterBase)
 	{

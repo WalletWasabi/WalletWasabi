@@ -14,10 +14,10 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Services;
 
 /// <summary>
-/// Drives <see cref="HeaderSyncBehavior"/> against an in-process node that answers <c>getheaders</c> like Bitcoin Core:
+/// Drives <see cref="BlockHeaderSyncBehavior"/> against an in-process node that answers <c>getheaders</c> like Bitcoin Core:
 /// headers after the first locator hash it knows, or from genesis when it knows none.
 /// </summary>
-public class HeaderSyncBehaviorTests
+public class BlockHeaderSyncBehaviorTests
 {
 	private static readonly Network Network = Network.RegTest;
 
@@ -136,7 +136,7 @@ public class HeaderSyncBehaviorTests
 		public async Task<int> SyncAsync(ConcurrentChain chain, TimeSpan settleTime)
 		{
 			using var node = await Node.ConnectAsync(Network, _server.LocalEndpoint);
-			node.Behaviors.Add(new HeaderSyncBehavior(chain, new FilterHeaderChain(), new EventBus()));
+			node.Behaviors.Add(new BlockHeaderSyncBehavior(chain, new FilterHeaderChain(), new EventBus()));
 			await node.VersionHandshakeAsync();
 			await Task.Delay(settleTime);
 			node.Disconnect();

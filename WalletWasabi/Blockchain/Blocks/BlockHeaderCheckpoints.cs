@@ -1,5 +1,3 @@
-using WalletWasabi.Blockchain.BlockFilters;
-
 namespace WalletWasabi.Blockchain.Blocks;
 
 /// <summary>
@@ -58,15 +56,15 @@ public static class BlockHeaderCheckpoints
 		(969696, "00e00020ea7409145abed3693b6aa5e269dea055406e0962804301000000000000000000a8f40cc468f3aa4518fdc368e37fc7aff01eb12b293885f847517602a96e3a93d4abc06af01e021779d3a409"),
 	];
 
-	/// <summary>The header the chain starts from so that every filter at or above <paramref name="firstFilterHeight"/> has a block header.</summary>
-	public static (uint Height, BlockHeader Header) GetBase(Network network, uint firstFilterHeight)
+	/// <summary>The checkpoint the chain starts from so that every filter at or above <paramref name="firstFilterHeight"/> has a block header.</summary>
+	public static BlockHeaderCheckpoint GetBase(Network network, uint firstFilterHeight)
 	{
 		if (network != Network.Main)
 		{
-			return (0, network.GetGenesis().Header);
+			return new BlockHeaderCheckpoint(0, network.GetGenesis().Header);
 		}
 
 		var (height, header) = MainNet.Last(x => x.Height <= firstFilterHeight);
-		return (height, BlockHeader.Parse(header, network));
+		return new BlockHeaderCheckpoint(height, BlockHeader.Parse(header, network));
 	}
 }
