@@ -244,7 +244,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
-		password = Guard.Correct(password);
+		password ??= "";
 
 		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
@@ -273,7 +273,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
-		password = Guard.Correct(password);
+		password ??= "";
 
 		var feeStrategy = GetFeeStrategy(feeTarget, feeRate);
 
@@ -381,7 +381,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("send")]
 	public async Task<JsonRpcResult> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{
-		password = Guard.Correct(password);
+		password ??= "";
 		var txHex = BuildTransaction(payments, coins, feeTarget, feeRate, password);
 		var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
