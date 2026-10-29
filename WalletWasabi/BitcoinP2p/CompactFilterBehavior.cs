@@ -18,6 +18,7 @@ public class CompactFilterBehavior(
 	private static readonly TimeSpan FilterAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan HeaderAssignmentTimeoutForTor = TimeSpan.FromSeconds(45);
 	private static readonly TimeSpan FilterAssignmentTimeoutForTor = TimeSpan.FromSeconds(70);
+	private static readonly TimeSpan FilterRangeMaxDuration = TimeSpan.FromMinutes(10);
 
 	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
 	private TimeSpan _filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
@@ -28,6 +29,7 @@ public class CompactFilterBehavior(
 	private RangeRequest? _assignedHeaderRange;
 	private DateTime _assignedHeaderRangeAt;
 	private RangeRequest? _assignedFilterRange;
+	private DateTime _assignedFilterRangeAt;
 	private DateTime _lastFilterProgressAt;
 
 	private volatile bool _invalidReceived;
@@ -368,7 +370,8 @@ public class CompactFilterBehavior(
 		}
 
 		_assignedFilterRange = filterAssignment;
-		_lastFilterProgressAt = DateTime.UtcNow;
+		_assignedFilterRangeAt = DateTime.UtcNow;
+		_lastFilterProgressAt = _assignedFilterRangeAt;
 		Logger.LogDebug(
 			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
@@ -445,9 +448,10 @@ public class CompactFilterBehavior(
 			if (_assignedFilterRange is not null)
 			{
 				var stalledFor = nowUtc - _lastFilterProgressAt;
-				if (stalledFor > _filterAssignmentTimeout)
+				var runningFor = nowUtc - _assignedFilterRangeAt;
+				if (stalledFor > _filterAssignmentTimeout || runningFor > FilterRangeMaxDuration)
 				{
-					HandleInvalidNoLock(node, $"Filter range {_assignedFilterRange} stalled for {stalledFor.TotalSeconds:F1}s ({_collectedFilters.Count}/{_assignedFilterRange.Count} filters received), disconnecting {node.Peer.Endpoint}");
+					HandleInvalidNoLock(node, $"Filter range {_assignedFilterRange} incomplete after {runningFor.TotalSeconds:F1}s ({_collectedFilters.Count}/{_assignedFilterRange.Count} filters received, nothing for {stalledFor.TotalSeconds:F1}s), disconnecting {node.Peer.Endpoint}");
 					return true;
 				}
 			}
