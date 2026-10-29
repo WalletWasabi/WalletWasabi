@@ -19,7 +19,7 @@ public class FilterSyncTests
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task FilterSync_InitialSync_AllFiltersDownloaded()
+	public async Task FilterSync_InitialSync_AllFiltersDownloadedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -31,20 +31,20 @@ public class FilterSyncTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter store should have filters up to tip
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 		Assert.Equal((uint)tipHeight, (uint)filterTip.Header.Height);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task FilterSync_NewBlockMined_FilterSyncs()
+	public async Task FilterSync_NewBlockMined_FilterSyncsAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Initial sync
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -56,19 +56,19 @@ public class FilterSyncTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter tip should advance by 1
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + 1, (uint)newTip.Header.Height);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task FilterSync_MultipleBlocks_AllFiltersDownloaded()
+	public async Task FilterSync_MultipleBlocks_AllFiltersDownloadedAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -80,13 +80,13 @@ public class FilterSyncTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + blocksToMine, (uint)newTip.Header.Height);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task FilterSync_FilterHeaderChain_UpdatesCorrectly()
+	public async Task FilterSync_FilterHeaderChain_UpdatesCorrectlyAsync()
 	{
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
@@ -95,7 +95,7 @@ public class FilterSyncTests
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - FilterHeaderChain should be in sync
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 
 		var chainTipHeight = env.FilterHeaderChain.TipHeight;
@@ -103,13 +103,13 @@ public class FilterSyncTests
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
-	public async Task FilterSync_EmptyChain_HandledCorrectly()
+	public async Task FilterSync_EmptyChain_HandledCorrectlyAsync()
 	{
 		// This tests the initial state before any sync
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// The filter store is initialized with checkpoint at height 0 for regtest
-		var tip = env.FilterStore.GetTip();
+		var tip = env.FilterManager.GetTip();
 
 		// For regtest, we expect to have at least the genesis filter
 		Assert.NotNull(tip);
@@ -118,7 +118,7 @@ public class FilterSyncTests
 		// Now sync and verify we catch up
 		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		var syncedTip = env.FilterStore.GetTip();
+		var syncedTip = env.FilterManager.GetTip();
 		Assert.NotNull(syncedTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();

@@ -1,15 +1,10 @@
 using Microsoft.Data.Sqlite;
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 public class TransactionSqliteStorage : IDisposable
 {

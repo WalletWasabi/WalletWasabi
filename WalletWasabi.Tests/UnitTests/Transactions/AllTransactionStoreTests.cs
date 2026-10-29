@@ -6,7 +6,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 using static WalletWasabi.Models.Height;
