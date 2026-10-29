@@ -35,6 +35,7 @@ public class WabiSabiConfigUnitTests
 			  "MinRegistrableAmount": "0.00005",
 			  "MaxRegistrableAmount": "43000.00",
 			  "MinimumAcceptableFeeRate": 100,
+			  "MaximumAcceptableFeeRate": 2099999997690000,
 			  "AllowNotedInputRegistration": true,
 			  "StandardInputRegistrationTimeout": "0d 1h 0m 0s",
 			  "BlameInputRegistrationTimeout": "0d 0h 3m 0s",
