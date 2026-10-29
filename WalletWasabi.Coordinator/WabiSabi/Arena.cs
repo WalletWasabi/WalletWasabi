@@ -603,7 +603,12 @@ public partial class Arena : PeriodicRunner
 	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
 	{
 		var feeEstimations = await _feeRateProvider(cancellationToken).ConfigureAwait(false);
-		return feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
+		var feeRate = feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
+
+		var result = FeeRate.Max(_config.MinimumAcceptableFeeRate, feeRate);
+		result = FeeRate.Min(_config.MaximumAcceptableFeeRate, result);
+
+		return result;
 	}
 
 	/// <summary>

@@ -42,7 +42,7 @@ public static partial class Encode
 	private static JsonNode RoundParameters(RoundParameters p) =>
 		Object([
 			("Network", String(p.Network.Name)),
-			("MiningFeeRate", FeeRate(p.MiningFeeRate)),
+			("MiningFeeRate", FeeRatePerKvB(p.MiningFeeRate)),
 			("CoordinationFeeRate", CoordinationFeeRate() ),
 			("MaxSuggestedAmount",  MoneySatoshis(p.MaxAmountCredentialValue)),
 			("MinInputCountByRound", Int(p.MinInputCountByRound)),
@@ -62,7 +62,7 @@ public static partial class Encode
 			("CoordinationIdentifier", String(p.CoordinationIdentifier) ),
 			("DelayTransactionSigning", Bool(p.DelayTransactionSigning) ),
 			("MaxTransactionSize", Int(p.MaxTransactionSize) ),
-			("MinRelayTxFee", FeeRate(p.MinRelayTxFee) ),
+			("MinRelayTxFee", FeeRatePerKvB(p.MinRelayTxFee) ),
 		]);
 
 	public static JsonNode RoundCreated(RoundCreated round) =>
@@ -411,7 +411,7 @@ public static partial class Decode
 	private static Decoder<RoundParameters> RoundParameters =>
 		Object(get => new RoundParameters(
 			get.Required("Network", Network),
-			get.Required("MiningFeeRate", FeeRate),
+			get.Required("MiningFeeRate", FeeRatePerKvB),
 			get.Required("MinInputCountByRound", Int),
 			get.Required("MaxInputCountByRound", Int),
 			get.Required("AllowedInputAmounts", MoneyRange),

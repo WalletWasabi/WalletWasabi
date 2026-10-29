@@ -1,6 +1,7 @@
 using System.IO;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
@@ -47,6 +48,18 @@ public class WabiSabiConfig : ConfigBase
 	public Money MinRegistrableAmount { get; init; } = Money.Coins(0.00005m);
 
 	public Money MaxRegistrableAmount { get; init; } = Money.Coins(43_000m);
+
+	/// <summary>Lower limit for fee rates. Values below it that are returned by fee rate providers are clamped to it.</summary>
+	/// <remarks>
+	/// A value in JSON config is specified in terms of 'fee per 1000 vBytes'. So for example, the value <c>500</c> corresponds to <c>0.5 sat/vByte</c>.
+	/// </remarks>
+	public FeeRate MinimumAcceptableFeeRate { get; init; } = FeeRateEstimations.MinimumSanityFeeRate;
+
+	/// <summary>Upper limit for fee rates. Higher values returned by fee rate providers are clamped to it.</summary>
+	/// <remarks>
+	/// A value in JSON config is specified in terms of 'fee per 1000 vBytes'. So for example, the value <c>50000</c> corresponds to <c>50 sat/vByte</c>.
+	/// </remarks>
+	public FeeRate MaximumAcceptableFeeRate { get; init; } = FeeRateEstimations.MaxFeeRate;
 
 	public bool AllowNotedInputRegistration { get; set; } = true;
 
@@ -191,6 +204,6 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	public override string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
 }
