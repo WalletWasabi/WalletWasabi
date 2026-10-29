@@ -202,8 +202,9 @@ public class P2pConnectionManager : IDisposable
 				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			if ((now - _lastRotateTime >= RotateInterval && count > TargetConnections - 3) ||
-			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters) < MinCompactFilterNodes))
+			var filterNodeCount = _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters);
+			var rotateInterval = filterNodeCount < MinCompactFilterNodes ? TimeSpan.FromSeconds(4) : RotateInterval;
+			if (count >= TargetConnections && now - _lastRotateTime >= rotateInterval)
 			{
 				_lastRotateTime = now;
 				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
