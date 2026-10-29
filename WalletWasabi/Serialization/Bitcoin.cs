@@ -1,7 +1,5 @@
 using System.Text.Json.Nodes;
-using NBitcoin;
 using NBitcoin.DataEncoders;
-using WalletWasabi.Helpers;
 using ByteHelpers = WabiSabi.Helpers.ByteHelpers;
 
 namespace WalletWasabi.Serialization;
@@ -42,8 +40,8 @@ public static partial class Encode
 			("TxOut", TxOut(coin.TxOut))
 		]);
 
-	private static JsonNode FeeRate(FeeRate feeRate) =>
-		MoneySatoshis(feeRate.FeePerK);
+	private static JsonNode FeeRatePerByte(FeeRate feeRate) =>
+		Decimal(feeRate.SatoshiPerByte);
 
 	private static JsonNode WitScript(WitScript witScript) =>
 		Hexadecimal(witScript.ToBytes());
@@ -85,8 +83,11 @@ public static partial class Decode
 	public static Decoder<Money> MoneyBitcoins =>
 		String.Map(Money.Parse).Catch();
 
-	private static Decoder<FeeRate> FeeRate =>
+	private static Decoder<FeeRate> FeeRatePerKiloByte =>
 		MoneySatoshis.Map(m => new FeeRate(m)).Catch();
+
+	private static Decoder<FeeRate> FeeRatePerByte =>
+		Decimal.Map(m => new FeeRate(m)).Catch();
 
 	private static Decoder<WitScript> WitScript =>
 		Hexadecimal.Map(hex => new WitScript(hex)).Catch();
