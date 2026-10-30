@@ -194,8 +194,8 @@ public class KeyManagerTests
 
 		var sameManager = KeyManager.FromFile(filePath);
 
-		var (sameTransactionId, costs) = Assert.Single(sameManager.CoinjoinCosts);
-		Assert.Equal(transactionId, sameTransactionId);
+		var costs = sameManager.GetCoinjoinCosts(transactionId);
+		Assert.NotNull(costs);
 		Assert.Equal(Money.Satoshis(690), costs.MiningFee);
 		Assert.Equal(Money.Satoshis(10), costs.WastedDust);
 		Assert.Equal(Money.Satoshis(50_000), costs.PaymentsTotal);
@@ -213,8 +213,7 @@ public class KeyManagerTests
 		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(100), Money.Zero, Money.Zero));
 		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(200), Money.Zero, Money.Zero));
 
-		var (_, costs) = Assert.Single(manager.CoinjoinCosts);
-		Assert.Equal(Money.Satoshis(200), costs.MiningFee);
+		Assert.Equal(Money.Satoshis(200), manager.GetCoinjoinCosts(transactionId)?.MiningFee);
 	}
 
 	[Fact]
@@ -228,7 +227,7 @@ public class KeyManagerTests
 		Assert.Contains("\"CoinjoinCosts\"", json);
 		File.WriteAllText(filePath, json.Replace("\"CoinjoinCosts\": [],", ""));
 
-		Assert.Empty(KeyManager.FromFile(filePath).CoinjoinCosts);
+		Assert.Null(KeyManager.FromFile(filePath).GetCoinjoinCosts(uint256.One));
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}

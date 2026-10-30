@@ -263,7 +263,7 @@ public class TransactionTreeBuilder
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			FeeRate = transactionSummary.FeeRate(),
-			CoinjoinCosts = _wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(transactionSummary.GetHash())
+			CoinjoinCosts = _wallet.KeyManager.GetCoinjoinCosts(transactionSummary.GetHash())
 		};
 	}
 

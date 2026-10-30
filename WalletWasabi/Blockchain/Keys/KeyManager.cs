@@ -175,7 +175,7 @@ public class KeyManager
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
-	public ImmutableDictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; private set; } = [];
+	private Dictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; init; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -726,10 +726,21 @@ public class KeyManager
 		ToFile();
 	}
 
+	public CoinjoinCosts? GetCoinjoinCosts(uint256 transactionId)
+	{
+		lock (_criticalStateLock)
+		{
+			return CoinjoinCosts.GetValueOrDefault(transactionId);
+		}
+	}
+
 	public void AddCoinjoinCosts(uint256 transactionId, CoinjoinCosts coinjoinCosts)
 	{
-		CoinjoinCosts = CoinjoinCosts.SetItem(transactionId, coinjoinCosts);
-		ToFile();
+		lock (_criticalStateLock)
+		{
+			CoinjoinCosts[transactionId] = coinjoinCosts;
+			ToFileNoLock();
+		}
 	}
 
 	private static JsonNode EncodeKeyManagerNoLock(KeyManager keyManager) =>
@@ -796,7 +807,7 @@ public class KeyManager
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
 				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
-				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToImmutableDictionary() ?? []
+				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToDictionary() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;
