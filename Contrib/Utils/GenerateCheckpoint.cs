@@ -1,18 +1,16 @@
 #!/usr/bin/env dotnet
-#:project ../../WalletWasabi/WalletWasabi.csproj
+#:package NBitcoin
 #:property PublishAot=false
 #:property TargetFramework=net10.0
 
 /// <summary>
-/// Tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), fetches the block headers from the
-/// checkpoint the client starts at up to a block plus the block's basic compact filter + filter header, and prints the
-/// FilterCheckpoints and BlockHeaderCheckpoints entries for it.
+/// Standalone tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), fetches a block + its basic compact 
+/// filter + filter header, and prints checkpoint data suitable for our filter checkpoints.
 /// </summary>
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System.Globalization;
-using WalletWasabi.Blockchain.Blocks;
 
 static void PrintUsage()
 {
@@ -74,7 +72,7 @@ try
 	var grFilter = new GolombRiceFilter(data.CompactFilterPayload.FilterBytes);
 	var actualCompactFilterHeader = grFilter.GetHeader(data.CompactFilterHeadersPayload.PreviousFilterHeader);
 
-	var blockHashStr = data.Block.HashBlock.ToString();
+	var blockHashStr = data.Block.GetHash().ToString();
 	var blockTime = data.Block.Header.BlockTime.ToUnixTimeSeconds();
 	var blockFilter = Convert.ToHexString(data.CompactFilterPayload.FilterBytes).ToLowerInvariant();
 
@@ -107,24 +105,6 @@ try
 			new GolombRiceFilter(Convert.FromHexString("{blockFilter}"))
 		),
 		""");
-
-	// The header chain must start at the first block of the checkpoint's difficulty period to validate the retargets after it.
-	var baseHeight = blockHeight.Value - blockHeight.Value % 2016;
-	Console.WriteLine();
-	Console.WriteLine("=== BlockHeaderCheckpoints entry ===");
-	Console.WriteLine();
-	if (BlockHeaderCheckpoints.GetBase(network, blockHeight.Value).Height == baseHeight)
-	{
-		Console.WriteLine($"BlockHeaderCheckpoints already has block {baseHeight}.");
-	}
-	else
-	{
-		var baseBlock = data.Block.GetAncestor((int)baseHeight);
-		Console.WriteLine($"""
-			// {baseBlock.HashBlock}
-			({baseHeight}, "{Convert.ToHexString(baseBlock.Header.ToBytes()).ToLowerInvariant()}"),
-			""");
-	}
 
 	return 0;
 }
@@ -206,14 +186,27 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	uint256 blockHash,
 	uint blockHeight)
 {
-	using var node = await Node.ConnectAsync(network, endpoint);
+	var node = await Node.ConnectAsync(network, endpoint);
 	node.Behaviors.Add(new PingPongBehavior());
 	await node.VersionHandshakeAsync().ConfigureAwait(false);
 
 	if (!node.PeerVersion.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS))
 		throw new Exception("Peer does not support compact block filters (NODE_COMPACT_FILTERS)");
 
-	var block = await SyncHeadersAsync(node, network, blockHash, blockHeight).ConfigureAwait(false);
+	if (!node.PeerVersion.Services.HasFlag(NodeServices.Network))
+		throw new Exception("Peer does not provide blocks (NODE_NETWORK)");
+
+	Block block;
+	{
+		var blocks = node.GetBlocks([blockHash]);
+		block = blocks.Single();
+
+		if (block.GetHash() != blockHash)
+			throw new Exception($"Received block hash mismatch: expected {blockHash}, got {block.GetHash()}");
+
+		if (!block.CheckMerkleRoot())
+			throw new Exception("Block merkle root check failed");
+	}
 
 	CompactFilterPayload compactFilterPayload;
 	CompactFilterHeadersPayload compactFilterHeadersPayload;
@@ -256,47 +249,14 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	finally
 	{
 		node.MessageReceived -= Listener;
+		node.Disconnect();
 	}
 
-	return new CheckPointData(block, compactFilterHeadersPayload, compactFilterPayload);
-}
-
-/// <summary>Downloads the block headers from the checkpoint the client starts at up to the block, validating them as the client does.</summary>
-static async Task<ChainedBlock> SyncHeadersAsync(Node node, Network network, uint256 blockHash, uint blockHeight)
-{
-	var tip = BlockHeaderCheckpoints.GetBase(network, blockHeight).ToChainedBlock();
-	Console.WriteLine($"Downloading block headers {tip.Height + 1}-{blockHeight} ...");
-
-	using var listener = node.CreateListener().OfType<HeadersPayload>();
-	while (tip.Height < blockHeight)
-	{
-		var payload = new GetHeadersPayload { BlockLocators = new BlockLocator { Blocks = [tip.HashBlock] }, HashStop = blockHash };
-		await node.SendMessageAsync(payload).ConfigureAwait(false);
-		var headers = await listener.ReceivePayloadAsync<HeadersPayload>().WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
-		if (headers.Headers.Count == 0)
-			throw new Exception($"Peer has no block after {tip.Height}: it is behind or on another chain");
-
-		foreach (var header in headers.Headers)
-		{
-			if (header.HashPrevBlock != tip.HashBlock)
-				throw new Exception($"Peer does not know block {tip.Height} {tip.HashBlock}: it sent headers of a different chain");
-
-			tip = new ChainedBlock(header, header.GetHash(), tip);
-			if (!tip.Validate(network))
-				throw new Exception($"Block header {tip.Height} {tip.HashBlock} fails proof of work validation");
-
-			if (tip.Height == blockHeight)
-				break;
-		}
-	}
-
-	if (tip.HashBlock != blockHash)
-		throw new Exception($"Block {blockHeight} is {tip.HashBlock} on the peer's chain, not {blockHash}");
-
-	return tip;
+	return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block);
 }
 
 record CheckPointData(
-	ChainedBlock Block,
+	Node Node,
 	CompactFilterHeadersPayload CompactFilterHeadersPayload,
-	CompactFilterPayload CompactFilterPayload);
+	CompactFilterPayload CompactFilterPayload,
+	Block Block);
