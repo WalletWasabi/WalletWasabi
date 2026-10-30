@@ -49,6 +49,8 @@
   <Color x:Key="SystemAccentColorDark1">#FF207931</Color>
   <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
 
+  <Color x:Key="SystemErrorTextColor">#FF5C5C</Color>
+
   <Color x:Key="RegionColor">#1F1F1F</Color>
 
   <Color x:Key="Layer1BackgroundBrush">#262626</Color>

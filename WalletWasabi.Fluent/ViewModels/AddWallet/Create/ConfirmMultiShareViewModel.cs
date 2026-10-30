@@ -139,11 +139,16 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 				x => x.CurrentSharePage,
 				x => x.TotalCurrenSharePages,
 				x => x.CurrentWord,
+				x => x.CurrentWord.SelectedWord,
 				x => x.AllWordsConfirmed)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
-				var currentWordMessage = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";
+				var currentWordMessage = AllWordsConfirmed
+					? "Recovery words confirmed."
+					: CurrentWord.SelectedWord is not null && !CurrentWord.IsConfirmed
+						? $"Incorrect word #{CurrentWord.Index} selected"
+						: $"Click the recovery word #{CurrentWord.Index}";
 
 				Caption = $"Share #{CurrentShare} of {TotalShares} - Page #{CurrentSharePage} of {TotalCurrenSharePages}. {currentWordMessage}";
 			})
