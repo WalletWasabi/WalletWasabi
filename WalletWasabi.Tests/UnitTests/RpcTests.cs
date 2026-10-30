@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Client;
 using WalletWasabi.Client.Rpc;
 using WalletWasabi.Rpc;
 using Xunit;
@@ -134,6 +135,16 @@ public class RpcTests
 		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20, feeTarget: 8));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
+	}
+
+	[Fact]
+	public void QueryKeepsLargeIntegers()
+	{
+		// Whole numbers come back as integers (42, not 42.0), also above int.MaxValue: 21.47 BTC and up in satoshis.
+		Assert.Equal(2_100_000_000_000_000L, Scheme.ToObject(2_100_000_000_000_000m));
+		Assert.Equal(42L, Scheme.ToObject(42m));
+		Assert.Equal(0.5m, Scheme.ToObject(0.5m));
+		Assert.Equal(1e20m, Scheme.ToObject(1e20m));
 	}
 
 	[Fact]
