@@ -9,17 +9,17 @@ public static class ExchangeRateUpdater
 
 	public static MessageHandler<UpdateMessage, decimal> CreateExchangeRateUpdater(
 		ExchangeRateProvider provider, EventBus eventBus) =>
-		(_, usdExchangeRate, cancellationToken) => UpdateExchangeRateAsync(usdExchangeRate, provider, eventBus, cancellationToken);
+		(_, exchangeRate, cancellationToken) => UpdateExchangeRateAsync(exchangeRate, provider, eventBus, cancellationToken);
 
-	private static async Task<decimal> UpdateExchangeRateAsync(decimal usdExchangeRate, ExchangeRateProvider provider, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<decimal> UpdateExchangeRateAsync(decimal exchangeRate, ExchangeRateProvider provider, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		var newExchangeRate = await provider(cancellationToken).ConfigureAwait(false);
-		if (newExchangeRate.Rate != usdExchangeRate && newExchangeRate.Rate > 0m)
+		if (newExchangeRate.Rate != exchangeRate && newExchangeRate.Rate > 0m)
 		{
-			usdExchangeRate = newExchangeRate.Rate;
-			eventBus.Publish(new ExchangeRateChanged(newExchangeRate.Rate));
+			exchangeRate = newExchangeRate.Rate;
+			eventBus.Publish(new ExchangeRateChanged(newExchangeRate));
 		}
 
-		return usdExchangeRate;
+		return exchangeRate;
 	}
 }

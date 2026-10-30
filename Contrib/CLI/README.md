@@ -23,6 +23,7 @@ $ ./wcli.sh getstatus
   "filtersLeft": 0,
   "network": "Main",
   "exchangeRate": 29610.18,
+  "fiatCurrency": "USD",
   "peers": [
     {
       "isConnected": true,

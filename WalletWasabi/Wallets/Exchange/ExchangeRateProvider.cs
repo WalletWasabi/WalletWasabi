@@ -18,26 +18,37 @@ public static class ExchangeRateProviders
 		"None"
 	];
 
+	public static readonly ImmutableArray<string> Currencies =
+	[
+		"USD",
+		"EUR",
+		"GBP",
+		"JPY",
+		"CHF",
+		"CAD",
+		"AUD"
+	];
+
 	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
 
-	public static ExchangeRateProvider BlockchainInfoAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
+	public static ExchangeRateProvider BlockchainInfoAsync(IHttpClientFactory httpClientFactory, string currency) =>
+		cancellationToken => GetExchangeRateAsync("BlockchainInfo", "https://blockchain.info/ticker", JsonPath($".{currency}.buy"), currency,
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
-	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath(".USD"),
+	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory, string currency) =>
+		cancellationToken => GetExchangeRateAsync("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath($".{currency}"), currency,
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
-	public static ExchangeRateProvider CoinGeckoAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price"),
+	public static ExchangeRateProvider CoinGeckoAsync(IHttpClientFactory httpClientFactory, string currency) =>
+		cancellationToken => GetExchangeRateAsync("CoinGecko", $"https://api.coingecko.com/api/v3/coins/markets?vs_currency={currency.ToLowerInvariant()}&ids=bitcoin", JsonPath(".[0].current_price"), currency,
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
-	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"),
+	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory, string currency) =>
+		cancellationToken => GetExchangeRateAsync("Gemini", $"https://api.gemini.com/v1/pubticker/btc{currency.ToLowerInvariant()}", JsonPath(".bid"), currency,
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
-	public static ExchangeRateProvider NoneAsync() =>
-		_ => Task.FromResult(new ExchangeRate("USD", -1m));
+	public static ExchangeRateProvider NoneAsync(string currency) =>
+		_ => Task.FromResult(new ExchangeRate(currency, -1m));
 
 	public static ExchangeRateProvider Composed(ExchangeRateProvider[] exchangeRateProviders) =>
 		async cancellationToken =>
@@ -58,7 +69,7 @@ public static class ExchangeRateProviders
 			throw new InvalidOperationException("All exchange rate providers failed to give us an exchange rate.");
 		};
 
-	private static async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string apiUrl, ExchangeRateExtractor extractor, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
+	private static async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string apiUrl, ExchangeRateExtractor extractor, string currency, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
 	{
 		var url = new Uri(apiUrl);
 
@@ -75,8 +86,8 @@ public static class ExchangeRateProviders
 			.Match(
 				rate =>
 				{
-					Logger.LogInfo($"Fetched exchange rate from {providerName}: {rate}.");
-					return new ExchangeRate("USD", rate);
+					Logger.LogInfo($"Fetched BTC/{currency} exchange rate from {providerName}: {rate}.");
+					return new ExchangeRate(currency, rate);
 				},
 				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));
 	}

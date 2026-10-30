@@ -63,7 +63,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
 		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
 		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
-		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
+		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRate.Rate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");

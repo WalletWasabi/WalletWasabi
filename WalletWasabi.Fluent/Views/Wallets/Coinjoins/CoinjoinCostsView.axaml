@@ -15,7 +15,7 @@
                  Label="Fees"
                  CopyableContent="{Binding TotalFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
       <PrivacyContentControl>
-        <AmountControl Classes="WithUsd" Amount="{Binding TotalFeeAmount}" />
+        <AmountControl Classes="WithFiat" Amount="{Binding TotalFeeAmount}" />
       </PrivacyContentControl>
     </PreviewItem>
 
@@ -27,7 +27,7 @@
                  ToolTip.Tip="Fee paid to miners for the wallet's inputs and outputs."
                  CopyableContent="{Binding MiningFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
       <PrivacyContentControl>
-        <AmountControl Classes="WithUsd" Amount="{Binding MiningFeeAmount}" />
+        <AmountControl Classes="WithFiat" Amount="{Binding MiningFeeAmount}" />
       </PrivacyContentControl>
     </PreviewItem>
 
@@ -39,7 +39,7 @@
                  ToolTip.Tip="Leftover amount that was too small to become an output, so it was given up."
                  CopyableContent="{Binding WastedDustAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
       <PrivacyContentControl>
-        <AmountControl Classes="WithUsd" Amount="{Binding WastedDustAmount}" />
+        <AmountControl Classes="WithFiat" Amount="{Binding WastedDustAmount}" />
       </PrivacyContentControl>
     </PreviewItem>
 
@@ -52,7 +52,7 @@
                  ToolTip.Tip="Total value of the payments batched into the coinjoin."
                  CopyableContent="{Binding PaymentsAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
       <PrivacyContentControl>
-        <AmountControl Classes="WithUsd" Amount="{Binding PaymentsAmount}" />
+        <AmountControl Classes="WithFiat" Amount="{Binding PaymentsAmount}" />
       </PrivacyContentControl>
     </PreviewItem>
   </StackPanel>

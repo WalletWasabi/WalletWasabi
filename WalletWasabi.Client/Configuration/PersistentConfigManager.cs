@@ -30,6 +30,7 @@ public static class PersistentConfigManager
 		EnableGpu : true,
 		CoordinatorIdentifier : "CoinJoinCoordinatorIdentifier",
 		ExchangeRateProvider : Constants.DefaultExchangeRateProvider,
+		FiatCurrency : Constants.DefaultFiatCurrency,
 		FeeRateEstimationProvider : Constants.DefaultFeeRateEstimationProvider,
 		ExternalTransactionBroadcaster : Constants.DefaultExternalTransactionBroadcaster,
 		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
