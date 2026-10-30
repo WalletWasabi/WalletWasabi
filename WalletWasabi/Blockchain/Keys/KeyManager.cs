@@ -13,7 +13,7 @@ using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Io;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
 using Decode = WalletWasabi.Serialization.Decode;
@@ -175,7 +175,7 @@ public class KeyManager
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
-	public Dictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; private set; } = new();
+	private Dictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; init; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -726,10 +726,21 @@ public class KeyManager
 		ToFile();
 	}
 
+	public CoinjoinCosts? GetCoinjoinCosts(uint256 transactionId)
+	{
+		lock (_criticalStateLock)
+		{
+			return CoinjoinCosts.GetValueOrDefault(transactionId);
+		}
+	}
+
 	public void AddCoinjoinCosts(uint256 transactionId, CoinjoinCosts coinjoinCosts)
 	{
-		CoinjoinCosts[transactionId] = coinjoinCosts;
-		ToFile();
+		lock (_criticalStateLock)
+		{
+			CoinjoinCosts[transactionId] = coinjoinCosts;
+			ToFileNoLock();
+		}
 	}
 
 	private static JsonNode EncodeKeyManagerNoLock(KeyManager keyManager) =>
