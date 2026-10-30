@@ -725,6 +725,7 @@ public class Global
 		var coordinatorHttpClientConfig = new HttpClientHandlerConfiguration
 		{
 			MaxAttempts = 10,
+			AttemptTimeout = TimeSpan.FromSeconds(20),
 			TimeBeforeRetryingAfterNetworkError = TimeSpan.FromSeconds(0.5),
 			TimeBeforeRetryingAfterServerError = TimeSpan.FromSeconds(0.5),
 			TimeBeforeRetryingAfterTooManyRequests = TimeSpan.FromSeconds(0.1)
