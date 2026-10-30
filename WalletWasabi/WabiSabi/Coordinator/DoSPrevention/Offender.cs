@@ -1,5 +1,3 @@
-using WalletWasabi.Extensions;
-
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public enum RoundDisruptionMethod
@@ -8,7 +6,6 @@ public enum RoundDisruptionMethod
 	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent,
-	BackendStabilitySafety
 }
 
 public abstract record Offense();

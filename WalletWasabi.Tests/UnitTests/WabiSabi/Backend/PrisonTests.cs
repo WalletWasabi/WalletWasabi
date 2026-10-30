@@ -172,7 +172,7 @@ public class PrisonTests
 				return prison.GetBanTimePeriod(x.Created, cfg);
 			}).ToArray();
 
-		// Every time it is banned, the duration is halfed
+		// Every time it is banned, the duration is halved
 		var banningTimeFramePairs = banningTimeFrames.Zip(banningTimeFrames[1..], (parent, child) => (Parent: parent, Child: child)).ToArray();
 		Assert.All(banningTimeFramePairs[..^1], x => Assert.Equal(x.Parent.Duration, x.Child.Duration * 2));
 
