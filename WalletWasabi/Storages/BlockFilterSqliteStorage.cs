@@ -1,10 +1,8 @@
 using Microsoft.Data.Sqlite;
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Blockchain.BlockFilters;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 /// <summary>
 /// SQLite-based storage for block filters.

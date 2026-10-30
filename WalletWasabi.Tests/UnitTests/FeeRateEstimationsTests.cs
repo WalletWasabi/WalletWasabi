@@ -53,6 +53,29 @@ public class FeeRateEstimationsTests
 	}
 
 	[Fact]
+	public void ToString_FormatsEstimations()
+	{
+		// No estimations.
+		{
+			var estimations = new FeeRateEstimations(new Dictionary<int, FeeRate>());
+			Assert.Equal("none", estimations.ToString());
+
+			Assert.Equal("none", FeeRateEstimations.Empty.ToString());
+		}
+
+		// Some estimations.
+		{
+			var estimations = new FeeRateEstimations(new Dictionary<int, FeeRate>
+			{
+				{ 2, new FeeRate(2.113m) },
+				{ 72, new FeeRate(0.5m) }
+			});
+
+			Assert.Equal("2 blocks: 2.113 sat/vB, 72 blocks: 0.5 sat/vB", estimations.ToString());
+		}
+	}
+
+	[Fact]
 	public void OrdersByTarget()
 	{
 		var estimations = new Dictionary<int, FeeRate>
