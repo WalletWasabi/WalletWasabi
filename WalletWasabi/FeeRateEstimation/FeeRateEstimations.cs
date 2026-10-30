@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.FeeRateEstimation;
 
@@ -126,37 +125,6 @@ public record FeeRateEstimations
 		return Estimations
 			.Last(x => x.Key <= confirmationTarget) // The last should be the largest confirmation target.
 			.Value;
-	}
-
-	public bool TryEstimateConfirmationTime(SmartTransaction tx, [NotNullWhen(true)] out TimeSpan? confirmationTime)
-	{
-		confirmationTime = default;
-		if (tx.Confirmed)
-		{
-			confirmationTime = TimeSpan.Zero;
-			return true;
-		}
-
-		var unconfirmedChain = new[] { tx }.Concat(tx.ChildrenPayForThisTx).Concat(tx.ParentsThisTxPaysFor);
-
-		// If we cannot estimate the fee rate of one of the unconfirmed transactions then we cannot estimate confirmation time.
-		Money totalFee = Money.Zero;
-		foreach (var currentTx in unconfirmedChain)
-		{
-			// We must have all the inputs and know the size of the tx to estimate the feerate.
-			if (!currentTx.TryGetFee(out var fee) || currentTx.IsSegwitWithoutWitness)
-			{
-				return false;
-			}
-			else
-			{
-				totalFee += fee;
-			}
-		}
-
-		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
-
-		return TryEstimateConfirmationTime(new FeeRate(totalFee, totalVsize), out confirmationTime);
 	}
 
 	public bool TryEstimateConfirmationTime(FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? confirmationTime)

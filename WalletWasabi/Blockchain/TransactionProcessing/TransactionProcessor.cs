@@ -52,6 +52,19 @@ public class TransactionProcessor(
 		=> Process(txs as IEnumerable<SmartTransaction>);
 
 	/// <summary>
+	/// Runs <paramref name="read"/> once no transaction is being processed. Processing is what adds coins to
+	/// <see cref="SmartTransaction.WalletInputs"/> and <see cref="SmartTransaction.WalletOutputs"/>, so a read
+	/// that waits for it sees every transaction complete and nothing changes under it.
+	/// </summary>
+	public static T WhenIdle<T>(Func<T> read)
+	{
+		lock (Lock)
+		{
+			return read();
+		}
+	}
+
+	/// <summary>
 	/// Was the transaction already processed by the transaction processor?
 	/// </summary>
 	public bool IsAware(uint256 tx)

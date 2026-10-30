@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -138,11 +139,6 @@ public static class CpfpInfoUpdater
 
 	private	static async Task ScheduleTaskAsync(SmartTransaction transaction, CpfpInfoGetter cpfpGetter, CancellationToken cancellationToken)
 	{
-		if (!transaction.CanBeSpeedUpUsingCpfp())
-		{
-			return;
-		}
-
 		const int MaximumDelayInMilliseconds = 10_000;
 		var random = RandomnessProviders.Secure;
 		var delayInMilliseconds = random.GetInt(MaximumDelayInMilliseconds);
@@ -151,6 +147,13 @@ public static class CpfpInfoUpdater
 		try
 		{
 			await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+
+			// Checked after the delay, so waiting for the transaction processor doesn't block the mailbox.
+			if (!TransactionProcessor.WhenIdle(transaction.CanBeSpeedUpUsingCpfp))
+			{
+				return;
+			}
+
 			await cpfpGetter(transaction).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
