@@ -188,10 +188,17 @@ static async Task<uint256> GetBlockHashAsync(uint height)
 
 	(string Provider, uint256 Hash)[] results = await Task.WhenAll(BlockHashProviders.Split(";").Select(async baseUrl =>
 	{
-		var response = await httpClient.GetStringAsync($"{baseUrl}{height}").ConfigureAwait(false);
-		var hash = uint256.Parse(response.Trim());
+		try
+		{
+			var response = await httpClient.GetStringAsync($"{baseUrl}{height}").ConfigureAwait(false);
+			var hash = uint256.Parse(response.Trim());
 
-		return (Provider: baseUrl, Hash: hash);
+			return (Provider: baseUrl, Hash: hash);
+		}
+		catch (Exception e)
+		{
+			throw new Exception($"Exception while processing '{baseUrl}': {e.Message}", e);
+		}
 	})).ConfigureAwait(false);
 
 	var hash = results[0].Hash;
