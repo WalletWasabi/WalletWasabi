@@ -145,7 +145,7 @@ public class Startup(IConfiguration configuration)
 			options.DefaultPolicy =
 				new RequestTimeoutPolicy
 				{
-					Timeout = TimeSpan.FromSeconds(5)
+					Timeout = TimeSpan.FromSeconds(60)
 				});
 
 		if (config.PublishAsOnionService)
@@ -155,11 +155,14 @@ public class Startup(IConfiguration configuration)
 	}
 
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
-	public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) => ConfigurePipeline(app);
+
+	/// <summary>The integration tests run this pipeline from their own <c>Startup</c>.</summary>
+	public static void ConfigurePipeline(IApplicationBuilder app)
 	{
 		app.UseRouting();
+		app.UseRequestTimeouts();
 		app.UseResponseCompression();
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
-		app.UseRequestTimeouts();
 	}
 }

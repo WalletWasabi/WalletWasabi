@@ -32,6 +32,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},
+			OperationCanceledException when context.HttpContext.RequestAborted.IsCancellationRequested => new StatusCodeResult((int)HttpStatusCode.GatewayTimeout),
 			_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
 		};
 	}
