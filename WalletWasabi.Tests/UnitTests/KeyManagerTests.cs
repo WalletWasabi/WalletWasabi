@@ -7,7 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;

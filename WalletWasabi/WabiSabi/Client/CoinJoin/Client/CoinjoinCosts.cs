@@ -1,4 +1,4 @@
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 /// <summary>
 /// What a coinjoin transaction cost to the wallet: the share of the mining fee paid for the wallet's
