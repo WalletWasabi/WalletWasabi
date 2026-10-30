@@ -11,6 +11,7 @@ public class MockRpcClient : IRPCClient
 {
 	public Func<Task<uint256>>? OnGetBestBlockHashAsync { get; set; }
 	public Func<uint256, int, bool, GetTxOutResponse?>? OnGetTxOutAsync { get; set; }
+	public Func<OutPoint[], Dictionary<OutPoint, uint256>>? OnGetTxSpendingPrevOutAsync { get; set; }
 	public Func<uint256, Task<Block>>? OnGetBlockAsync { get; set; }
 	public Func<int, Task<uint256>>? OnGetBlockHashAsync { get; set; }
 	public Func<uint256, Task<BlockHeader>>? OnGetBlockHeaderAsync { get; set; }
@@ -111,6 +112,15 @@ public class MockRpcClient : IRPCClient
 		{
 			{ } fn => Task.FromResult(fn(txid, index, includeMempool)),
 			null => Task.FromException<GetTxOutResponse?>(new InvalidOperationException($"{nameof(GetTxOutAsync)} was invoked but never assigned."))
+		};
+	}
+
+	public Task<Dictionary<OutPoint, uint256>> GetTxSpendingPrevOutAsync(OutPoint[] outPoints, CancellationToken cancellationToken)
+	{
+		return OnGetTxSpendingPrevOutAsync switch
+		{
+			{ } fn => Task.FromResult(fn(outPoints)),
+			null => Task.FromException<Dictionary<OutPoint, uint256>>(new InvalidOperationException($"{nameof(GetTxSpendingPrevOutAsync)} was invoked but never assigned."))
 		};
 	}
 

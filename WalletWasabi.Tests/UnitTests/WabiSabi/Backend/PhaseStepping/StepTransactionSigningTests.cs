@@ -117,10 +117,18 @@ public class StepTransactionSigningTests
 
 		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
+
+		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
+		var spendingTxId = BitcoinFactory.CreateUint256();
+		mockRpc.OnGetTxSpendingPrevOutAsync = _ => new() { [spentOutpoint] = spendingTxId };
+
 		await arena.TriggerAndWaitRoundAsync(token);
-		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
-		Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
+		Assert.Equal(EndRoundState.NotAllAlicesSign, round.EndRoundState);
+
+		var blameRound = Assert.IsType<BlameRound>(Assert.Single(arena.Rounds, x => x is BlameRound));
+		Assert.Equal(round.Id, blameRound.BlameOf.Id);
+		Assert.Equal(aliceClient2.SmartCoin.Outpoint, Assert.Single(blameRound.BlameWhitelist));
 
 		// There should be no inmate, because we aren't punishing spenders with banning
 		// as there's no reason to ban already spent UTXOs,
@@ -129,6 +137,44 @@ public class StepTransactionSigningTests
 		Assert.All(
 			new[] { aliceClient1.SmartCoin.Outpoint, aliceClient2.SmartCoin.Outpoint },
 			prevOut => Assert.False(prison.IsBanned(prevOut, cfg.GetDoSConfiguration(), now)));
+
+		await arena.StopAsync(token);
+	}
+
+	[Fact]
+	public async Task AlicesSpentInsufficientPeersAsync()
+	{
+		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
+		var token = cancellationTokenSource.Token;
+
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		cfg.MinInputCountByBlameRoundMultiplier = 1;
+		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
+
+		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		mockRpc.OnSendRawTransactionAsync = (_) =>
+			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
+
+		Prison prison = WabiSabiFactory.CreatePrison();
+		using Arena arena = await ArenaBuilder.From(cfg, mockRpc, prison).CreateAndStartAsync();
+
+		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.TransactionSigning, round.Phase);
+
+		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+
+		await aliceClient1.SignTransactionAsync(signedCoinJoin, keyChain, token);
+		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
+
+		var spentOutpoint = aliceClient1.SmartCoin.Outpoint;
+		mockRpc.OnGetTxSpendingPrevOutAsync = _ => new() { [spentOutpoint] = BitcoinFactory.CreateUint256() };
+
+		await arena.TriggerAndWaitRoundAsync(token);
+		Assert.Equal(Phase.Ended, round.Phase);
+		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
+		Assert.DoesNotContain(arena.Rounds, x => x is BlameRound);
 
 		await arena.StopAsync(token);
 	}

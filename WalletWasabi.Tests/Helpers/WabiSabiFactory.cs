@@ -118,6 +118,7 @@ public static class WabiSabiFactory
 				TxOut = new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()),
 			};
 		};
+		mockRpc.OnGetTxSpendingPrevOutAsync = _ => new();
 		mockRpc.OnGetRawTransactionAsync = (_, _) =>
 			Task.FromResult(BitcoinFactory.CreateTransaction());
 
