@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Xaml.Interactions.Custom;
+using NBitcoin;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -24,6 +25,9 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	public static readonly StyledProperty<string> CurrentAddressProperty =
 		AvaloniaProperty.Register<PasteButtonFlashBehavior, string>(nameof(CurrentAddress));
 
+	public static readonly StyledProperty<Network> NetworkProperty =
+		AvaloniaProperty.Register<PasteButtonFlashBehavior, Network>(nameof(Network));
+
 	public string FlashAnimation
 	{
 		get => GetValue(FlashAnimationProperty);
@@ -34,6 +38,12 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 	{
 		get => GetValue(CurrentAddressProperty);
 		set => SetValue(CurrentAddressProperty, value);
+	}
+
+	public Network Network
+	{
+		get => GetValue(NetworkProperty);
+		set => SetValue(NetworkProperty, value);
 	}
 
 	protected override IDisposable OnAttachedToVisualTreeOverride()
@@ -93,10 +103,10 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 		AssociatedObject.Classes.Remove(FlashAnimation);
 
 		clipboardValue = clipboardValue.Trim();
-		var addressParsingResult = AddressParser.Parse(clipboardValue, Services.Instance.GetNetwork());
+		var addressParsingResult = AddressParser.Parse(clipboardValue, Network);
 
 		// clipboardValue may be a BIP 21 URI whose address is CurrentAddress, so compare the parsed value too.
-		if (clipboardValue != CurrentAddress && addressParsingResult.IsOk && CurrentAddress != addressParsingResult.Value.ToWif(Services.Instance.GetNetwork()))
+		if (clipboardValue != CurrentAddress && addressParsingResult.IsOk && CurrentAddress != addressParsingResult.Value.ToWif(Network))
 		{
 			AssociatedObject.Classes.Add(FlashAnimation);
 			_lastFlashedOn = clipboardValue;

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
@@ -18,20 +17,16 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	private readonly IServices _services;
 	private readonly Wallet _wallet;
 	private readonly WalletSettingsModel _settings;
-	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
-	public WalletCoinjoinModel(IServices services, Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
+	public WalletCoinjoinModel(IServices services, Wallet wallet, WalletSettingsModel settings)
 	{
 		_services = services;
 		_wallet = wallet;
 		_settings = settings;
-		_coinJoinManager = coinjoinManager;
 
-		StatusUpdated = Observable
-			.FromEventPattern<StatusChangedEventArgs>(_coinJoinManager, nameof(CoinJoinManager.StatusChanged))
-			.Where(x => x.EventArgs.Wallet == wallet)
-			.Select(x => x.EventArgs)
+		StatusUpdated = services.SubscribeToCoinJoinStatusChanged()
+			.Where(x => x.Wallet == wallet)
 			.Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs
 				or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler);
@@ -88,13 +83,14 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
-
-		_coinJoinManager.RequestCoinJoinStart(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
+		if (_settings.OutputWalletId is { } outputWalletId)
+		{
+			_services.RequestCoinJoinStart(_wallet.WalletId, outputWalletId, stopWhenAllMixed, overridePlebStop);
+		}
 	}
 
 	public async Task StopAsync()
 	{
-		_coinJoinManager.RequestCoinJoinStop(_wallet);
+		_services.RequestCoinJoinStop(_wallet.WalletId);
 	}
 }

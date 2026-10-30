@@ -1,9 +1,30 @@
 using System.Reactive.Linq;
+using Avalonia;
 
 namespace WalletWasabi.Fluent.Helpers;
 
 public static class PrivacyModeHelper
 {
+	/// <summary>
+	/// Attached property that provides an observable for the privacy mode setting.
+	/// Set this at the application or window level and it will inherit to all child controls.
+	/// </summary>
+	public static readonly AttachedProperty<IObservable<bool>?> PrivacyModeEnabledProperty =
+		AvaloniaProperty.RegisterAttached<AvaloniaObject, IObservable<bool>?>(
+			"PrivacyModeEnabled",
+			typeof(PrivacyModeHelper),
+			inherits: true);
+
+	public static IObservable<bool>? GetPrivacyModeEnabled(AvaloniaObject element)
+	{
+		return element.GetValue(PrivacyModeEnabledProperty);
+	}
+
+	public static void SetPrivacyModeEnabled(AvaloniaObject element, IObservable<bool>? value)
+	{
+		element.SetValue(PrivacyModeEnabledProperty, value);
+	}
+
 	private static readonly TimeSpan RevealDelay = TimeSpan.FromSeconds(0.25);
 	private static readonly TimeSpan HideDelay = TimeSpan.FromSeconds(10);
 

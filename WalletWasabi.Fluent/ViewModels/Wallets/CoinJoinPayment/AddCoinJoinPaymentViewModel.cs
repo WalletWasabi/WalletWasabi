@@ -36,7 +36,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		_walletModel = walletModel;
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
-		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
+		_conversionReversed = UiContext.UiConfig.SendAmountConversionReversed;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = true;
@@ -61,6 +61,8 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 	}
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
+
+	public Network Network => _walletModel.Network;
 
 	public ICommand PasteCommand { get; }
 
@@ -94,7 +96,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 	private async Task OnAutoPasteAsync()
 	{
-		var isAutoPasteEnabled = UiContext.Services.GetAutoPaste();
+		var isAutoPasteEnabled = UiContext.UiConfig.AutoPaste;
 
 		if (string.IsNullOrWhiteSpace(To) && isAutoPasteEnabled)
 		{

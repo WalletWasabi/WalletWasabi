@@ -226,12 +226,14 @@ public static class WasabiAppExtensions
 
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
-				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				var services = Services.Create(app.Global, uiConfig, app.TerminateService);
+				var uiConfig = LoadOrCreateUiConfig(Config.DataDir);
+				var services = Services.Create(app.Global, app.TerminateService);
 
 				using CancellationTokenSource stopLoadingCts = new();
 
 				AppBuilder appBuilder = AppBuilder.Configure(() => new App(
+					uiConfig,
+					services,
 					backendInitializeAsync: async () =>
 					{
 						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
@@ -241,7 +243,7 @@ public static class WasabiAppExtensions
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 					}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
-					.SetupAppBuilder(services.Config.EnableGpu)
+					.SetupAppBuilder(services.GetEnableGpu())
 					.AfterSetup(_ =>
 					{
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);

@@ -275,7 +275,7 @@ public partial class FeeChartViewModel : ViewModelBase
 		SliderMaximum = confirmationTargetValues.Length - 1;
 
 		var confirmationTargetCandidate = CurrentConfirmationTarget < 0
-			? ConfirmationTargetValues.MinBy(x => Math.Abs(x - UiContext.Services.GetFeeTarget()))
+			? ConfirmationTargetValues.MinBy(x => Math.Abs(x - UiContext.UiConfig.FeeTarget))
 			: CurrentConfirmationTarget;
 
 		CurrentConfirmationTarget = Math.Clamp(confirmationTargetCandidate, ConfirmationTargetValues.Min(), ConfirmationTargetValues.Max());

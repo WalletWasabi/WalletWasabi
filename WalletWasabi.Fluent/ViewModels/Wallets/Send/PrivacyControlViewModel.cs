@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -55,8 +54,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		var cjManager = UiContext.Services.GetHostedService<CoinJoinManager>();
-		var coinsToExclude = cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? [];
+		var coinsToExclude = UiContext.Services.GetCoinsInCriticalPhase(_wallet.WalletId).ToList();
 
 		var pockets = _sendFlow.GetPockets();
 
@@ -69,7 +67,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		// TODO: Decoupling
-		UiContext.Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		UiContext.Services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);

@@ -36,22 +36,22 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		_treeBuilder = new TransactionTreeBuilder(wallet, services);
 
 		TransactionProcessed =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
-				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
+			services.SubscribeToEvent<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(services.SubscribeToEvent<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+			services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
 				.Where(x => x.WalletName == wallet.WalletName)
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+		RequestedCpfpInfoArrived = services.SubscribeToEvent<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var coinjoinCostsAdded = services.EventBus.AsObservable<CoinjoinCostsAdded>()
+		var coinjoinCostsAdded = services.SubscribeToEvent<CoinjoinCostsAdded>()
 			.Where(x => x.WalletName == wallet.WalletName)
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);

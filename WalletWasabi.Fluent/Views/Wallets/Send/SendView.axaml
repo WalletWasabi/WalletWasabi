@@ -132,7 +132,7 @@
                               NormalIcon="{StaticResource paste_regular}"
                               ClickIcon="{StaticResource copy_confirmed}">
                 <Interaction.Behaviors>
-                  <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
+                  <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" Network="{Binding Network}" />
                 </Interaction.Behaviors>
               </AnimatedButton>
               <!-- Scan QR code button. -->

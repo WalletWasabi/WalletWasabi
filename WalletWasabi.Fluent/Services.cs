@@ -1,13 +1,19 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
@@ -16,15 +22,15 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
 
 public class Services : IServices
 {
-	// Temporary solution. It should be removed
-	public static Services Instance { get; private set; } = null!;
-
 	private readonly Global _global;
 	private readonly TorSettings _torSettings;
 	private readonly FilterManager _filterManager;
@@ -36,7 +42,7 @@ public class Services : IServices
 	private readonly TerminateService _terminateService;
 	private readonly StatusContainer _status;
 
-	private Services(Global global, UiConfig uiConfig, TerminateService terminateService)
+	private Services(Global global, TerminateService terminateService)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -48,7 +54,6 @@ public class Services : IServices
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
-		Guard.NotNull(nameof(uiConfig), uiConfig);
 		Guard.NotNull(nameof(terminateService), terminateService);
 
 		_global = global;
@@ -61,23 +66,105 @@ public class Services : IServices
 		_hostedServices = global.HostedServices;
 		_terminateService = terminateService;
 		_status = global.Status;
-		Scheme = global.Scheme;
-		DataDir = global.DataDir;
-		PersistentConfig = global.Config.PersistentConfig;
-		WalletManager = global.WalletManager;
-		UiConfig = uiConfig;
-		Config = global.Config;
-		EventBus = global.EventBus;
+		_scheme = global.Scheme;
+		_dataDir = global.DataDir;
+		_persistentConfig = global.Config.PersistentConfig;
+		_walletManager = global.WalletManager;
+		_config = global.Config;
+		_eventBus = global.EventBus;
 	}
 
-	public string DataDir { get; }
-	public string PersistentConfigFilePath => Path.Combine(DataDir, PersistentConfig.GetConfigFileName());
-	public PersistentConfig PersistentConfig { get; }
-	public WalletManager WalletManager { get; }
-	public UiConfig UiConfig { get; }
-	public Config Config { get; }
-	public EventBus EventBus { get; }
-	public Client.Scheme Scheme { get; }
+	private readonly string _dataDir;
+	private readonly PersistentConfig _persistentConfig;
+	private readonly WalletManager _walletManager;
+	private readonly Config _config;
+	private readonly EventBus _eventBus;
+	private readonly Client.Scheme _scheme;
+
+	public string GetDataDir() => _dataDir;
+	public string GetPersistentConfigFilePath() => Path.Combine(_dataDir, _persistentConfig.GetConfigFileName());
+	public Client.Scheme GetScheme() => _scheme;
+
+	// Event subscription
+	public IObservable<T> SubscribeToEvent<T>() where T : notnull => _eventBus.AsObservable<T>();
+	public void PublishEvent<T>(T evt) where T : notnull => _eventBus.Publish(evt);
+	public Task WaitForEventAsync<T>(Func<bool> condition) where T : notnull => _eventBus.WaitForEventAsync<T>(condition);
+
+	// Config
+	public string GetBitcoinRpcUri() => _config.BitcoinRpcUri;
+	public bool GetEnableGpu() => _config.EnableGpu;
+	public ApplicationSettingsData GetApplicationSettings() => ToApplicationSettingsData(_persistentConfig);
+
+	public ApplicationSettingsData GetDefaultApplicationSettings(Network network)
+	{
+		var defaultConfig = network.Name switch
+		{
+			"Main" => PersistentConfigManager.DefaultMainNetConfig,
+			"TestNet" => PersistentConfigManager.DefaultTestNetConfig,
+			"RegTest" => PersistentConfigManager.DefaultRegTestConfig,
+			_ when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
+			_ => throw new NotSupportedException($"Network '{network}' is not supported.")
+		};
+		return ToApplicationSettingsData(defaultConfig);
+	}
+
+	public bool SaveApplicationSettings(ApplicationSettingsData settings)
+	{
+		var configFilePath = GetPersistentConfigFilePath();
+		var loadedConfig = PersistentConfigManager.LoadFile(configFilePath);
+		if (loadedConfig is not PersistentConfig currentConfig)
+		{
+			throw new NotSupportedException("Only configuration files after v2.5.1 are supported.");
+		}
+
+		var newConfig = currentConfig with
+		{
+			EnableGpu = settings.EnableGpu,
+			BitcoinRpcUri = string.IsNullOrWhiteSpace(settings.BitcoinRpcUri) ? "" :
+				Uri.TryCreate(settings.BitcoinRpcUri, UriKind.Absolute, out var uri) ? uri.ToString() : currentConfig.BitcoinRpcUri,
+			BitcoinRpcCredentialString = settings.BitcoinRpcCredentialString,
+			CoordinatorUri = settings.CoordinatorUri,
+			Network = settings.Network,
+			DustThreshold = Money.Coins(settings.DustThreshold),
+			MaxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate,
+			AbsoluteMinInputCount = settings.AbsoluteMinInputCount,
+			ExchangeRateProvider = settings.ExchangeRateProvider,
+			FeeRateEstimationProvider = settings.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster = settings.ExternalTransactionBroadcaster,
+			UseTor = settings.UseTor.ToString(),
+			TerminateTorOnExit = settings.TerminateTorOnExit,
+			DownloadNewVersion = settings.DownloadNewVersion
+		};
+
+		PersistentConfigManager.ToFile(configFilePath, newConfig);
+		PersistentConfigManager.UpdateNetwork(configFilePath, newConfig.Network);
+
+		return _persistentConfig != newConfig;
+	}
+
+	private ApplicationSettingsData ToApplicationSettingsData(PersistentConfig config) => new()
+	{
+		UseTor = Config.ObjectToTorMode(config.UseTor),
+		ExchangeRateProvider = config.ExchangeRateProvider,
+		FeeRateEstimationProvider = config.FeeRateEstimationProvider,
+		ExternalTransactionBroadcaster = config.ExternalTransactionBroadcaster,
+		Network = config.Network,
+		BitcoinRpcUri = config.BitcoinRpcUri,
+		BitcoinRpcCredentialString = config.BitcoinRpcCredentialString,
+		DustThreshold = config.DustThreshold.ToDecimal(MoneyUnit.BTC),
+		CoordinatorUri = config.CoordinatorUri,
+		MaxCoinJoinMiningFeeRate = config.MaxCoinJoinMiningFeeRate,
+		AbsoluteMinInputCount = config.AbsoluteMinInputCount,
+		TerminateTorOnExit = config.TerminateTorOnExit,
+		DownloadNewVersion = config.DownloadNewVersion,
+		EnableGpu = config.EnableGpu,
+		ExperimentalFeatures = config.ExperimentalFeatures.ToArray(),
+		IsOverridden = _config.IsOverridden
+	};
+
+	// Internal access - not part of IServices interface
+	internal PersistentConfig PersistentConfig => _persistentConfig;
+	internal Config Config => _config;
 
 	// Chain info
 	public uint GetTipHeight() => _filterHeaders.TipHeight;
@@ -95,43 +182,86 @@ public class Services : IServices
 	public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? tx) => _transactionStore.TryGetTransaction(hash, out tx);
 
 	// WalletManager info
-	public Network GetNetwork() => WalletManager.Network;
-	public IEnumerable<Wallet> GetWallets() => WalletManager.GetWallets();
-	public bool HasWallet() => WalletManager.HasWallet();
-	public Wallet GetWalletByName(string walletName) => WalletManager.GetWalletByName(walletName);
-	public void RenameWallet(Wallet wallet, string newWalletName) => WalletManager.RenameWallet(wallet, newWalletName);
-	public string GetWalletsDir() => WalletManager.WalletDirectories.WalletsDir;
-	public string GetNextWalletName(string prefix) => WalletManager.WalletDirectories.GetNextWalletName(prefix);
-	public string GetWalletFilePath(string walletName) => WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => WalletManager.ValidateWalletName(walletName);
-	public Task StartWalletAsync(Wallet wallet) => WalletManager.StartWalletAsync(wallet);
-	public void AddWallet(KeyManager keyManager) => WalletManager.AddWallet(keyManager);
+	public Network GetNetwork() => _walletManager.Network;
+	public IEnumerable<Wallet> GetWallets() => _walletManager.GetWallets();
+	public bool HasWallet() => _walletManager.HasWallet();
+	public Wallet GetWalletByName(string walletName) => _walletManager.GetWalletByName(walletName);
+	public WalletId GetWalletIdByName(string walletName) => _walletManager.GetWalletByName(walletName).WalletId;
+	public void RenameWallet(string walletName, string newWalletName) => _walletManager.RenameWallet(_walletManager.GetWalletByName(walletName), newWalletName);
+	public string GetWalletsDir() => _walletManager.WalletDirectories.WalletsDir;
+	public string GetNextWalletName(string prefix) => _walletManager.WalletDirectories.GetNextWalletName(prefix);
+	public string GetWalletFilePath(string walletName) => _walletManager.WalletDirectories.GetWalletFilePaths(walletName);
+	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName) => _walletManager.ValidateWalletName(walletName);
+	public Task StartWalletAsync(string walletName) => _walletManager.StartWalletAsync(_walletManager.GetWalletByName(walletName));
+	public void AddWallet(KeyManager keyManager) => _walletManager.AddWallet(keyManager);
+	public Task<KeyManager> ImportWalletAsync(string walletName, string filePath) => ImportWalletHelper.ImportWalletAsync(_walletManager, walletName, filePath);
+	public IObservable<WalletId> SubscribeToWalletAdded() => Observable.FromEventPattern<Wallet>(_walletManager, nameof(WalletManager.WalletAdded)).Select(e => e.EventArgs.WalletId);
 
 	// Tor info
 	public string GetTorLogFilePath() => _torSettings.LogFilePath;
-	public TorMode GetUseTor() => Config.UseTor;
+	public TorMode GetUseTor() => _config.UseTor;
 
 	// ExchangeRate info
 	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
 
-	// UI Config
-	public bool GetHideOnClose() => UiConfig.HideOnClose;
-	public double? GetWindowWidth() => UiConfig.WindowWidth;
-	public double? GetWindowHeight() => UiConfig.WindowHeight;
-	public void SetWindowWidth(double? width) => UiConfig.WindowWidth = width;
-	public void SetWindowHeight(double? height) => UiConfig.WindowHeight = height;
-	public string? GetLastSelectedWallet() => UiConfig.LastSelectedWallet;
-	public void SetLastSelectedWallet(string? walletName) => UiConfig.LastSelectedWallet = walletName;
-	public bool GetPrivacyMode() => UiConfig.PrivacyMode;
-	public bool GetAutocopy() => UiConfig.Autocopy;
-	public bool GetAutoPaste() => UiConfig.AutoPaste;
-	public bool GetSendAmountConversionReversed() => UiConfig.SendAmountConversionReversed;
-	public void SetSendAmountConversionReversed(bool value) => UiConfig.SendAmountConversionReversed = value;
-	public int GetFeeTarget() => UiConfig.FeeTarget;
-	public void SetFeeTarget(int value) => UiConfig.FeeTarget = value;
-
-	// Temporary solution
-	public T? GetHostedService<T>() where T : class, Microsoft.Extensions.Hosting.IHostedService => _hostedServices.GetOrDefault<T>();
+	// CoinJoin
+	private CoinJoinManager? CoinJoinManager => _hostedServices.GetOrDefault<CoinJoinManager>();
+	private Wallet? GetWalletById(WalletId walletId) => _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+	public bool IsCoinJoinEnabled() => CoinJoinManager is not null;
+	public CoinJoinClientState GetHighestCoinJoinClientState() => CoinJoinManager?.HighestCoinJoinClientState ?? CoinJoinClientState.Idle;
+	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase(WalletId walletId) => CoinJoinManager?.CoinsInCriticalPhase.GetValueOrDefault(walletId) ?? [];
+	public async Task RestartAbortedCoinjoinsAsync()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			await cjm.RestartAbortedCoinjoinsAsync().ConfigureAwait(false);
+		}
+	}
+	public async Task SignalToStopCoinjoinsAsync()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			await cjm.SignalToStopCoinjoinsAsync().ConfigureAwait(false);
+		}
+	}
+	public void WalletEnteredSendWorkflow(WalletId walletId) => CoinJoinManager?.WalletEnteredSendWorkflow(walletId);
+	public void WalletLeftSendWorkflow(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
+		{
+			cjm.WalletLeftSendWorkflow(wallet);
+		}
+	}
+	public async Task WalletEnteredSendingAsync(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
+		{
+			await cjm.WalletEnteredSendingAsync(wallet).ConfigureAwait(false);
+		}
+	}
+	public IObservable<StatusChangedEventArgs> SubscribeToCoinJoinStatusChanged()
+	{
+		if (CoinJoinManager is { } cjm)
+		{
+			return Observable.FromEventPattern<StatusChangedEventArgs>(cjm, nameof(CoinJoinManager.StatusChanged))
+				.Select(e => e.EventArgs);
+		}
+		return Observable.Empty<StatusChangedEventArgs>();
+	}
+	public void RequestCoinJoinStart(WalletId walletId, WalletId outputWalletId, bool stopWhenAllMixed, bool overridePlebStop)
+	{
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet && GetWalletById(outputWalletId) is { } outputWallet)
+		{
+			cjm.RequestCoinJoinStart(wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
+		}
+	}
+	public void RequestCoinJoinStop(WalletId walletId)
+	{
+		if (CoinJoinManager is { } cjm && GetWalletById(walletId) is { } wallet)
+		{
+			cjm.RequestCoinJoinStop(wallet);
+		}
+	}
 
 	// Transaction
 	public Task SendTransactionAsync(SmartTransaction transaction) => _transactionBroadcaster.SendTransactionAsync(transaction);
@@ -142,9 +272,8 @@ public class Services : IServices
 	// TerminateService wrapper functions
 	public bool IsForcefulTerminationRequested() => _terminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully;
 
-	public static Services Create(Global global, UiConfig uiConfig, TerminateService terminateService)
+	public static Services Create(Global global, TerminateService terminateService)
 	{
-		Instance = new Services(global, uiConfig, terminateService);
-		return Instance;
+		return new Services(global, terminateService);
 	}
 }
