@@ -203,7 +203,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
 
 		// Add behaviors for syncing block headers and compact filters
-		node.Behaviors.Add(new BlockHeadersChainBehavior(blockHeaderChain, FilterHeaderChain, EventBus));
+		node.Behaviors.Add(new BlockHeaderSyncBehavior(blockHeaderChain, FilterHeaderChain, EventBus));
 		node.Behaviors.Add(new CompactFilterBehavior(synchronizationState, blockHeaderChain, EventBus));
 
 		// Start emitting tick events to drive the sync process

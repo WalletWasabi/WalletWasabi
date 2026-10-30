@@ -91,8 +91,7 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
-		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
+		_blockHeaders = new ConcurrentChain();
 
 		_p2pConnectionManager = ConfigureP2pConnectionManager();
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
@@ -171,38 +170,43 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
-	{
-		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+	private string BlockHeadersFilePath => Path.Combine(GetBitcoinP2PNetworkDirectory(), $"BlockHeaders{Network}.dat");
 
-		if (Network == Network.RegTest)
+	/// <summary>Starts the block header chain at the checkpoint below the oldest stored filter, or continues the saved chain.</summary>
+	private void SeedBlockHeaderChain()
+	{
+		var firstFilterHeight = FilterManager.GetMinimumBlockHeight() ?? FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
+		var checkpoint = BlockHeaderCheckpoints.GetBase(Network, firstFilterHeight);
+
+		if (Network != Network.RegTest && TryLoadBlockHeadersFile(checkpoint))
 		{
-			DeleteBlockHeadersFile(blockHeadersFilePath);
-			return new ConcurrentChain(Network);
+			Logger.LogInfo($"Block headers loaded, tip {_blockHeaders.Tip!.Height}.");
+			return;
 		}
 
-		var blockHeaders = Result<byte[], Exception>
-			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
-			.Match(
-				bytes => bytes switch
-				{
-					[] => new ConcurrentChain(Network),
-					_ => new ConcurrentChain(bytes, Network)
-				},
-				_ => new ConcurrentChain(Network));
-
-		return blockHeaders;
+		_blockHeaders.SetTip(checkpoint.ToChainedBlock());
+		Logger.LogInfo($"Block header chain starts at checkpoint {checkpoint.Height}.");
 	}
 
-	private static void DeleteBlockHeadersFile(string blockHeadersFilePath)
+	private bool TryLoadBlockHeadersFile(BlockHeaderCheckpoint checkpoint)
 	{
-		foreach (var path in new[] { blockHeadersFilePath, $"{blockHeadersFilePath}.old", $"{blockHeadersFilePath}.new" })
+		var loaded = File.Exists(BlockHeadersFilePath) && Result<byte[], Exception>
+			.Catch(() => File.SafelyReadAllBytes(BlockHeadersFilePath))
+			.Match(bytes => BlockHeaderChainFile.TryLoad(bytes, Network, checkpoint, _blockHeaders), _ => false);
+
+		if (!loaded)
 		{
-			if (File.Exists(path))
+			// Also the leftovers of an interrupted write, which SafeFile would otherwise keep around.
+			foreach (var path in new[] { BlockHeadersFilePath, $"{BlockHeadersFilePath}.old", $"{BlockHeadersFilePath}.new" })
 			{
-				File.Delete(path);
+				if (File.Exists(path))
+				{
+					File.Delete(path);
+				}
 			}
 		}
+
+		return loaded;
 	}
 
 	private P2pConnectionManager ConfigureP2pConnectionManager()
@@ -288,7 +292,7 @@ public class Global
 
 		if (!Config.BlockOnlyMode)
 		{
-			manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus));
+			manager.AddBehavior(new BlockHeaderSyncBehavior(_blockHeaders, FilterHeaders, EventBus));
 			manager.AddBehavior(new P2pBehavior(_mempoolService));
 		}
 
@@ -598,6 +602,8 @@ public class Global
 				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
 
+			SeedBlockHeaderChain();
+
 			// Bitcoin P2P network can be started after filters are initialized.
 			_p2pConnectionManager.Start(linkedCtsToken);
 
@@ -816,9 +822,7 @@ public class Global
 
 				if (Network != Network.RegTest && _blockHeaders.Tip is not null)
 				{
-					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
-					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
-					File.SafelyWriteAllBytes(blockHeadersFilePath, _blockHeaders.ToBytes());
+					File.SafelyWriteAllBytes(BlockHeadersFilePath, BlockHeaderChainFile.Serialize(_blockHeaders));
 					Logger.LogInfo("Block headers saved.");
 				}
 
