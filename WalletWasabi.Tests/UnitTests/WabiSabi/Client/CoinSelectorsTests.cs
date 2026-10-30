@@ -78,6 +78,24 @@ public class CoinSelectorsTests
 		Assert.Empty(Select(selector, tightCoin));
 	}
 
+	/// <summary>
+	/// A payment that needs all the large coins is almost never funded by random draws, so the largest coins fund it as the last attempt.
+	/// </summary>
+	[Fact]
+	public void PayWithTheLargestCoinsWhenRandomCoinsCannot()
+	{
+		var large = CreateCoins(anonymitySet: 1, Enumerable.Repeat(0.1m, 10).ToArray());
+		var small = CreateCoins(anonymitySet: 1, Enumerable.Repeat(0.001m, 50).ToArray());
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
+		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Coins(0.95m));
+		var selector = CoinSelectors.PrivatePaymentCoinSelector(paymentBatch, minAnonScoreForPayments: 0, semiPrivateThreshold: 0, Generator);
+
+		var selection = Select(selector, [.. large, .. small]);
+
+		Assert.Equal(large.Length, selection.Count);
+		Assert.All(large, coin => Assert.Contains(coin, selection));
+	}
+
 	[Fact]
 	public void SelectNothingWhenNoPaymentCanBeMade()
 	{

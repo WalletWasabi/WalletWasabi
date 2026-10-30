@@ -47,15 +47,14 @@ public static class CoinSelectors
 						.ThenByDescending(x => x.EffectiveValue(feeRate))
 						.Take(1));
 
-			ImmutableList<SmartCoin> Draw(ImmutableList<SmartCoin> selection, int inputCount) =>
-				Selectable(selection)
-					.ToShuffled(generator.Rnd)
-					.Aggregate(selection, (drawn, coin) => drawn.Count < inputCount && Selectable(drawn).Contains(coin) ? drawn.Add(coin) : drawn);
+			ImmutableList<SmartCoin> Draw(ImmutableList<SmartCoin> selection, IList<SmartCoin> pool, int inputCount) =>
+				pool.Aggregate(selection, (drawn, coin) => drawn.Count < inputCount && Selectable(drawn).Contains(coin) ? drawn.Add(coin) : drawn);
 
 			ImmutableList<SmartCoin> Fund(ImmutableList<SmartCoin> selection, Money amount) =>
 				Enumerable.Range(0, RandomSelectionAttempts)
-					.Select(_ => Draw(selection, generator.GetInputTarget()))
-					.FirstOrDefault(drawn => Funds(drawn, amount), selection);
+					.Select(_ => Draw(selection, Selectable(selection).ToShuffled(generator.Rnd), generator.GetInputTarget()))
+					.FirstOrDefault(drawn => Funds(drawn, amount))
+					?? Draw(selection, Selectable(selection).OrderByDescending(x => x.EffectiveValue(feeRate)).ToArray(), CoinJoinCoinSelector.MaxInputsRegistrableByWallet);
 
 			var paymentsFunding = paymentBatch.GetPendingPayments()
 				.OrderBy(payment => payment.EffectiveCost(feeRate))
