@@ -187,18 +187,29 @@ public class KeyManagerTests
 	public void CanSerializeCoinjoinCosts()
 	{
 		var filePath = "wallet-coinjoin-costs.json";
-		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
-		var transactionId = uint256.Parse("0000000000000000000000000000000000000000000000000000000000000001");
+		var transactionId = uint256.One;
 
-		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(690), Money.Satoshis(10), Money.Satoshis(50_000)));
+		// Add costs and serialize.
+		{
+			var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+			manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(690), Money.Satoshis(10), Money.Satoshis(50_000)));
+		}
 
-		var sameManager = KeyManager.FromFile(filePath);
+		// Check that the costs entry is serialized and present.
+		{
+			var sameManager = KeyManager.FromFile(filePath);
 
-		var costs = sameManager.GetCoinjoinCosts(transactionId);
-		Assert.NotNull(costs);
-		Assert.Equal(Money.Satoshis(690), costs.MiningFee);
-		Assert.Equal(Money.Satoshis(10), costs.WastedDust);
-		Assert.Equal(Money.Satoshis(50_000), costs.PaymentsTotal);
+			// Present.
+			var costs = sameManager.GetCoinjoinCosts(transactionId);
+			Assert.NotNull(costs);
+			Assert.Equal(Money.Satoshis(690), costs.MiningFee);
+			Assert.Equal(Money.Satoshis(10), costs.WastedDust);
+			Assert.Equal(Money.Satoshis(50_000), costs.PaymentsTotal);
+
+			// Not present.
+			costs = sameManager.GetCoinjoinCosts(uint256.Zero);
+			Assert.Null(costs);
+		}
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
