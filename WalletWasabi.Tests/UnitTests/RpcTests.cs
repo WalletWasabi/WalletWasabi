@@ -137,6 +137,22 @@ public class RpcTests
 	}
 
 	[Fact]
+	public async Task SendTakesFractionalFeeRatesAsync()
+	{
+		var service = new WasabiJsonRpcService(null!);
+		var paymentInfo = new PaymentInfo
+		{
+			Amount = Money.Coins(1),
+			Sendto = new Destination.Loudly(BitcoinAddress.Create("bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah", Network.Main).ScriptPubKey),
+			Label = "Cesar"
+		};
+
+		// With an int parameter the request handler rounded the rate to even: 1.5 sat/vB was sent as 2 and 0.5 was rejected as 0.
+		// Passing the fee checks means reaching the loaded-wallet check, as in BuildTransactionWithFees.
+		await Assert.ThrowsAsync<InvalidOperationException>(() => service.SendTransactionAsync([paymentInfo], [], feeRate: 0.5m));
+	}
+
+	[Fact]
 	public void SetLabelRequiresALabel()
 	{
 		var service = new WasabiJsonRpcService(null!);
