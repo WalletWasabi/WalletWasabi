@@ -43,7 +43,8 @@ public static class NBitcoinExtensions
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			var payload = listener.ReceiveMessage(cancellationToken).Message.Payload;
+			var incomingMessage = await listener.ReceiveMessageAsync(cancellationToken).ConfigureAwait(false);
+			var payload = incomingMessage.Message.Payload;
 
 			if (payload is BlockPayload b && b.Object?.GetHash() == hash)
 			{
