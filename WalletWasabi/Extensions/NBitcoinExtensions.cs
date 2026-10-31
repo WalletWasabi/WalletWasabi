@@ -1,18 +1,8 @@
-using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Extensions;
 
@@ -214,28 +204,6 @@ public static class NBitcoinExtensions
 		}
 	}
 
-	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
-	{
-		if (i.WitnessUtxo is null)
-		{
-			throw new ArgumentNullException($"{nameof(i.WitnessUtxo)} was null, can't get it's ScriptPubKey type.");
-		}
-
-		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-		{
-			return ScriptPubKeyType.Segwit;
-		}
-
-		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
-			i.FinalScriptWitness is { } witness &&
-			witness.ToScript().IsScriptType(ScriptType.P2WPKH))
-		{
-			return ScriptPubKeyType.SegwitP2SH;
-		}
-
-		return null;
-	}
-
 	/// <summary>
 	/// Tries to equip the PSBT with input and output keypaths on best effort.
 	/// </summary>
@@ -429,9 +397,6 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
-
-	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
-		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 
 	/// <remarks>NBitcoin does not provide a try-parse method.</remarks>
 	public static bool TryParseBitcoinAddressForNetwork(string address, Network network, [NotNullWhen(true)] out BitcoinAddress? bitcoinAddress)
