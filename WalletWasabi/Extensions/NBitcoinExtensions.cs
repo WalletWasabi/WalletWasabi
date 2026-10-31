@@ -1,60 +1,62 @@
-using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
-	public static async Task<Block?> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
+	/// <summary>
+	/// Downloads the block (which is assumed to exist) from the given peer node.
+	/// </summary>
+	/// <returns>The requested block.</returns>
+	/// <exception cref="InvalidOperationException">The peer does not serve blocks at all, or the block was not found, or the peer was disconnected.</exception>
+	/// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+	/// <seealso href="https://github.com/bitcoin/bitcoin/blob/ab7e668cc6af5d716ad40166d1f88235a2f6d25d/test/functional/p2p_getdata.py#L25-L44"/>
+	public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
 		{
 			await node.VersionHandshakeAsync(cancellationToken).ConfigureAwait(false);
 		}
 
+		if (!node.CanServeBlocks)
+		{
+			throw new InvalidOperationException($"Node '{node.RemoteSocketEndpoint}' does not serve blocks (neither NODE_NETWORK nor NODE_NETWORK_LIMITED).");
+		}
+
 		using var listener = node.CreateListener();
+
+		// Ask for a specific block.
 		var getData = new GetDataPayload(new InventoryVector(InventoryType.MSG_BLOCK, hash));
 		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
-		// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
+		// Send a ping message.
+		// Note: Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
 		// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
 		// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
 		ulong pingNonce = RandomUtils.GetUInt64();
 		await node.SendMessageAsync(new PingPayload { Nonce = pingNonce }).ConfigureAwait(false);
+
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			var message = listener.ReceiveMessage(cancellationToken);
+			var incomingMessage = await listener.ReceiveMessageAsync(cancellationToken).ConfigureAwait(false);
+			var payload = incomingMessage.Message.Payload;
 
-			if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
+			if (payload is BlockPayload b && b.Object.GetHash() == hash)
 			{
 				return b.Object;
 			}
 
-			if (message.Message.Payload is NotFoundPayload)
+			// If we receive the pong, it means the block was not found.
+			// However, there is an exception: a limited peer disconnects us (instead of sending a pong) if the block is deeper than NODE_NETWORK_LIMITED_MIN_BLOCKS (288) + 2.
+			if (payload is PongPayload pong && pong.Nonce == pingNonce)
 			{
-				return node.SupportsNetwork
-					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} didn't found block {hash} which we assume exists.")
-					: null;
-			}
-
-			if (message.Message.Payload is PongPayload p && p.Nonce == pingNonce)
-			{
-				throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} send us wrong pong nonce.");
+				throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} does not have block {hash}.");
 			}
 		}
 	}
@@ -217,28 +219,6 @@ public static class NBitcoinExtensions
 			}
 			nodes = parentCounter.Where(x => x.Value == 0).Select(x => x.Key).Distinct().ToArray();
 		}
-	}
-
-	public static ScriptPubKeyType? GetInputScriptPubKeyType(this PSBTInput i)
-	{
-		if (i.WitnessUtxo is null)
-		{
-			throw new ArgumentNullException($"{nameof(i.WitnessUtxo)} was null, can't get it's ScriptPubKey type.");
-		}
-
-		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-		{
-			return ScriptPubKeyType.Segwit;
-		}
-
-		if (i.WitnessUtxo.ScriptPubKey.IsScriptType(ScriptType.P2SH) &&
-			i.FinalScriptWitness is { } witness &&
-			witness.ToScript().IsScriptType(ScriptType.P2WPKH))
-		{
-			return ScriptPubKeyType.SegwitP2SH;
-		}
-
-		return null;
 	}
 
 	/// <summary>
@@ -434,9 +414,6 @@ public static class NBitcoinExtensions
 
 		return ownershipProof;
 	}
-
-	public static Money GetFeeWithZero(this FeeRate feeRate, int virtualSize) =>
-		feeRate == FeeRate.Zero ? Money.Zero : feeRate.GetFee(virtualSize);
 
 	/// <remarks>NBitcoin does not provide a try-parse method.</remarks>
 	public static bool TryParseBitcoinAddressForNetwork(string address, Network network, [NotNullWhen(true)] out BitcoinAddress? bitcoinAddress)
