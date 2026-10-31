@@ -1,18 +1,9 @@
-using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
@@ -222,6 +213,7 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
+	/// <inheritdoc cref="P2pNodeProvider"/>
 	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
