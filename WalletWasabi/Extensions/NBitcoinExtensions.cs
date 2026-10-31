@@ -9,12 +9,13 @@ namespace WalletWasabi.Extensions;
 public static class NBitcoinExtensions
 {
 	/// <summary>
-	/// Downloads the block (which is assumed to exist) from the given peer.
+	/// Downloads the block (which is assumed to exist) from the given peer node.
 	/// </summary>
-	/// <returns>The block, if it was found; or <c>null</c> if the block was not found but the peer is a pruned one (<see cref="NodeServices.NODE_NETWORK_LIMITED"/>).</returns>
-	/// <exception cref="InvalidOperationException">The peer does not serve blocks at all, or the block was not found and the peer is not a pruned one.</exception>
+	/// <returns>The requested block.</returns>
+	/// <exception cref="InvalidOperationException">The peer does not serve blocks at all, or the block was not found, or the peer was disconnected.</exception>
+	/// <exception cref="OperationCanceledException">The operation was canceled.</exception>
 	/// <seealso href="https://github.com/bitcoin/bitcoin/blob/ab7e668cc6af5d716ad40166d1f88235a2f6d25d/test/functional/p2p_getdata.py#L25-L44"/>
-	public static async Task<Block?> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
+	public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
 		{
@@ -46,17 +47,16 @@ public static class NBitcoinExtensions
 			var incomingMessage = await listener.ReceiveMessageAsync(cancellationToken).ConfigureAwait(false);
 			var payload = incomingMessage.Message.Payload;
 
-			if (payload is BlockPayload b && b.Object?.GetHash() == hash)
+			if (payload is BlockPayload b && b.Object.GetHash() == hash)
 			{
 				return b.Object;
 			}
 
+			// If we receive the pong, it means the block was not found.
+			// However, there is an exception: a limited peer disconnects us (instead of sending a pong) if the block is deeper than NODE_NETWORK_LIMITED_MIN_BLOCKS (288) + 2.
 			if (payload is PongPayload pong && pong.Nonce == pingNonce)
 			{
-				// Limited nodes can return only a limited number of the latest blocks. Return null if the block was not returned by the limited node.
-				return node.SupportsNetwork
-					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} advertises NODE_NETWORK but does not have block {hash}.")
-					: null;
+				throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} does not have block {hash}.");
 			}
 		}
 	}
