@@ -8,6 +8,12 @@ namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
+	/// <summary>
+	/// Downloads the block (which is assumed to exist) from the given peer.
+	/// </summary>
+	/// <returns>The block, if it was found; or <c>null</c> if the block was not found but the peer is a pruned one (<see cref="NodeServices.NODE_NETWORK_LIMITED"/>).</returns>
+	/// <exception cref="InvalidOperationException">The peer does not serve blocks at all, or the block was not found and the peer is not a pruned one.</exception>
+	/// <seealso href="https://github.com/bitcoin/bitcoin/blob/ab7e668cc6af5d716ad40166d1f88235a2f6d25d/test/functional/p2p_getdata.py#L25-L44"/>
 	public static async Task<Block?> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
@@ -15,16 +21,25 @@ public static class NBitcoinExtensions
 			await node.VersionHandshakeAsync(cancellationToken).ConfigureAwait(false);
 		}
 
+		if (!node.CanServeBlocks)
+		{
+			throw new InvalidOperationException($"Node '{node.RemoteSocketEndpoint}' does not serve blocks (neither NODE_NETWORK nor NODE_NETWORK_LIMITED).");
+		}
+
 		using var listener = node.CreateListener();
+
+		// Ask for a specific block.
 		var getData = new GetDataPayload(new InventoryVector(InventoryType.MSG_BLOCK, hash));
 		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
-		// Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
+		// Send a ping message.
+		// Note: Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
 		// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
 		// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
 		ulong pingNonce = RandomUtils.GetUInt64();
 		await node.SendMessageAsync(new PingPayload { Nonce = pingNonce }).ConfigureAwait(false);
+
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
@@ -35,8 +50,9 @@ public static class NBitcoinExtensions
 				return b.Object;
 			}
 
-			if (payload is NotFoundPayload || payload is PongPayload pong && pong.Nonce == pingNonce)
+			if (payload is PongPayload pong && pong.Nonce == pingNonce)
 			{
+				// Limited nodes can return only a limited number of the latest blocks. Return null if the block was not returned by the limited node.
 				return node.SupportsNetwork
 					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} advertises NODE_NETWORK but does not have block {hash}.")
 					: null;
