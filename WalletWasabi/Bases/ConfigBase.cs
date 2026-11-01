@@ -22,5 +22,5 @@ public abstract class ConfigBase : NotifyPropertyChangedBase
 		}
 	}
 
-	public abstract string EncodeAsJson();
+	protected abstract string EncodeAsJson();
 }

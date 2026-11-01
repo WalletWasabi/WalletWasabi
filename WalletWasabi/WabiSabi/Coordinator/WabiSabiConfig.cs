@@ -207,7 +207,8 @@ public record WabiSabiConfig
 		}
 	}
 
-	public string EncodeAsJson() =>
+	/// <remarks>Internal method to be used in tests.</remarks>
+	internal string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
 
 	public void ToFile()

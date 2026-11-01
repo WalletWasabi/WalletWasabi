@@ -3,10 +3,7 @@ using NBitcoin.Protocol;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Crypto;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Extensions;
 
