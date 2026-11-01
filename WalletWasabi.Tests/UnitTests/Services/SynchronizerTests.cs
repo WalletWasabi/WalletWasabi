@@ -1,10 +1,7 @@
 using NBitcoin;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Storages;
@@ -15,11 +12,14 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 
 public class SynchronizerTests
 {
+	/// <summary>
+	/// <see cref="FiltersResponse.AlreadyOnBestBlock"/> message should not change the <see cref="FilterHeaderChain"/>'s server tip height
+	/// and should not announce a network tip height change.
+	/// </summary>
 	[Fact]
-	public async Task AlreadyOnBestBlock_DoesNotTakeTheLocalTipForTheNetworkTipAsync()
+	public async Task ProcessFiltersAsync_HandleAlreadyOnBestBlockMessageAsync()
 	{
-		string directory = GetWorkDirectory();
-		await IoHelpers.TryDeleteDirectoryAsync(directory);
+		var directory = await Common.GetEmptyWorkDirAsync();
 
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
@@ -27,15 +27,11 @@ public class SynchronizerTests
 		using var filterManager = new FilterManager(directory, Network.Main, filterHeaderChain, eventBus);
 
 		var networkTipAnnounced = false;
-		using var subscription = eventBus.Subscribe<NetworkTipHeightChanged>(_ => networkTipAnnounced = true);
+		using var _ = eventBus.Subscribe<NetworkTipHeightChanged>(_ => networkTipAnnounced = true);
 
 		var isSynchronized = await Synchronizer.ProcessFiltersAsync(new FiltersResponse.AlreadyOnBestBlock(), filterManager, filterHeaderChain, eventBus);
-
 		Assert.True(isSynchronized);
 		Assert.Equal(Height.ChainHeight.Genesis, filterHeaderChain.ServerTipHeight);
 		Assert.False(networkTipAnnounced);
 	}
-
-	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-		=> Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 }
