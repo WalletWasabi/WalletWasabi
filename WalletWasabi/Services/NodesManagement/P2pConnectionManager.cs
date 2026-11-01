@@ -22,11 +22,6 @@ public record P2pNodeClient(
 			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 
-			if (block is null)
-			{
-				return null;
-			}
-
 			// Validate block
 			if (!block.Check())
 			{

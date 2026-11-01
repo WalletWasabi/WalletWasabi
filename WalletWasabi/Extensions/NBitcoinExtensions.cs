@@ -29,20 +29,23 @@ public static class NBitcoinExtensions
 
 		using var listener = node.CreateListener();
 
-		// Ask for a specific block.
+		// Ask for a specific block. 
 		var getData = new GetDataPayload(new InventoryVector(InventoryType.MSG_BLOCK, hash));
 		await node.SendMessageAsync(getData).ConfigureAwait(false);
 		cancellationToken.ThrowIfCancellationRequested();
 
-		// Send a ping message.
-		// Note: Bitcoin Core processes the messages sequentially and does not send a NOTFOUND message if the remote node is pruned and the data not available.
-		// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
-		// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
+		// Send a ping message. 
+		// Note: If the block is not known by the remote node, it will send a pong immediately. If the block is known, it will send the block first and then the pong.
 		ulong pingNonce = RandomUtils.GetUInt64();
 		await node.SendMessageAsync(new PingPayload { Nonce = pingNonce }).ConfigureAwait(false);
 
 		while (true)
 		{
+			if (!node.IsConnected)
+			{
+				throw new InvalidOperationException($"Node '{node.RemoteSocketEndpoint}' disconnected while downloading block '{hash}'.");
+			}
+
 			cancellationToken.ThrowIfCancellationRequested();
 			var incomingMessage = await listener.ReceiveMessageAsync(cancellationToken).ConfigureAwait(false);
 			var payload = incomingMessage.Message.Payload;
