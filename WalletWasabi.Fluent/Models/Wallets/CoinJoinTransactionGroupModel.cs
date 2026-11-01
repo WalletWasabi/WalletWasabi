@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
