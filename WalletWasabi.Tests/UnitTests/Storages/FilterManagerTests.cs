@@ -23,11 +23,12 @@ public class FilterManagerTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
-		string directory = GetWorkDirectory();
-		await IoHelpers.TryDeleteDirectoryAsync(directory);
-		IoHelpers.EnsureContainingDirectoryExists(directory);
+		var directory = await Common.GetEmptyWorkDirAsync();
 
-		using var filterManager = new FilterManager(directory, Network.Main, new FilterHeaderChain(), new EventBus());
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
+		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+
+		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteStorage, new EventBus());
 		await filterManager.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.
@@ -38,7 +39,4 @@ public class FilterManagerTests
 		filterModel = await filterManager.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
-
-	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-		=> Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 }
