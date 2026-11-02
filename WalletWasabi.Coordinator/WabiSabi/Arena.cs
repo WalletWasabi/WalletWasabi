@@ -605,10 +605,7 @@ public partial class Arena : PeriodicRunner
 		var feeEstimations = await _feeRateProvider(cancellationToken).ConfigureAwait(false);
 		var feeRate = feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
 
-		var result = FeeRate.Max(_config.MinimumAcceptableFeeRate, feeRate);
-		result = FeeRate.Min(_config.MaximumAcceptableFeeRate, result);
-
-		return result;
+		return FeeRate.Min(_config.MaximumAcceptableFeeRate, FeeRate.Max(_config.MinimumAcceptableFeeRate, feeRate));
 	}
 
 	/// <summary>
