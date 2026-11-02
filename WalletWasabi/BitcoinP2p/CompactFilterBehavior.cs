@@ -380,7 +380,7 @@ public class CompactFilterBehavior(
 
 	private void TrySyncHeadersNoLock(Node node)
 	{
-		if (!synchronizationState.TryAssignHeaderRange(node.Network, out var headerAssignment))
+		if (!synchronizationState.TryAssignHeaderRange(out var headerAssignment))
 		{
 			return;
 		}
