@@ -286,9 +286,10 @@ public class Global
 
 		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 
+		manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus));
+
 		if (!Config.BlockOnlyMode)
 		{
-			manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus));
 			manager.AddBehavior(new P2pBehavior(_mempoolService));
 		}
 
