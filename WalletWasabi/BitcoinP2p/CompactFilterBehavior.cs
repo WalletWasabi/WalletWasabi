@@ -339,7 +339,7 @@ public class CompactFilterBehavior(
 
 	private void TrySyncNoLock(Node node)
 	{
-		if (!IsNodeInValidState(node) || IsRequestInFlight)
+		if (!IsNodeInValidState(node) || IsRequestInFlightNoLock())
 		{
 			return;
 		}
@@ -348,11 +348,12 @@ public class CompactFilterBehavior(
 		TrySyncFiltersNoLock(node);
 	}
 
-	private bool IsRequestInFlight => _assignedHeaderRange is not null || _assignedFilterRange is not null;
+	private bool IsRequestInFlightNoLock() =>
+		_assignedHeaderRange is not null || _assignedFilterRange is not null;
 
 	private void TrySyncFiltersNoLock(Node node)
 	{
-		if (IsRequestInFlight)
+		if (IsRequestInFlightNoLock())
 		{
 			return;
 		}
@@ -376,7 +377,7 @@ public class CompactFilterBehavior(
 
 	private void TrySyncHeadersNoLock(Node node)
 	{
-		if (IsRequestInFlight)
+		if (IsRequestInFlightNoLock())
 		{
 			return;
 		}
