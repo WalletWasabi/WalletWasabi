@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 /// <param name="Target"><c>null</c> means that no value is available yet.</param>
 public record SyncProgressCardModel(uint Initial, uint Current, uint? Target)
 {
-	public bool IsTargetKnown => Target.HasValue;
+	public bool IsTargetKnown => Target is not null;
 
 	public double Percent => Target switch
 	{

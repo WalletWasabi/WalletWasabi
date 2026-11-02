@@ -16,10 +16,10 @@ public partial class LoadingViewModel : RoutableViewModel
 
 	// Sync progress card models (initial, current, target - percent/isComplete are calculated)
 	[AutoNotify] private SyncProgressCardModel _peers = new(0, 0, 12);
-	[AutoNotify] private SyncProgressCardModel _blockHeaders = new(0, 0, 0);
-	[AutoNotify] private SyncProgressCardModel _filterHeaders = new(0, 0, 0);
-	[AutoNotify] private SyncProgressCardModel _compactFilters = new(0, 0, 0);
-	[AutoNotify] private SyncProgressCardModel _blocks = new(0, 0, 0);
+	[AutoNotify] private SyncProgressCardModel _blockHeaders = new(0, 0, null);
+	[AutoNotify] private SyncProgressCardModel _filterHeaders = new(0, 0, null);
+	[AutoNotify] private SyncProgressCardModel _compactFilters = new(0, 0, null);
+	[AutoNotify] private SyncProgressCardModel _blocks = new(0, 0, null);
 
 	public LoadingViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
