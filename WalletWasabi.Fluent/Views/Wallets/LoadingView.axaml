@@ -116,7 +116,7 @@
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
                   <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
-                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5" IsIndeterminate="{Binding !IsTargetKnown}">
                     <Interaction.Behaviors>
                       <behaviors:BrushSwitchBehavior
                         Value="{Binding IsComplete}"
@@ -147,7 +147,7 @@
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
                   <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
-                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5" IsIndeterminate="{Binding !IsTargetKnown}">
                     <Interaction.Behaviors>
                       <behaviors:BrushSwitchBehavior
                         Value="{Binding IsComplete}"
@@ -178,7 +178,7 @@
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
                   <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
-                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5" IsIndeterminate="{Binding !IsTargetKnown}">
                     <Interaction.Behaviors>
                       <behaviors:BrushSwitchBehavior
                         Value="{Binding IsComplete}"
@@ -209,7 +209,7 @@
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
                   <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
-                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5" IsIndeterminate="{Binding !IsTargetKnown}">
                     <Interaction.Behaviors>
                       <behaviors:BrushSwitchBehavior
                         Value="{Binding IsComplete}"
@@ -240,7 +240,7 @@
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
                   <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
-                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5" IsIndeterminate="{Binding !IsTargetKnown}">
                     <Interaction.Behaviors>
                       <behaviors:BrushSwitchBehavior
                         Value="{Binding IsComplete}"
