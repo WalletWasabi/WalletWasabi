@@ -286,7 +286,7 @@ public partial class Arena : PeriodicRunner
 					try
 					{
 						var targetFeeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
+						Logger.LogInfo(FormatLog($"Current Clamped Fee Rate: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
 					}
 					catch (Exception ex)
 					{
