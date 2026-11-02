@@ -98,6 +98,7 @@ public class Services : IServices
 	public Network GetNetwork() => WalletManager.Network;
 	public IEnumerable<Wallet> GetWallets() => WalletManager.GetWallets();
 	public bool HasWallet() => WalletManager.HasWallet();
+	public Wallet GetWalletById(WalletId walletId) => WalletManager.GetWalletById(walletId);
 	public Wallet GetWalletByName(string walletName) => WalletManager.GetWalletByName(walletName);
 	public void RenameWallet(Wallet wallet, string newWalletName) => WalletManager.RenameWallet(wallet, newWalletName);
 	public string GetWalletsDir() => WalletManager.WalletDirectories.WalletsDir;

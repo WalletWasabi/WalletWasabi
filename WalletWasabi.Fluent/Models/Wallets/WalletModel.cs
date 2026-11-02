@@ -97,7 +97,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Auth = new WalletAuthModel(Wallet);
 		Loader = new WalletLoadWorkflow(services, Wallet);
-		Settings = new WalletSettingsModel(services, Wallet.KeyManager);
+		Settings = new WalletSettingsModel(services, wallet.WalletId, Wallet.KeyManager);
 
 		_coinjoin = new(() =>
 		{

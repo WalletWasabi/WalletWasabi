@@ -29,7 +29,7 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 		// TODO: Finish partial refactor
 		// Wallet property must be removed
-		Wallet = UiContext.Services.GetWalletByName(walletModel.Name);
+		Wallet = UiContext.Services.GetWalletById(walletModel.Id);
 
 		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
