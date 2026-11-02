@@ -36,12 +36,12 @@ public class CompactFilterBehavior(
 	{
 		AttachedNode.StateChanged += OnStateChanged;
 		AttachedNode.MessageReceived += OnMessageReceived;
-
 		if (AttachedNode.Behaviors.Find<SocksSettingsBehavior>() is null)
 		{
 			_headerAssignmentTimeout = HeaderAssignmentTimeoutForClearnet;
 			_filterAssignmentTimeout = FilterAssignmentTimeoutForClearnet;
 		}
+
 	}
 
 	protected override void DetachCore()
@@ -93,8 +93,8 @@ public class CompactFilterBehavior(
 
 			TrySync(node);
 		});
-
 		RegisterDisposable(tickSubscription);
+
 		TrySync(node);
 	}
 
@@ -127,7 +127,8 @@ public class CompactFilterBehavior(
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
 
-		Logger.LogDebug($"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment}");
+		Logger.LogDebug(
+			$"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment}");
 
 		if (batchCount == 0)
 		{
@@ -146,7 +147,8 @@ public class CompactFilterBehavior(
 		var startHeight = stopBlock.Height - batchCount + 1;
 		if (startHeight < 0)
 		{
-			Logger.LogWarning($"Invalid batch - start height {startHeight} is negative (stopHeight={stopBlock.Height}, batchCount={batchCount})");
+			Logger.LogWarning(
+				$"Invalid batch - start height {startHeight} is negative (stopHeight={stopBlock.Height}, batchCount={batchCount})");
 			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
@@ -154,7 +156,8 @@ public class CompactFilterBehavior(
 		// Verify this matches our assignment
 		if ((uint) startHeight != assignment.StartHeight)
 		{
-			Logger.LogWarning($"Received headers for wrong range - expected {assignment.StartHeight}, got {startHeight}");
+			Logger.LogWarning(
+				$"Received headers for wrong range - expected {assignment.StartHeight}, got {startHeight}");
 			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
@@ -258,7 +261,8 @@ public class CompactFilterBehavior(
 		// This comes from either the shared state (last emitted) or the filter header chain
 		if (!synchronizationState.TryGetPreviousFilterHeader(startHeight, network, out var prevFilterHeader))
 		{
-			Logger.LogWarning($"Cannot validate filters: previous filter header not available for height {startHeight}");
+			Logger.LogWarning(
+				$"Cannot validate filters: previous filter header not available for height {startHeight}");
 			return null;
 		}
 
@@ -291,7 +295,8 @@ public class CompactFilterBehavior(
 			// Validate
 			if (actualHeader != expectedHeader)
 			{
-				Logger.LogWarning($"Invalid filter at height {height}: expected header {expectedHeader}, got {actualHeader}");
+				Logger.LogWarning(
+					$"Invalid filter at height {height}: expected header {expectedHeader}, got {actualHeader}");
 				return null;
 			}
 
@@ -363,7 +368,8 @@ public class CompactFilterBehavior(
 
 		_assignedFilterRange = filterAssignment;
 		_assignedFilterRangeAt = DateTime.UtcNow;
-		Logger.LogDebug($"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
+		Logger.LogDebug(
+			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
 
