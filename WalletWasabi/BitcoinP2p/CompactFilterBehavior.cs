@@ -329,6 +329,10 @@ public class CompactFilterBehavior(
 		return result;
 	}
 
+	/// <remarks>Do not send multiple requests to the same node to avoid timeout issues.</remarks>
+	private bool IsRequestInFlightNoLock() =>
+		_assignedHeaderRange is not null || _assignedFilterRange is not null;
+
 	private void TrySync(Node node)
 	{
 		lock (_lock)
@@ -339,25 +343,24 @@ public class CompactFilterBehavior(
 
 	private void TrySyncNoLock(Node node)
 	{
-		if (!IsNodeInValidState(node) || IsRequestInFlightNoLock())
+		if (!IsNodeInValidState(node))
 		{
 			return;
 		}
 
-		TrySyncHeadersNoLock(node);
-		TrySyncFiltersNoLock(node);
-	}
+		if (!IsRequestInFlightNoLock())
+		{
+			TrySyncHeadersNoLock(node);
+		}
 
-	private bool IsRequestInFlightNoLock() =>
-		_assignedHeaderRange is not null || _assignedFilterRange is not null;
+		if (!IsRequestInFlightNoLock())
+		{
+			TrySyncFiltersNoLock(node);
+		}
+	}
 
 	private void TrySyncFiltersNoLock(Node node)
 	{
-		if (IsRequestInFlightNoLock())
-		{
-			return;
-		}
-
 		if (!synchronizationState.TryAssignFilterRange(out var filterAssignment))
 		{
 			return;
@@ -377,11 +380,6 @@ public class CompactFilterBehavior(
 
 	private void TrySyncHeadersNoLock(Node node)
 	{
-		if (IsRequestInFlightNoLock())
-		{
-			return;
-		}
-
 		if (!synchronizationState.TryAssignHeaderRange(node.Network, out var headerAssignment))
 		{
 			return;
