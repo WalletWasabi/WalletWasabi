@@ -69,7 +69,13 @@ public class P2pConnectionManager : IDisposable
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
-	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
+
+	/// <summary>Short rotation interval used when we have fewer than <see cref="MinCompactFilterNodes"/> compact filter nodes.</summary>
+	private static readonly TimeSpan ShortRotationInterval = TimeSpan.FromSeconds(4);
+
+	/// <summary>Rotation interval when we have enough compact filter nodes.</summary>
+	private static readonly TimeSpan DefaultRotationInterval = TimeSpan.FromMinutes(3);
+
 	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(15);
 	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(4);
 
@@ -91,7 +97,7 @@ public class P2pConnectionManager : IDisposable
 
 	private int _isReevaluating;
 	private DateTimeOffset _lastMaintainTime;
-	private DateTimeOffset _lastRotateTime;
+	private DateTimeOffset _lastRotationTime;
 
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
@@ -188,12 +194,18 @@ public class P2pConnectionManager : IDisposable
 				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			var filterNodeCount = _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters);
-			var rotateInterval = filterNodeCount < MinCompactFilterNodes ? TimeSpan.FromSeconds(4) : RotateInterval;
-			if (count >= TargetConnections && now - _lastRotateTime >= rotateInterval)
+			// Intentionally refresh the value as it could have changed.
+			count = _connectedNodes.Count;
+			if (count >= TargetConnections)
 			{
-				_lastRotateTime = now;
-				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+				var compactFilterNodesCount = _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters);
+				var rotationInterval = compactFilterNodesCount < MinCompactFilterNodes ? ShortRotationInterval : DefaultRotationInterval;
+
+				if (now - _lastRotationTime >= rotationInterval)
+				{
+					_lastRotationTime = now;
+					await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+				}
 			}
 		}
 		catch (OperationCanceledException)
