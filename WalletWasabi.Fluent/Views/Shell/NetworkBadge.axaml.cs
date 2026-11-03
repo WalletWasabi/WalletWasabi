@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Shell;
 
-public class NetworkBadge : UserControl
+public partial class NetworkBadge : UserControl
 {
 	public NetworkBadge()
 	{

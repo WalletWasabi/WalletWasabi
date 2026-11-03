@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Receive;
 
-public class ReceiveAddressesView : UserControl
+public partial class ReceiveAddressesView : UserControl
 {
 	public ReceiveAddressesView()
 	{

@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using WalletWasabi.Fluent.Helpers;
@@ -12,10 +13,10 @@ public class FocusNextControlAction : AvaloniaObject, IAction
 		if (ApplicationHelper.FocusManager is { } focusManager)
 		{
 			var current = focusManager.GetFocusedElement();
-			if (current != null)
+			if (current is not null)
 			{
-				var next = KeyboardNavigationHandler.GetNext(current, NavigationDirection.Next);
-				return next?.Focus() ?? false;
+				var options = new FindNextElementOptions() { FocusedElement = current };
+				return focusManager.TryMoveFocus(NavigationDirection.Next, options);
 			}
 		}
 

@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.CrashReport.Views;
 
-public class CrashReportWindow : Window
+public partial class CrashReportWindow : Window
 {
 	public CrashReportWindow()
 	{

@@ -105,7 +105,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(HandleAddressChange);
 
 		this.WhenAnyValue(x => x.Balance)
@@ -588,7 +588,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_suggestionLabels.Activate(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+		RxSchedulers.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);
 

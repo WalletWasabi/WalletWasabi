@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.AddWallet;
 
-public class RecoverMultiShareWalletView : UserControl
+public partial class RecoverMultiShareWalletView : UserControl
 {
 	public RecoverMultiShareWalletView()
 	{

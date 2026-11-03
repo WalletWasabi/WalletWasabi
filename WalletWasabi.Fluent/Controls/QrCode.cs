@@ -28,8 +28,6 @@ public class QrCode : Control
 
 	private ReactiveCommand<string, Unit> _saveCommand;
 
-	private bool[,]? _matrix;
-
 	static QrCode()
 	{
 		AffectsMeasure<QrCode>(MatrixProperty);
@@ -38,7 +36,7 @@ public class QrCode : Control
 	public QrCode()
 	{
 		this.WhenAnyValue(x => x.Matrix)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(matrix =>
 			{
 				if (matrix is { })
@@ -61,8 +59,8 @@ public class QrCode : Control
 	[Content]
 	public bool[,]? Matrix
 	{
-		get => _matrix;
-		set => SetAndRaise(MatrixProperty, ref _matrix, value);
+		get;
+		set => SetAndRaise(MatrixProperty, ref field, value);
 	}
 
 	public async Task SaveQrCodeAsync(string address)
@@ -108,7 +106,7 @@ public class QrCode : Control
 				DrawQrCodeImage(rtbCtx, FinalMatrix, pixSize.ToSize(1));
 			}
 
-			rtb.Save(path);
+			rtb.Save(path, PngBitmapEncoderOptions.Default);
 		}
 	}
 

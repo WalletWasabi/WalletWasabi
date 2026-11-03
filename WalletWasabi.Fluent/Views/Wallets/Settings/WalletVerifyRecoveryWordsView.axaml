@@ -17,7 +17,7 @@
                  RestrictInputToSuggestions="True"
                  Items="{Binding Mnemonics}"
                  Suggestions="{Binding Suggestions}"
-                 Watermark="Type in your recovery words in the correct order"
+                 PlaceholderText="Type in your recovery words in the correct order"
                  AllowDuplication="True"
                  EnableCounter="True"
                  EnableDelete="False">

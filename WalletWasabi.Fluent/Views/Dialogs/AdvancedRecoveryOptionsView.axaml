@@ -19,7 +19,7 @@
                  EnableNext="True" NextContent="OK">
     <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380">
       <Label Content="Minimum _Gap Limit:" Target="TbGapLimit" />
-      <TextBox Name="TbGapLimit" Watermark="e.g., 63"
+      <TextBox Name="TbGapLimit" PlaceholderText="e.g., 63"
                Text="{Binding MinGapLimit}"
                DockPanel.Dock="Top"
                Width="350"
@@ -29,7 +29,7 @@
         </Interaction.Behaviors>
       </TextBox>
       <Label Content="Birth Height:" Target="TbBirthHeight" />
-      <TextBox Name="TbBirthHeight" Watermark="e.g., 481824"
+      <TextBox Name="TbBirthHeight" PlaceholderText="e.g., 481824"
                Text="{Binding BirthHeight}"
                DockPanel.Dock="Top"
                Width="350"

@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
         x:DataType="viewModels:MainViewModel"
-        x:Name="MainWindow"
+        x:Name="AppMainWindow"
         x:CompileBindings="True"
         MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterScreen"
@@ -15,16 +15,16 @@
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaTitleBarHeightHint="50"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
+        WindowDecorations="Full"
         Title="Wasabi Wallet"
         WindowState="{Binding WindowState, Mode=TwoWay}"
         Focusable="True"
         Icon="/Assets/WasabiLogo.ico"
         RenderOptions.BitmapInterpolationMode="HighQuality"
-        RenderOptions.TextRenderingMode="SubpixelAntialias"
+        TextOptions.TextRenderingMode="SubpixelAntialias"
         RenderOptions.RequiresFullOpacityHandling="True">
   <Window.Styles>
-    <Style Selector="TitleBar">
+    <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
     </Style>
   </Window.Styles>
@@ -33,7 +33,7 @@
     <CoordinatorConnectionStringBehavior />
   </Interaction.Behaviors>
 
-  <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
+  <Panel Margin="{Binding #AppMainWindow.OffScreenMargin}">
     <!--
     WARNING:
     Do not remove as the OpacityMask is needed for RenderOptions.TextRenderingMode="SubpixelAntialias"

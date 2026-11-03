@@ -61,7 +61,7 @@ public static class Capture
 					target.Measure(size);
 					target.Arrange(new Rect(size));
 					bitmap.Render(target);
-					bitmap.Save(stream);
+					bitmap.Save(stream, PngBitmapEncoderOptions.Default);
 					break;
 				}
 		}

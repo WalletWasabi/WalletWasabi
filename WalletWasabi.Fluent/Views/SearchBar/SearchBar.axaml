@@ -135,7 +135,7 @@
   </UserControl.Styles>
 
   <Panel>
-    <TextBox x:Name="SearchBox" Watermark="Search settings / advanced features" MaxLength="100"
+    <TextBox x:Name="SearchBox" PlaceholderText="Search settings / advanced features" MaxLength="100"
              HorizontalAlignment="Stretch"
              Text="{Binding SearchText, Mode=TwoWay}" VerticalAlignment="Center">
 

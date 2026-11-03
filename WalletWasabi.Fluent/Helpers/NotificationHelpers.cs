@@ -35,7 +35,7 @@ public static class NotificationHelpers
 	{
 		if (NotificationManager is { } nm)
 		{
-			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
+			RxSchedulers.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}
 	}
 
@@ -43,7 +43,7 @@ public static class NotificationHelpers
 	{
 		if (NotificationManager is { } nm)
 		{
-			RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Error, TimeSpan.FromSeconds(DefaultErrorNotificationTimeout), onClick)));
+			RxSchedulers.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Error, TimeSpan.FromSeconds(DefaultErrorNotificationTimeout), onClick)));
 		}
 	}
 

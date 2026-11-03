@@ -1,10 +1,10 @@
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactions.Custom;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
@@ -32,7 +32,7 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 
 	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		if (AssociatedObject?.GetVisualRoot() is not InputElement ie)
+		if (TopLevel.GetTopLevel(AssociatedObject) is not InputElement ie)
 		{
 			return Disposable.Empty;
 		}

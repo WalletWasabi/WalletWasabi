@@ -1,6 +1,5 @@
 using System.IO;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Serialization;
 using Unit = System.Reactive.Unit;
@@ -58,36 +57,6 @@ public class UiConfig : ConfigBase
 		_sendAmountConversionReversed = sendAmountConversionReversed;
 		_windowWidth = windowWidth;
 		_windowHeight = windowHeight;
-
-		this.WhenAnyValue(
-				x => x.Autocopy,
-				x => x.AutoPaste,
-				x => x.IsCustomChangeAddress,
-				x => x.DarkModeEnabled,
-				x => x.LastSelectedWallet,
-				x => x.WindowState,
-				x => x.Oobe,
-				x => x.LastVersionHighlightsDisplayed,
-				x => x.RunOnSystemStartup,
-				x => x.PrivacyMode,
-				x => x.HideOnClose,
-				x => x.FeeTarget,
-				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => ToFile());
-
-		this.WhenAnyValue(x => x.SendAmountConversionReversed)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => ToFile());
-
-		this.WhenAnyValue(
-				x => x.WindowWidth,
-				x => x.WindowHeight)
-			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(_ => ToFile());
 	}
 
 	public UiConfig(string filePath)
@@ -109,6 +78,39 @@ public class UiConfig : ConfigBase
 			windowWidth: null,
 			windowHeight: null)
 	{
+	}
+
+	public void StartObserving()
+	{
+		this.WhenAnyValue(
+			x => x.Autocopy,
+			x => x.AutoPaste,
+			x => x.IsCustomChangeAddress,
+			x => x.DarkModeEnabled,
+			x => x.LastSelectedWallet,
+			x => x.WindowState,
+			x => x.Oobe,
+			x => x.LastVersionHighlightsDisplayed,
+			x => x.RunOnSystemStartup,
+			x => x.PrivacyMode,
+			x => x.HideOnClose,
+			x => x.FeeTarget,
+			(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+		.Throttle(TimeSpan.FromMilliseconds(1000))
+		.ObserveOn(RxSchedulers.MainThreadScheduler)
+		.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+			.Throttle(TimeSpan.FromMilliseconds(1000))
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
+			.Subscribe(_ => ToFile());
+
+		this.WhenAnyValue(
+				x => x.WindowWidth,
+				x => x.WindowHeight)
+			.Throttle(TimeSpan.FromMilliseconds(1000))
+			.ObserveOn(RxSchedulers.TaskpoolScheduler)
+			.Subscribe(_ => ToFile());
 	}
 
 	public bool Oobe
@@ -213,14 +215,14 @@ public class UiConfig : ConfigBase
 		catch (FileNotFoundException)
 		{
 			var config = new UiConfig(filePath);
-			config.ToFile();
+			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
 			Logging.Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return config;
 		}
 		catch (Exception ex)
 		{
 			var config = new UiConfig(filePath);
-			config.ToFile();
+			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
 			Logging.Logger.LogInfo($"{nameof(UiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
 			Logging.Logger.LogWarning(ex);
 			return config;

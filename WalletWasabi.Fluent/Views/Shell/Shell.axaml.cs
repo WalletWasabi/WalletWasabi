@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Shell;
 
-public class Shell : UserControl
+public partial class Shell : UserControl
 {
 	public Shell()
 	{

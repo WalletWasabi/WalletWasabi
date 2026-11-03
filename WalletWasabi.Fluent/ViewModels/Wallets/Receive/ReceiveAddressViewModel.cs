@@ -69,7 +69,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
 		_wallet.Addresses.Unused
 			.ToObservableChangeSet()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.OnItemRemoved(
 				address =>
 				{

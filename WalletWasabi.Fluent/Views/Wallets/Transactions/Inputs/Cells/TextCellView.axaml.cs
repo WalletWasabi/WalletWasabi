@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Transactions.Inputs.Cells;
 
-public class TextCellView : UserControl
+public partial class TextCellView : UserControl
 {
 	public TextCellView()
 	{

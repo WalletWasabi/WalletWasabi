@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <NetPackagesVersion>10.0.14</NetPackagesVersion>
-    <AvaloniaVersion>11.3.22</AvaloniaVersion>
+    <AvaloniaVersion>12.1.5</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
@@ -13,11 +13,6 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="NNostr.Client" Version="0.0.55" />
-    <PackageVersion Include="SkiaSharp" Version="3.119.4" />
-    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.4" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.4" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.4" />
     <!-- SQLite. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="$(NetPackagesVersion)" />
@@ -32,11 +27,12 @@
     <PackageVersion Include="NBitcoin" Version="10.0.17" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="11.3.9.6" />
+    <PackageVersion Include="TreeDataGrid" Version="12.0.0.7" /> <!-- Avalonia.Controls.TreeDataGrid is paid since 12.0.0 -->
+    <PackageVersion Include="ProDiagnostics" Version="12.1.0.6" /> <!-- Avalonia.Controls.TreeDataGrid is paid since 12.0.0 -->
+    <!--<PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />-->
+    <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="12.0.0.1" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="ReactiveUI.Avalonia" Version="11.3.8" />
+    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.0.1" />
     <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />

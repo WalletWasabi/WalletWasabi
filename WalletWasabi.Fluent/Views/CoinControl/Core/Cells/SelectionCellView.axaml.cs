@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
-public class SelectionCellView : UserControl
+public partial class SelectionCellView : UserControl
 {
 	public SelectionCellView()
 	{

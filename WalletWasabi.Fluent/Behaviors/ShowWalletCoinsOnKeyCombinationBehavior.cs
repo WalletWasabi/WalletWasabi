@@ -54,7 +54,7 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : AttachedToVisualTreeBehav
 
 	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		if (AssociatedObject?.GetVisualRoot() is not InputElement inputRoot)
+		if (TopLevel.GetTopLevel(AssociatedObject) is not InputElement inputRoot)
 		{
 			return Disposable.Empty;
 		}
