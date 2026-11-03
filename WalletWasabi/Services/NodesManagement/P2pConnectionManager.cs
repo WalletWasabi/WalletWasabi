@@ -62,7 +62,7 @@ public class P2pConnectionManager : IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
-	private const double RotationScoreThreshold = 1.1;
+	private const double RotationScoreMargin = PeerInfo.MaxScore * 0.1;
 	private const int DefaultCrawlerCount = 10;
 	private const int MaxPeersPerNetgroup = 3;
 
@@ -565,7 +565,7 @@ public class P2pConnectionManager : IDisposable
 
 		var bestDiscoveredScore = bestDiscoveredNode.Score;
 
-		if (bestDiscoveredScore > worstConnectedNode.PeerInfo.Score * RotationScoreThreshold)
+		if (bestDiscoveredScore >= worstConnectedNode.PeerInfo.Score + RotationScoreMargin)
 		{
 			Logger.LogInfo($"Replacing peer {worstConnectedNode.PeerInfo.Endpoint} (score: {worstConnectedNode.PeerInfo.Score:F1}) with {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1})");
 

@@ -6,6 +6,9 @@ namespace WalletWasabi.Services.NodesManagement;
 
 public sealed record PeerInfo
 {
+	/// <seealso cref="ComputeScore"/>
+	public const double MaxScore = 55;
+
 	[SetsRequiredMembers]
 	public PeerInfo(EndPoint endpoint, string userAgent, uint protocolVersion, NodeServices services, int startHeight, TimeSpan connectionTime, DateTimeOffset discoveredAt, DateTimeOffset lastSeen)
 	{
