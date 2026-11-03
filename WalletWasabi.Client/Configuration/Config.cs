@@ -104,7 +104,7 @@ public class Config
 			[nameof(LogModes)] = "The logging modes: console, and file (for multiple values use comma as a separator)",
 			[nameof(EnableGpu)] = "Use a GPU to render the user interface",
 			[nameof(CoordinatorIdentifier)] = "-",
-			[nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
+			[nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vB the client is willing to pay to participate into a round",
 			[nameof(AbsoluteMinInputCount)] = "Minimum number of inputs the client is willing to accept to participate into a round",
 			[nameof(ExchangeRateProvider)] = "The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockchainInfo, CoinGecko or None",
 			[nameof(FeeRateEstimationProvider)] = "The mining fee rate estimation provider. Available providers are MempoolSpace (default), BlockstreamInfo, BlockXyz or None",
