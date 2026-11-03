@@ -105,7 +105,7 @@ public class Config
 			[nameof(LogModes)] = "The logging modes: console, and file (for multiple values use comma as a separator)",
 			[nameof(EnableGpu)] = "Use a GPU to render the user interface",
 			[nameof(CoordinatorIdentifier)] = "-",
-			[nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
+			[nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vB the client is willing to pay to participate into a round",
 			[nameof(AbsoluteMinInputCount)] = "Minimum number of inputs the client is willing to accept to participate into a round",
 			[nameof(ExchangeRateProvider)] = "The BTC exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockchainInfo, CoinGecko or None",
 			[nameof(FiatCurrency)] = "The fiat currency of the exchange rate. Available currencies are USD (default), EUR, GBP, JPY, CHF, CAD or AUD",
@@ -230,7 +230,7 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			if (!int.TryParse(overrideValue, out int argsLongValue))
+			if (!decimal.TryParse(overrideValue, out var argsLongValue))
 			{
 				throw new ArgumentException("must be a decimal number.", key);
 			}

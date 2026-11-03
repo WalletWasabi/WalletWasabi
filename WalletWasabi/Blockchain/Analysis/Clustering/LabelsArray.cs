@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -16,8 +14,8 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 
 	public LabelsArray(IEnumerable<string>? labels)
 	{
-		_labels = (labels ?? Array.Empty<string>())
-			.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
+		_labels = (labels ?? [])
+			.SelectMany(x => x?.Split(Separators, StringSplitOptions.RemoveEmptyEntries) ?? [])
 			.Select(x => x.Trim())
 			.Where(x => x.Length != 0)
 			.Distinct(StringComparer.OrdinalIgnoreCase)

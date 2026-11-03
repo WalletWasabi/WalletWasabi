@@ -1,20 +1,23 @@
 using System.IO;
-using WalletWasabi.Bases;
+using System.Text;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Coordinator;
 
-public class WabiSabiConfig : ConfigBase
+public record WabiSabiConfig
 {
-	public WabiSabiConfig() : base("./fakeConfig.for.testing.only.json")
+	public WabiSabiConfig()
 	{
 	}
 
-	public WabiSabiConfig(string filePath) : base(filePath)
+	public WabiSabiConfig(string filePath)
 	{
+		FilePath = filePath;
 	}
+
+	public string? FilePath { get; }
 
 	public Network Network { get; init; } = Network.Main;
 
@@ -48,31 +51,31 @@ public class WabiSabiConfig : ConfigBase
 
 	public Money MaxRegistrableAmount { get; init; } = Money.Coins(43_000m);
 
-	public bool AllowNotedInputRegistration { get; set; } = true;
+	public bool AllowNotedInputRegistration { get; init; } = true;
 
 	public TimeSpan StandardInputRegistrationTimeout { get; init; } = TimeSpan.FromHours(1);
 
 	public TimeSpan BlameInputRegistrationTimeout { get; init; } = TimeSpan.FromMinutes(3);
 
-	public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	public TimeSpan ConnectionConfirmationTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
-	public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	public TimeSpan OutputRegistrationTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
-	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	public TimeSpan TransactionSigningTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
-	public TimeSpan FailFastOutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+	public TimeSpan FailFastOutputRegistrationTimeout { get; init; } = TimeSpan.FromMinutes(3);
 
-	public TimeSpan FailFastTransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+	public TimeSpan FailFastTransactionSigningTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
 	public TimeSpan RoundExpiryTimeout { get; init; } = TimeSpan.FromMinutes(5);
 
-	public int MaxInputCountByRound { get; set; } = 100;
+	public int MaxInputCountByRound { get; init; } = 100;
 
-	public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+	public double MinInputCountByRoundMultiplier { get; init; } = 0.5;
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-	public double MinInputCountByBlameRoundMultiplier { get; set; } = 0.4;
+	public double MinInputCountByBlameRoundMultiplier { get; init; } = 0.4;
 
 	public int MinInputCountByBlameRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByBlameRoundMultiplier));
 
@@ -84,7 +87,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public int RoundParallelization { get; init; } = 1;
 
-	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
+	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
 	public bool AllowP2wpkhInputs { get; init; } = true;
 
@@ -104,7 +107,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public bool TrimCoordinatorOutput { get; init; } = false;
 
-	public AnnouncerConfig AnnouncerConfig { get; set; } = new();
+	public AnnouncerConfig AnnouncerConfig { get; init; } = new();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
 
@@ -191,6 +194,14 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	protected string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
+
+	public void ToFile()
+	{
+		if (FilePath is not null)
+		{
+			File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
+		}
+	}
 }

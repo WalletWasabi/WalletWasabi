@@ -279,14 +279,14 @@ public partial class Arena : PeriodicRunner
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					Logger.LogInfo(FormatLog($"Network Fee: {networkFee.ToString(false, false)} BTC.", round));
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
-					Logger.LogInfo(FormatLog($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vByte.", round));
-					Logger.LogInfo(FormatLog($"Desired Fee Rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vByte.", round));
+					Logger.LogInfo(FormatLog($"Network Fee Rate: {feeRate.SatoshiPerByte} sat/vB.", round));
+					Logger.LogInfo(FormatLog($"Mining fee rate: {round.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", round));
 
 					// Added for monitoring reasons.
 					try
 					{
 						var targetFeeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vByte. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
+						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
 					}
 					catch (Exception ex)
 					{
@@ -458,7 +458,7 @@ public partial class Arena : PeriodicRunner
 		RoundParameters parameters = _roundParametersFactory(feeRate, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		Rounds.Add(blameRound);
-		Logger.LogInfo(FormatLog($"Created from round {round.Id}.", blameRound));
+		Logger.LogInfo(FormatLog($"Created from round {round.Id}. Mining fee rate: {blameRound.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", blameRound));
 	}
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
@@ -473,7 +473,7 @@ public partial class Arena : PeriodicRunner
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			Logger.LogInfo(FormatLog("Created new round.", r));
+			Logger.LogInfo(FormatLog($"Created new round. Mining fee rate: {r.Parameters.MiningFeeRate.SatoshiPerByte} sat/vB.", r));
 		}
 	}
 

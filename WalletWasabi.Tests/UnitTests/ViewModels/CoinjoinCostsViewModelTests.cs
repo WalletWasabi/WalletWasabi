@@ -1,7 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;

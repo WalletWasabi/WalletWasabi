@@ -7,7 +7,10 @@ using WalletWasabi.Services;
 using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Services;
 
-public class CompactFilterBlockHashReproTests
+/// <summary>
+/// Tests for <see cref="CompactFilterBehavior"/>.
+/// </summary>
+public class CompactFilterBehaviorTests
 {
 	[Fact]
 	public void ValidFilterBytesAreAcceptedWithAnAttackerChosenBlockHash()
