@@ -227,7 +227,7 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			if (!int.TryParse(overrideValue, out int argsLongValue))
+			if (!decimal.TryParse(overrideValue, out var argsLongValue))
 			{
 				throw new ArgumentException("must be a decimal number.", key);
 			}
