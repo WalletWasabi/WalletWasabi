@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Client.Configuration;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Client;
@@ -73,6 +74,9 @@ public static class WasabiLibGenerator
 		DefineAccessorWithGetter("wallet-non-private-coin-isolation?", (KeyManager km) => km.NonPrivateCoinIsolation, "wallet-keymanager");
 		DefineAccessorWithGetter("wallet-anonscore-target", (KeyManager km) => km.AnonScoreTarget, "wallet-keymanager");
 		DefineAccessorWithGetter("wallet-excluded-coins-from-coinjoin", (KeyManager km) => km.ExcludedCoinsFromCoinJoin, "wallet-keymanager");
+		DefineAccessorWithGetter("wallet-pleb-stop-threshold", (KeyManager km) => km.PlebStopThreshold, "wallet-keymanager");
+		DefineAccessorWithGetter("wallet-only-private-funds-for-payments?", (KeyManager km) => km.OnlyUsePrivateFundsForPayments, "wallet-keymanager");
+		DefineAccessorWithGetter("wallet-min-gap-limit", (KeyManager km) => km.MinGapLimit, "wallet-keymanager");
 
 		// Additional KeyManager accessors (chained via wallet-keymanager)
 		DefineAccessorWithGetter("wallet-master-fingerprint", (KeyManager km) => km.MasterFingerprint, "wallet-keymanager");
@@ -100,6 +104,14 @@ public static class WasabiLibGenerator
 		DefineAccessor("transaction-coinjoin?", (SmartTransaction tx) => tx.IsWasabi2Cj);
 		DefineAccessor("transaction-raw-height", (SmartTransaction tx) => tx.Height);
 		DefineAccessor("transaction-raw-blockhash", (SmartTransaction tx) => tx.BlockHash);
+
+		// Foreign input and output accessors (IndexedTxIn / IndexedTxOut, see transaction-foreign-inputs/outputs)
+		DefineAccessor("foreign-input-outpoint", (IndexedTxIn i) => i.PrevOut);
+		DefineAccessor("foreign-input-index", (IndexedTxIn i) => i.Index);
+		DefineAccessor("foreign-output-index", (IndexedTxOut o) => o.N);
+		DefineAccessor("foreign-output-txout", (IndexedTxOut o) => o.TxOut);
+		DefineAccessorWithGetter("foreign-output-raw-amount", (TxOut o) => o.Value, "foreign-output-txout");
+		DefineAccessorWithGetter("foreign-output-script-pubkey", (TxOut o) => o.ScriptPubKey, "foreign-output-txout");
 
 		// ==========================================
 		// OutPoint Accessors
@@ -137,6 +149,27 @@ public static class WasabiLibGenerator
 		// ==========================================
 		DefineAccessor("get-network", (Global g) => g.Network);
 		DefineAccessor("filterheaders", (Global g) => g.FilterHeaders);
+		DefineAccessor("config", (Global g) => g.Config);
+
+		// Config accessors (chained via config), credentials are deliberately left out
+		DefineAccessorWithGetter("config-coordinator-uri", (Config c) => c.CoordinatorUri, "config");
+		DefineAccessorWithGetter("config-coordinator-identifier", (Config c) => c.CoordinatorIdentifier, "config");
+		DefineAccessorWithGetter("config-use-tor", (Config c) => c.UseTor, "config");
+		DefineAccessorWithGetter("config-tor-socks-port", (Config c) => c.TorSocksPort, "config");
+		DefineAccessorWithGetter("config-tor-control-port", (Config c) => c.TorControlPort, "config");
+		DefineAccessorWithGetter("config-tor-bridges", (Config c) => c.TorBridges, "config");
+		DefineAccessorWithGetter("config-terminate-tor-on-exit?", (Config c) => c.TerminateTorOnExit, "config");
+		DefineAccessorWithGetter("config-bitcoin-rpc-uri", (Config c) => c.BitcoinRpcUri, "config");
+		DefineAccessorWithGetter("config-block-only?", (Config c) => c.BlockOnlyMode, "config");
+		DefineAccessorWithGetter("config-dust-threshold", (Config c) => c.DustThreshold, "config");
+		DefineAccessorWithGetter("config-max-coinjoin-mining-fee-rate", (Config c) => c.MaxCoinjoinMiningFeeRate, "config");
+		DefineAccessorWithGetter("config-absolute-min-input-count", (Config c) => c.AbsoluteMinInputCount, "config");
+		DefineAccessorWithGetter("config-drop-unconfirmed-transactions-after-days", (Config c) => c.DropUnconfirmedTransactionsAfterDays, "config");
+		DefineAccessorWithGetter("config-exchange-rate-provider", (Config c) => c.ExchangeRateProvider, "config");
+		DefineAccessorWithGetter("config-fee-rate-estimation-provider", (Config c) => c.FeeRateEstimationProvider, "config");
+		DefineAccessorWithGetter("config-external-transaction-broadcaster", (Config c) => c.ExternalTransactionBroadcaster, "config");
+		DefineAccessorWithGetter("config-experimental-features", (Config c) => c.ExperimentalFeatures, "config");
+		DefineAccessorWithGetter("config-download-new-version?", (Config c) => c.DownloadNewVersion, "config");
 
 		// FilterHeaderChain accessors (direct, used with header-chain variable)
 		DefineAccessor("filterheaders-server-tip-height", (FilterHeaderChain fh) => fh.ServerTipHeight);
@@ -337,6 +370,16 @@ public static class WasabiLibGenerator
 		           ("isCpfp"         ,(transaction-cpfp? tx))
 		           ("isSpeedup"      ,(transaction-speedup? tx))
 		           ("firstSeen"      ,(transaction-first-seen tx))))
+
+		       ;;; ----------------------
+		       ;;; Foreign Input / Output Functions
+		       ;;; ----------------------
+
+		       (define (foreign-output-amount output)
+		         (satoshi->bitcoin (money-satoshi (foreign-output-raw-amount output))))
+
+		       (define (foreign-output-address output)
+		         (native->string (script->address (foreign-output-script-pubkey output))))
 
 		       ;;; ----------------------
 		       ;;; Coin Functions
