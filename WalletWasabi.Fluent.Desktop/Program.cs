@@ -91,9 +91,9 @@ public class Program
 				throw app.TerminateService.GracefulCrashException;
 			}
 
-			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: {Length: > 0} installerFilePath}})
+			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: {Length: > 0} installerFilePath, InstallerSha256: var installerSha256}})
 			{
-				Installer.StartInstallingNewVersion(installerFilePath);
+				Installer.StartInstallingNewVersion(installerFilePath, installerSha256);
 			}
 
 			if (AppLifetimeHelper.RestartRequested)
