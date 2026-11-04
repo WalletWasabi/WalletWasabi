@@ -16,6 +16,7 @@ public static class BlockProviders
 		{
 			try
 			{
+				Logger.LogInfo($"Obtaining block {blockHash} from the Bitcoin RPC provider…");
 				return await rpcClient.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -32,6 +33,8 @@ public static class BlockProviders
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				var singleUseNode = await getNode(triedNodes, cancellationToken).ConfigureAwait(false);
+
+				Logger.LogInfo($"Obtaining block {blockHash} from '{singleUseNode.Node.RemoteSocketEndpoint}'…");
 				var block = await singleUseNode.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 				if (block is not null)
 				{
