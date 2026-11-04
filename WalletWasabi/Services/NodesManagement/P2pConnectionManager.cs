@@ -154,7 +154,7 @@ public class P2pConnectionManager : IDisposable
 			"BitcoinP2pNodeDiscoveryServiceCoordinator",
 			Service("Bitcoin Node Discovery Service",
 				EventDriven(
-					new CrawlingCoordinationState(SlowedDown: false, Peers: ImmutableDictionary<EndPoint, PeerInfo>.Empty, LastCrawlerIndex: 0),
+					new CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
 					CreateDiscovery(_crawlers))),
 			cancellationToken: stoppingToken);
 		_discoveryCoordinator.DisposeUsing(_disposables);
