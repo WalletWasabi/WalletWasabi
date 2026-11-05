@@ -1,4 +1,3 @@
-using System.Globalization;
 using Avalonia.Data.Converters;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -8,19 +7,13 @@ namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToUsdFormatted =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdFormatted());
-
-	public static readonly IValueConverter ToUsdNumber =
-		new FuncValueConverter<Money, string?>(n => n?.ToDecimal(MoneyUnit.BTC).WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
-
-	public static readonly IValueConverter ToUsdAmountFormattedWithoutSpaces =
+	public static readonly IValueConverter ToFiatAmountFormattedWithoutSpaces =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAmountFormatted().Replace(" ", ""));
 
-	public static readonly IValueConverter ToUsdApprox =
+	public static readonly IValueConverter ToFiatApprox =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
 
-	public static readonly IValueConverter ToUsdApproxBetweenParens =
+	public static readonly IValueConverter ToFiatApproxBetweenParens =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
 
 	private const string BtcAscii = "\u20bf ";
@@ -116,5 +109,5 @@ public static class MoneyConverters
 		new FuncValueConverter<Money?, string?>(n => n?.ToFeeDisplayUnitRawString());
 
 	public static readonly IValueConverter PercentageDifferenceConverter =
-			new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
+		new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
 }

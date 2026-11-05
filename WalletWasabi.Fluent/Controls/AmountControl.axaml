@@ -24,7 +24,7 @@
                      IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
             <TextBlock.Inlines>
               <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}" />
-              <Run FontWeight="Bold" Text="{Binding Path=Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
+              <Run FontWeight="Bold" Text="{Binding Path=Usd^, Converter={x:Static converters:MoneyConverters.ToFiatApproxBetweenParens}}" />
             </TextBlock.Inlines>
           </TextBlock>
         </ControlTemplate>

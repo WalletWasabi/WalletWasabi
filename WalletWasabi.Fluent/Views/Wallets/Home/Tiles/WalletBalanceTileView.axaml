@@ -15,10 +15,10 @@
       </PrivacyContentControl>
     </CopyableItem>
     <TileControl.BottomContent>
-      <CopyableItem ContentToCopy="{Binding Amounts^.Fiat^, Converter={x:Static converters:MoneyConverters.ToUsdAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
+      <CopyableItem ContentToCopy="{Binding Amounts^.Fiat^, Converter={x:Static converters:MoneyConverters.ToFiatAmountFormattedWithoutSpaces}}" HorizontalContentAlignment="Center">
         <PrivacyContentControl Classes="monoSpaced" VerticalAlignment="Center"
                                Opacity="0.6"
-                               Content="{Binding Amounts^.Fiat^, Converter={x:Static converters:MoneyConverters.ToUsdApprox}}" />
+                               Content="{Binding Amounts^.Fiat^, Converter={x:Static converters:MoneyConverters.ToFiatApprox}}" />
       </CopyableItem>
     </TileControl.BottomContent>
   </TileControl>
