@@ -1,6 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Wallets.Exchange;
+namespace WalletWasabi.Client.Wallets.Exchange;
 
 public static class ExchangeRateUpdater
 {
