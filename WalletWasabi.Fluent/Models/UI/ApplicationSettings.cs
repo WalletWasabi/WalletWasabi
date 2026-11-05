@@ -17,6 +17,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using Unit = System.Reactive.Unit;
+using WalletWasabi.Fluent.Configuration;
 
 namespace WalletWasabi.Fluent.Models.UI;
 

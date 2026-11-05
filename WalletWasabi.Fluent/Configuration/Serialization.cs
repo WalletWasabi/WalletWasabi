@@ -1,11 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using WalletWasabi.Serialization;
 using static WalletWasabi.Serialization.Encode;
 using static WalletWasabi.Serialization.Decode;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Configuration;
 
 public static class UiConfigEncode
 {
