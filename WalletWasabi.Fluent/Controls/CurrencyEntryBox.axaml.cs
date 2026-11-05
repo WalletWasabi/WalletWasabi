@@ -335,8 +335,8 @@ public partial class CurrencyEntryBox : TextBox
 		if (!IsFiat)
 		{
 			var money = ValidatePasteBalance
-				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-				: ClipboardObserver.ParseToMoney(text);
+				? ClipboardObserver.ParseToBtc(text, BalanceBtc)
+				: ClipboardObserver.ParseToBtc(text);
 			if (money is not null)
 			{
 				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);
@@ -346,8 +346,8 @@ public partial class CurrencyEntryBox : TextBox
 		else
 		{
 			var usd = ValidatePasteBalance
-				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
-				: ClipboardObserver.ParseToUsd(text);
+				? ClipboardObserver.ParseToFiat(text, BalanceUsd)
+				: ClipboardObserver.ParseToFiat(text);
 			if (usd is not null)
 			{
 				result = usd.Value.ToString("0.00");

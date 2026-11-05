@@ -379,10 +379,10 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (box.IsFiat)
 		{
-			var usd = ClipboardObserver.ParseToUsd(content);
-			if (usd is not null)
+			var fiat = ClipboardObserver.ParseToFiat(content);
+			if (fiat is not null)
 			{
-				FiatContent = usd.Value.ToString("0.00");
+				FiatContent = fiat.Value.ToString("0.00");
 			}
 		}
 		else
@@ -390,7 +390,7 @@ public partial class SendViewModel : RoutableViewModel
 			var latestBalance = BalanceLatest;
 			if (latestBalance is not null)
 			{
-				var btc = ClipboardObserver.ParseToMoney(content, latestBalance.Btc);
+				var btc = ClipboardObserver.ParseToBtc(content, latestBalance.Btc);
 				if (btc is not null)
 				{
 					BitcoinContent = btc;
