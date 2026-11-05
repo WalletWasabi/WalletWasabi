@@ -23,7 +23,7 @@ public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint2
 
 public static class FilterProviders
 {
-	public static readonly TimeSpan WaitForBlockHeadersToCatchUp = TimeSpan.FromSeconds(15);
+	public static readonly TimeSpan WaitForBlockHeadersToCatchUp = TimeSpan.FromSeconds(2);
 	private const int MaxFiltersPerBitcoinRpcRequest = 100;
 
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
