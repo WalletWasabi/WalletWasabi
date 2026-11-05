@@ -49,7 +49,9 @@ public record GetInfoBootstrapPhaseReply(int Progress, string Tag, string Summar
 			string key;
 			string value;
 			(key, value, remainder) = Tokenizer.ReadKeyValueAssignment(remainder, allowValueAsQuotedString: true);
-			arguments[key] = value;
+
+			// The separator after a quoted value stays in the remainder, so the next key starts with it.
+			arguments[key.TrimStart()] = value;
 		}
 
 		if (!arguments.TryGetValue("PROGRESS", out string? progressValue)

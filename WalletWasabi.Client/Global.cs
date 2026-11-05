@@ -683,26 +683,30 @@ public class Global
 	private static async Task WaitForTorBootstrapAsync(TorControlClient torControlClient, CancellationToken cancellationToken)
 	{
 		var startedAt = DateTimeOffset.UtcNow;
-		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeoutCts.CancelAfter(TorBootstrapTimeout);
 
 		try
 		{
 			while (true)
 			{
-				var bootstrapPhase = await torControlClient.GetBootstrapPhaseAsync(timeoutCts.Token).ConfigureAwait(false);
+				// Only the application's cancellation may interrupt the query: cancelling a control command while its
+				// reply is in flight leaves that reply queued for whichever command the shared client sends next.
+				var bootstrapPhase = await torControlClient.GetBootstrapPhaseAsync(cancellationToken).ConfigureAwait(false);
+				var elapsed = DateTimeOffset.UtcNow - startedAt;
+
 				if (bootstrapPhase.IsBootstrapped)
 				{
-					Logger.LogInfo($"Tor is bootstrapped ({(DateTimeOffset.UtcNow - startedAt).TotalSeconds:F1}s).");
+					Logger.LogInfo($"Tor is bootstrapped ({elapsed.TotalSeconds:F1}s).");
 					return;
 				}
 
-				await Task.Delay(TimeSpan.FromMilliseconds(250), timeoutCts.Token).ConfigureAwait(false);
+				if (elapsed >= TorBootstrapTimeout)
+				{
+					Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s (progress: {bootstrapPhase.Progress}%, {bootstrapPhase.Summary}). Starting the P2P network anyway.");
+					return;
+				}
+
+				await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
 			}
-		}
-		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-		{
-			Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s. Starting the P2P network anyway.");
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{

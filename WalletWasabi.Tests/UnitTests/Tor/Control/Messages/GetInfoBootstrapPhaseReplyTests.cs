@@ -39,6 +39,19 @@ public class GetInfoBootstrapPhaseReplyTests
 	}
 
 	[Fact]
+	public async Task ParsesAWarningWithEscapedQuotesAsync()
+	{
+		string data = "250-status/bootstrap-phase=WARN BOOTSTRAP PROGRESS=10 TAG=conn_done SUMMARY=\"Connected to a relay\" WARNING=\"TLS error: \\\"bad certificate\\\"\" REASON=TLS_ERROR COUNT=1 RECOMMENDATION=warn\r\n250 OK\r\n";
+		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
+
+		GetInfoBootstrapPhaseReply reply = GetInfoBootstrapPhaseReply.FromReply(rawReply);
+
+		Assert.Equal(10, reply.Progress);
+		Assert.Equal("conn_done", reply.Tag);
+		Assert.Equal("Connected to a relay", reply.Summary);
+	}
+
+	[Fact]
 	public async Task RejectsRepliesWithoutProgressAsync()
 	{
 		TorControlReply noProgress = await TorControlReplyReaderTest.ParseAsync("250-status/bootstrap-phase=NOTICE BOOTSTRAP TAG=done\r\n250 OK\r\n");
