@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using WalletWasabi.BundledApps;
 using WalletWasabi.Crypto.Randomness;
@@ -20,7 +22,13 @@ public class TorProcessManager(EventBus eventBus)
 		0x00, // No authentication
 	];
 
+	/// <summary>Maximum number of the most recent lines of Tor's standard output and error that are kept for diagnostics.</summary>
+	private const int MaxStoredOutputLines = 20;
+
 	private readonly EventBus _eventBus = eventBus;
+
+	/// <summary>Most recent lines written by each started Tor process to its standard output and error.</summary>
+	private readonly ConditionalWeakTable<Process, ConcurrentQueue<string>> _processOutputs = new();
 
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
 	public virtual Process StartProcess(TorSettings settings, string arguments)
@@ -56,7 +64,38 @@ public class TorProcessManager(EventBus eventBus)
 
 		process.StartWithExceptionLogging();
 
+		// Tor writes only a few lines to its standard output and error unless logging to a file is disabled. The streams must be drained anyway,
+		// otherwise Tor would block once the pipe buffers are full. The last lines are kept to explain why Tor failed to start.
+		ConcurrentQueue<string> output = _processOutputs.GetValue(process, _ => new ConcurrentQueue<string>());
+		process.OutputDataReceived += (_, e) => StoreOutputLine(output, e.Data);
+		process.ErrorDataReceived += (_, e) => StoreOutputLine(output, e.Data);
+		process.BeginOutputReadLine();
+		process.BeginErrorReadLine();
+
 		return process;
+	}
+
+	/// <returns>Most recent lines that <paramref name="process"/> wrote to its standard output and error, or an empty string if there are none.</returns>
+	public string GetRecentOutput(Process process)
+	{
+		return _processOutputs.TryGetValue(process, out ConcurrentQueue<string>? lines)
+			? string.Join(Environment.NewLine, lines)
+			: "";
+	}
+
+	private static void StoreOutputLine(ConcurrentQueue<string> lines, string? line)
+	{
+		// A null line signals that the stream was closed.
+		if (line is null)
+		{
+			return;
+		}
+
+		lines.Enqueue(line);
+
+		while (lines.Count > MaxStoredOutputLines && lines.TryDequeue(out _))
+		{
+		}
 	}
 
 	public virtual async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken)
@@ -135,7 +174,7 @@ public class TorProcessManager(EventBus eventBus)
 
 			if (process.HasExited)
 			{
-				Logger.LogError("Tor process failed to start!");
+				Logger.LogError($"Tor process failed to start! Exit code: {process.ExitCode}.");
 				return false;
 			}
 
