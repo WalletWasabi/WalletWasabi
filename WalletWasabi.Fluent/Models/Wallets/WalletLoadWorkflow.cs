@@ -12,18 +12,24 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 
-public record SyncProgressCardModel(uint Initial, uint Current, uint Target)
+/// <param name="Target"><c>null</c> means that no value is available yet.</param>
+public record SyncProgressCardModel(uint Initial, uint Current, uint? Target)
 {
-	public double Percent =>
-		Target == 0 ? 0
-		: Target <= Initial ? (Current >= Target ? 100 : 0)
-		: Math.Clamp(100.0 * ((double)Current - Initial) / (Target - Initial), 0, 100);
+	public bool IsTargetKnown => Target is not null;
 
-	public bool IsComplete => Percent >= 100;
+	public double Percent => Target switch
+	{
+		null => 0,
+		0 => 0,
+		{ } target when target <= Initial => Current >= target ? 100 : 0,
+		{ } target => Math.Clamp(100.0 * ((double)Current - Initial) / (target - Initial), 0, 100)
+	};
+
+	public bool IsComplete => IsTargetKnown && Percent >= 100;
 }
 
 public record WalletLoadProgress(
-	uint ChainTip,
+	uint? ChainTip,
 	SyncProgressCardModel Peers,
 	SyncProgressCardModel BlockHeaders,
 	SyncProgressCardModel FilterHeaders,
@@ -156,20 +162,23 @@ public partial class WalletLoadWorkflow
 
 	private void UpdateProgress()
 	{
-		var serverTipHeight = _services.GetServerTipHeight();
+		var networkTipHeight = _services.GetServerTipHeight();
 		var clientTipHeight = _services.GetTipHeight();
 
-		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
+		var tipHeight = Math.Max(networkTipHeight, clientTipHeight);
+
+		// Avoid showing a progress of 100% when the network tip height is not initialized yet.
+		uint? chainTip = networkTipHeight > 0 ? tipHeight : null;
 
 		_progress.OnNext(new WalletLoadProgress(
-			ChainTip: tipHeight,
+			ChainTip: chainTip,
 			Peers: new SyncProgressCardModel(0, (uint)_services.GetPeerCount(), TargetPeers),
 
 			// Block headers are synced for the whole chain, not only for the range the wallet is scanned in.
-			BlockHeaders: new SyncProgressCardModel(0, _blockHeadersTip, tipHeight),
+			BlockHeaders: new SyncProgressCardModel(0, _blockHeadersTip, chainTip),
 
-			FilterHeaders: new SyncProgressCardModel(_walletStartHeight, _filterHeadersTip, tipHeight),
-			CompactFilters: new SyncProgressCardModel(_walletStartHeight, _compactFiltersTip, tipHeight),
-			Blocks: new SyncProgressCardModel(_walletStartHeight, _walletSyncHeight, tipHeight)));
+			FilterHeaders: new SyncProgressCardModel(_walletStartHeight, _filterHeadersTip, chainTip),
+			CompactFilters: new SyncProgressCardModel(_walletStartHeight, _compactFiltersTip, chainTip),
+			Blocks: new SyncProgressCardModel(_walletStartHeight, _walletSyncHeight, chainTip)));
 	}
 }

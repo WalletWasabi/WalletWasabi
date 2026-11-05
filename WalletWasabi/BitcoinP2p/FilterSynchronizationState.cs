@@ -42,7 +42,7 @@ public class FilterSynchronizationState
 		_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
 	}
 
-	internal bool TryAssignHeaderRange(Network network, [NotNullWhen(true)] out RangeRequest? assignment)
+	internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
 	{
 		assignment = null;
 		lock (_lock)

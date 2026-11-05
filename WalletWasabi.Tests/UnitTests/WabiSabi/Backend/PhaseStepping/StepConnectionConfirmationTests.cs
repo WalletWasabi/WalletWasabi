@@ -70,9 +70,11 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task EnoughConfirmedTimedoutStepsAsync()
 	{
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
-		cfg.MaxInputCountByRound = 4;
-		cfg.ConnectionConfirmationTimeout = TimeSpan.Zero;
+		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig() with
+		{
+			MaxInputCountByRound = 4,
+			ConnectionConfirmationTimeout = TimeSpan.Zero,
+		};
 
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);
@@ -105,10 +107,12 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task NotEnoughConfirmedTimedoutDestroysAsync()
 	{
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
-		cfg.MaxInputCountByRound = 4;
-		cfg.ConnectionConfirmationTimeout = TimeSpan.Zero;
-		cfg.MinInputCountByRoundMultiplier = 0.9;
+		var cfg = WabiSabiFactory.CreateWabiSabiConfig() with
+		{
+			MaxInputCountByRound = 4,
+			ConnectionConfirmationTimeout = TimeSpan.Zero,
+			MinInputCountByRoundMultiplier = 0.9,
+		};
 
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);

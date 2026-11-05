@@ -214,7 +214,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			TimeSpan.FromMilliseconds(1000));
 
 		// Connect and handshake
-		node.VersionHandshake(cancellationToken);
+		await node.VersionHandshakeAsync(cancellationToken);
 
 		// Get the target height from Bitcoin Core
 		var targetHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);

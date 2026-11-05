@@ -12,6 +12,7 @@ using WalletWasabi.Storages;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.Wallets;
