@@ -149,6 +149,17 @@ public class TorControlClient : IAsyncDisposable
 	}
 
 	/// <summary>
+	/// Gets how far Tor has got with bootstrapping; <see cref="GetInfoBootstrapPhaseReply.IsBootstrapped"/> once it can build circuits.
+	/// </summary>
+	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO (status/bootstrap-phase).</seealso>
+	public async Task<GetInfoBootstrapPhaseReply> GetBootstrapPhaseAsync(CancellationToken cancellationToken)
+	{
+		TorControlReply reply = await SendCommandAsync("GETINFO status/bootstrap-phase\r\n", cancellationToken).ConfigureAwait(false);
+
+		return GetInfoBootstrapPhaseReply.FromReply(reply);
+	}
+
+	/// <summary>
 	/// Instructs Tor to shut down when this control connection is closed.
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
