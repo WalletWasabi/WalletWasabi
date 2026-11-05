@@ -19,7 +19,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -27,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
-	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _sendFlow;
 	private TransactionInfo _info;
@@ -44,7 +42,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel sendFlow) : base(uiContext)
 	{
 		_undoHistory = new();
-		_wallet = sendFlow.Wallet;
 		_walletModel = walletModel;
 		_sendFlow = sendFlow;
 
@@ -197,7 +194,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		DialogViewModelBase<FeeRate> feeDialog = _info.IsCustomFeeUsed
 			? new CustomFeeRateDialogViewModel(UiContext, _info)
-			: new SendFeeViewModel(UiContext, _wallet, _info, false);
+			: new SendFeeViewModel(UiContext, _walletModel, _info, false);
 
 		var feeDialogResult = await NavigateDialogAsync(feeDialog, feeDialog.DefaultTarget);
 
@@ -242,7 +239,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		if (_info.FeeRate == FeeRate.Zero)
 		{
-			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(UiContext, _wallet, _info, true));
+			var feeDialogResult = await NavigateDialogAsync(new SendFeeViewModel(UiContext, _walletModel, _info, true));
 			if (feeDialogResult.Kind == DialogResultKind.Normal && feeDialogResult.Result is { } newFeeRate)
 			{
 				_info.FeeRate = newFeeRate;
@@ -256,7 +253,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		if (!_info.Coins.Any())
 		{
 			var privacyControlDialogResult =
-				await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _wallet, _sendFlow, _info, Transaction?.SpentCoins, isSilent: true));
+				await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _walletModel, _sendFlow, _info, Transaction?.SpentCoins, isSilent: true));
 			if (privacyControlDialogResult.Kind == DialogResultKind.Normal &&
 				privacyControlDialogResult.Result is { } coins)
 			{
@@ -282,11 +279,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = true;
 
-			return await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: false));
+			return await Task.Run(() => _walletModel.BuildTransaction(_info, tryToSign: false));
 		}
 		catch (Exception ex) when (ex is NotEnoughFundsException or TransactionFeeOverpaymentException || (ex is InvalidTxException itx && itx.Errors.OfType<FeeTooHighPolicyError>().Any()))
 		{
-			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(UiContext, _wallet, _info))
+			if (await TrySetMaxFeeRateAsync())
 			{
 				return await BuildTransactionAsync();
 			}
@@ -305,7 +302,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			if (canSelectMoreCoins)
 			{
 				var selectPocketsDialog =
-					await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _wallet, _sendFlow, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
+					await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _walletModel, _sendFlow, _info, usedCoins: Transaction?.SpentCoins, isSilent: true));
 
 				if (selectPocketsDialog.Result is { } newCoins)
 				{
@@ -313,7 +310,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					return await BuildTransactionAsync();
 				}
 			}
-			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(UiContext, _wallet, _info))
+			else if (await TrySetMaxFeeRateAsync())
 			{
 				return await BuildTransactionAsync();
 			}
@@ -431,7 +428,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		try
 		{
-			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+			var transaction = await Task.Run(() => _walletModel.BuildTransaction(_info));
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)
@@ -440,7 +437,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 				var finalTransaction = transactionAuthorizationInfo.Transaction;
 				await SendTransactionAsync(finalTransaction);
-				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
+				_walletModel.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
 				Navigate().To().SendSuccess(finalTransaction);
 			}
@@ -486,6 +483,20 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
+	private async Task<bool> TrySetMaxFeeRateAsync()
+	{
+		var maxFeeRate = await Task.Run(() => _walletModel.TryGetMaxFeeRate(_info));
+
+		if (maxFeeRate is { } rate)
+		{
+			_info.FeeRate = rate;
+			_info.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(1);
+			return true;
+		}
+
+		return false;
+	}
+
 	private async Task CheckChangePocketAvailableAsync(BuildTransactionResult transaction)
 	{
 		if (!_info.IsSelectedCoinModificationEnabled)
@@ -496,8 +507,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _sendFlow.GetPockets();
-		var labelSelection = new LabelSelectionViewModel(UiContext, _wallet.KeyManager, _wallet.Password, _info, isSilent: true);
-		await labelSelection.ResetAsync(pockets, coinsToExclude: UiContext.Services.GetCoinsInCriticalPhase(_wallet.WalletId).ToList());
+		var labelSelection = new LabelSelectionViewModel(UiContext, _walletModel, _info, isSilent: true);
+		await labelSelection.ResetAsync(pockets, coinsToExclude: UiContext.Services.GetCoinsInCriticalPhase(_walletModel.Id).ToList());
 
 		_info.IsOtherPocketSelectionPossible = labelSelection.IsOtherSelectionPossible(usedCoins, _info.Recipient);
 	}
@@ -509,7 +520,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			case LabelManagementSuggestion:
 				{
 					var selectPocketsDialog =
-						await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _wallet, _sendFlow, _info, Transaction?.SpentCoins, false));
+						await NavigateDialogAsync(new PrivacyControlViewModel(UiContext, _walletModel, _sendFlow, _info, Transaction?.SpentCoins, false));
 
 					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 					{

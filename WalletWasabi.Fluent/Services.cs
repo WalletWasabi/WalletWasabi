@@ -5,26 +5,34 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
@@ -183,9 +191,25 @@ public class Services : IServices
 
 	// WalletManager info
 	public Network GetNetwork() => _walletManager.Network;
-	public IEnumerable<Wallet> GetWallets() => _walletManager.GetWallets();
+
+	// Helper to get wallet by ID (internal use only - not exposed via IServices)
+	private Wallet? GetWalletById(WalletId walletId) => _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
+
+	// Internal method for WalletRepository - returns actual Wallet objects
+	// This is temporary until WalletModel is fully refactored to use IServices
+	internal IEnumerable<Wallet> GetWalletsInternal() => _walletManager.GetWallets();
+
+	// Wallet management
+	public IEnumerable<WalletData> GetWallets() => _walletManager.GetWallets().Select(w => new WalletData(
+		w.WalletId,
+		w.WalletName,
+		w.KeyManager.IsHardwareWallet,
+		w.KeyManager.IsWatchOnly,
+		w.KeyManager.MasterFingerprint,
+		w.Network,
+		w.KeyManager.AvailableScriptPubKeyTypes
+	));
 	public bool HasWallet() => _walletManager.HasWallet();
-	public Wallet GetWalletByName(string walletName) => _walletManager.GetWalletByName(walletName);
 	public WalletId GetWalletIdByName(string walletName) => _walletManager.GetWalletByName(walletName).WalletId;
 	public void RenameWallet(string walletName, string newWalletName) => _walletManager.RenameWallet(_walletManager.GetWalletByName(walletName), newWalletName);
 	public string GetWalletsDir() => _walletManager.WalletDirectories.WalletsDir;
@@ -197,6 +221,243 @@ public class Services : IServices
 	public Task<KeyManager> ImportWalletAsync(string walletName, string filePath) => ImportWalletHelper.ImportWalletAsync(_walletManager, walletName, filePath);
 	public IObservable<WalletId> SubscribeToWalletAdded() => Observable.FromEventPattern<Wallet>(_walletManager, nameof(WalletManager.WalletAdded)).Select(e => e.EventArgs.WalletId);
 
+	// Wallet state
+	public IObservable<bool> SubscribeToWalletLoaded(WalletId walletId) =>
+		SubscribeToEvent<WalletLoaded>().Select(_ => GetWalletById(walletId)?.Loaded ?? false);
+	public bool IsWalletLoaded(WalletId walletId) => GetWalletById(walletId)?.Loaded ?? false;
+	public int GetAnonScoreTarget(WalletId walletId) => GetWalletById(walletId)?.AnonScoreTarget ?? 5;
+
+	// Wallet authentication
+	public bool HasPassword(WalletId walletId) => !string.IsNullOrEmpty(GetWalletById(walletId)?.Password);
+	public string? GetPassword(WalletId walletId) => GetWalletById(walletId)?.Password;
+	public async Task<bool> TryLoginAsync(WalletId walletId, string password)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		return await Task.Run(() => wallet.TryLogin(password, out _)).ConfigureAwait(false);
+	}
+	public async Task<(bool IsValid, string? CompatibilityPassword)> TryLoginWithCompatibilityAsync(WalletId walletId, string password)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return (false, null);
+		var isValid = await Task.Run(() => wallet.TryLogin(password, out var compatPwd)).ConfigureAwait(false);
+		// Note: The out parameter from TryLogin needs special handling
+		string? compatibilityPassword = null;
+		await Task.Run(() => wallet.TryLogin(password, out compatibilityPassword)).ConfigureAwait(false);
+		return (isValid, compatibilityPassword);
+	}
+	public async Task<bool> IsPasswordValidAsync(WalletId walletId, string password)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		return await Task.Run(() => PasswordHelper.TryPassword(wallet.KeyManager, password, out _)).ConfigureAwait(false);
+	}
+	public void Logout(WalletId walletId) => GetWalletById(walletId)?.Logout();
+	public async Task<bool> VerifyRecoveryWordsAsync(WalletId walletId, Mnemonic mnemonic)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		var saltSoup = wallet.Password;
+		var recovered = await Task.Run(() => KeyManager.Recover(
+			mnemonic,
+			saltSoup,
+			wallet.Network,
+			wallet.KeyManager.SegwitAccountKeyPath,
+			null,
+			"",
+			wallet.KeyManager.MinGapLimit)).ConfigureAwait(false);
+		return wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey;
+	}
+
+	// Wallet balance and coins
+	public Money GetWalletBalance(WalletId walletId) => GetWalletById(walletId)?.Coins.TotalAmount() ?? Money.Zero;
+	public IEnumerable<SmartCoin> GetWalletCoins(WalletId walletId) => GetWalletById(walletId)?.Coins ?? Enumerable.Empty<SmartCoin>();
+
+	// Wallet labels
+	public IEnumerable<(string Label, int Score)> GetLabelsWithRanking(WalletId walletId, Intent intent)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return Enumerable.Empty<(string, int)>();
+
+		var labelPool = new Dictionary<string, int>(); // int: score.
+
+		// Get labels by wallet (internal access)
+		var labelsByWalletId = GetWalletsInternal()
+			.Select(w =>
+			{
+				var (changeKeys, receiveKeys) = w.KeyManager.GetKeys().Partition(x => x.IsInternal);
+				return new
+				{
+					WalletId = w.WalletId,
+					ChangeLabels = changeKeys.SelectMany(x => x.Labels).ToList(),
+					ReceiveLabels = receiveKeys.SelectMany(x => x.Labels).ToList()
+				};
+			}).ToList();
+
+		// Make recent and receive labels count more for the current wallet.
+		var multiplier = 100;
+		var currentWalletReceiveLabels = labelsByWalletId.First(x => x.WalletId == walletId).ReceiveLabels;
+		for (var i = currentWalletReceiveLabels.Count - 1; i >= 0; i--) // Iterate in reverse order.
+		{
+			var label = currentWalletReceiveLabels[i];
+			var score = (intent == Intent.Receive ? 100 : 1) * multiplier;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+
+			if (multiplier > 1)
+			{
+				multiplier--;
+			}
+		}
+
+		// Receive addresses should be more dominant.
+		foreach (var label in labelsByWalletId.SelectMany(x => x.ReceiveLabels))
+		{
+			var score = intent == Intent.Receive ? 100 : 1;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+		}
+
+		// Change addresses shouldn't be much dominant, but should be present.
+		foreach (var label in labelsByWalletId.SelectMany(x => x.ChangeLabels))
+		{
+			var score = 1;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+		}
+
+		multiplier = 100; // Make recent labels count more.
+		foreach (var label in GetTransactionLabels().SelectMany(x => x).Reverse())
+		{
+			var score = (intent == Intent.Send ? 100 : 1) * multiplier;
+			if (!labelPool.TryAdd(label, score))
+			{
+				labelPool[label] += score;
+			}
+
+			if (multiplier > 1)
+			{
+				multiplier--;
+			}
+		}
+
+		var unwantedLabelSuggestions = new[]
+		{
+			"test", // Often people use the string "test" as a label. It obviously cannot be a real label, just a test label.
+			"zerolink mixed coin", // Obsoleted autogenerated label from old WW1 versions.
+			"zerolink change", // Obsoleted autogenerated label from old WW1 versions.
+			"zerolink dequeued change" // Obsoleted autogenerated label from old WW1 versions.
+		};
+
+		var labels = labelPool
+			.Where(x =>
+				!unwantedLabelSuggestions.Any(y => y.Equals(x.Key, StringComparison.OrdinalIgnoreCase))
+				&& !x.Key.StartsWith("change of (", StringComparison.OrdinalIgnoreCase)); // An obsoleted autogenerated label pattern was from old WW1 versions starting with "change of (".
+
+		var mostUsedLabels = labels
+			.GroupBy(x => x.Key)
+			.Select(x => new
+			{
+				Label = x.Key,
+				Score = x.Sum(y => y.Value)
+			})
+			.OrderByDescending(x => x.Score)
+			.ToList();
+
+		return mostUsedLabels.Select(x => (x.Label, x.Score)).ToList();
+	}
+
+	// Wallet addresses
+	public IEnumerable<HdPubKey> GetUnusedKeys(WalletId walletId) =>
+		GetWalletById(walletId)?.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 }) ?? Enumerable.Empty<HdPubKey>();
+	public HdPubKey GetNextReceiveAddress(WalletId walletId, LabelsArray labels, ScriptPubKeyType scriptType)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) throw new InvalidOperationException($"Wallet not found: {walletId}");
+		return wallet.GetNextReceiveAddress(labels, scriptType);
+	}
+	public void SetKeyState(WalletId walletId, KeyState state, HdPubKey key)
+	{
+		var wallet = GetWalletById(walletId);
+		wallet?.KeyManager.SetKeyState(state, key);
+	}
+	public void SaveKeyManager(WalletId walletId) => GetWalletById(walletId)?.KeyManager.ToFile();
+
+	// Wallet transactions
+	public async Task<IEnumerable<TransactionSummary>> BuildHistorySummaryAsync(WalletId walletId, CancellationToken cancellationToken)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return Enumerable.Empty<TransactionSummary>();
+		return await wallet.BuildHistorySummaryAsync(sortForUi: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+	}
+	public bool TryGetWalletTransaction(WalletId walletId, uint256 txId, [NotNullWhen(true)] out SmartTransaction? tx)
+	{
+		tx = null;
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		return wallet.TransactionStore.TryGetTransaction(txId, out tx);
+	}
+	public async Task<TimeSpan?> EstimateConfirmationTimeAsync(WalletId walletId, uint256 txId, CancellationToken cancellationToken)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return null;
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) return null;
+		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(wallet.FeeRateEstimations, wallet.Network, tx, wallet.CpfpInfoProvider, cancellationToken).ConfigureAwait(false);
+	}
+	public async Task<BuildTransactionResult> SpeedUpTransactionAsync(WalletId walletId, uint256 txId, CancellationToken cancellationToken)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) throw new InvalidOperationException($"Wallet not found: {walletId}");
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) throw new InvalidOperationException($"Transaction not found: {txId}");
+		return await wallet.SpeedUpTransactionAsync(tx, null, cancellationToken).ConfigureAwait(false);
+	}
+	public BuildTransactionResult CancelTransaction(WalletId walletId, uint256 txId)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) throw new InvalidOperationException($"Wallet not found: {walletId}");
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) throw new InvalidOperationException($"Transaction not found: {txId}");
+		return wallet.CancelTransaction(tx);
+	}
+	public void UpdateTransactionLabels(WalletId walletId, Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels)
+	{
+		var wallet = GetWalletById(walletId);
+		wallet?.UpdateUsedHdPubKeysLabels(hdPubKeysWithNewLabels);
+	}
+	public IEnumerable<Output> GetTransactionOutputs(WalletId walletId, uint256 txId)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return Enumerable.Empty<Output>();
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) return Enumerable.Empty<Output>();
+		return tx.GetOutputs(wallet.Network);
+	}
+	public bool HasFeeRateEstimations(WalletId walletId) => GetWalletById(walletId)?.FeeRateEstimations is not null;
+	public bool IsTransactionCancellable(WalletId walletId, uint256 txId)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) return false;
+		return tx.IsCancellable(wallet.KeyManager);
+	}
+	public bool IsTransactionSpeedupable(WalletId walletId, uint256 txId)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return false;
+		if (!wallet.TransactionStore.TryGetTransaction(txId, out var tx)) return false;
+		return tx.IsSpeedupable(wallet.KeyManager);
+	}
+	public CoinjoinCosts? GetCoinjoinCosts(WalletId walletId, uint256 txId)
+	{
+		var wallet = GetWalletById(walletId);
+		if (wallet is null) return null;
+		return wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(txId);
+	}
+
 	// Tor info
 	public string GetTorLogFilePath() => _torSettings.LogFilePath;
 	public TorMode GetUseTor() => _config.UseTor;
@@ -206,7 +467,6 @@ public class Services : IServices
 
 	// CoinJoin
 	private CoinJoinManager? CoinJoinManager => _hostedServices.GetOrDefault<CoinJoinManager>();
-	private Wallet? GetWalletById(WalletId walletId) => _walletManager.GetWallets().FirstOrDefault(w => w.WalletId == walletId);
 	public bool IsCoinJoinEnabled() => CoinJoinManager is not null;
 	public CoinJoinClientState GetHighestCoinJoinClientState() => CoinJoinManager?.HighestCoinJoinClientState ?? CoinJoinClientState.Idle;
 	public ImmutableList<SmartCoin> GetCoinsInCriticalPhase(WalletId walletId) => CoinJoinManager?.CoinsInCriticalPhase.GetValueOrDefault(walletId) ?? [];

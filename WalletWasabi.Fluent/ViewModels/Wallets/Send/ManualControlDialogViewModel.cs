@@ -9,7 +9,6 @@ using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -24,9 +23,8 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 	[AutoNotify] private bool _hasSelection;
 
 	private readonly IWalletModel _walletModel;
-	private readonly Wallet _wallet;
 
-	public ManualControlDialogViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
+	public ManualControlDialogViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
 	{
 		CoinList = new CoinListViewModel(uiContext, walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
@@ -48,7 +46,6 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 
 		SetupCancel(true, true, true);
 		_walletModel = walletModel;
-		_wallet = wallet;
 	}
 
 	public CoinListViewModel CoinList { get; }
@@ -79,7 +76,7 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 	{
 		var coins = CoinList.Selection.GetSmartCoins().ToList();
 
-		var sendParameters = new SendFlowModel(_wallet, _walletModel, coins, UiContext.Services);
+		var sendParameters = new SendFlowModel(_walletModel, coins, UiContext.Services);
 
 		Navigate().To().Send(_walletModel, sendParameters);
 	}

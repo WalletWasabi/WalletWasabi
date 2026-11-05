@@ -15,13 +15,18 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class TransactionTreeBuilder
 {
-	private readonly Wallet _wallet;
 	private readonly IServices _services;
+	private readonly IWalletModel _walletModel;
+	private readonly WalletId _walletId;
+	private readonly Wallet _wallet; // Internal access for complex operations
 
-	public TransactionTreeBuilder(Wallet wallet, IServices services)
+	public TransactionTreeBuilder(IServices services, IWalletModel walletModel)
 	{
-		_wallet = wallet;
 		_services = services;
+		_walletModel = walletModel;
+		_walletId = walletModel.Id;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
 	}
 
 	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
@@ -119,11 +124,12 @@ public class TransactionTreeBuilder
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
-		var haveFeeEstimations = _wallet.FeeRateEstimations is not null;
+		var txId = transactionSummary.GetHash();
+		var haveFeeEstimations = _services.HasFeeRateEstimations(_walletId);
 
 		return new RegularTransactionModel(itemType)
 		{
-			Id = transactionSummary.GetHash(),
+			Id = txId,
 			Amount = transactionSummary.Amount,
 			HasBeenSpedUp = transactionSummary.IsSpeedup,
 			OrderIndex = index,
@@ -131,8 +137,8 @@ public class TransactionTreeBuilder
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager) && haveFeeEstimations,
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager) && haveFeeEstimations,
+			CanCancelTransaction = _services.IsTransactionCancellable(_walletId, txId) && haveFeeEstimations,
+			CanSpeedUpTransaction = _services.IsTransactionSpeedupable(_walletId, txId) && haveFeeEstimations,
 			Status = status,
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0u, // FIXME: this is wrong. Only confirmed txs have a BlockHeigh
@@ -150,10 +156,11 @@ public class TransactionTreeBuilder
 	private SpeedUpTransactionGroupModel CreateSpeedUpGroup(TransactionSummary transactionSummary, TransactionModel parent, IReadOnlyList<TransactionModel> children)
 	{
 		var isConfirmed = children.All(x => x.IsConfirmed);
+		var txId = transactionSummary.GetHash();
 
 		var result = new SpeedUpTransactionGroupModel(GetItemType(transactionSummary))
 		{
-			Id = transactionSummary.GetHash(),
+			Id = txId,
 			Amount = parent.Amount,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
@@ -168,8 +175,8 @@ public class TransactionTreeBuilder
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = parent.ConfirmedTooltip,
 			Labels = parent.Labels,
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
+			CanCancelTransaction = _services.IsTransactionCancellable(_walletId, txId),
+			CanSpeedUpTransaction = _services.IsTransactionSpeedupable(_walletId, txId),
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
@@ -244,10 +251,11 @@ public class TransactionTreeBuilder
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
+		var txId = transactionSummary.GetHash();
 
 		return new CoinJoinTransactionModel
 		{
-			Id = transactionSummary.GetHash(),
+			Id = txId,
 			Amount = transactionSummary.Amount,
 			OrderIndex = index,
 			Date = date,
@@ -263,7 +271,7 @@ public class TransactionTreeBuilder
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			FeeRate = transactionSummary.FeeRate(),
-			CoinjoinCosts = _wallet.KeyManager.GetCoinjoinCosts(transactionSummary.GetHash())
+			CoinjoinCosts = _services.GetCoinjoinCosts(_walletId, txId)
 		};
 	}
 
@@ -310,7 +318,8 @@ public class TransactionTreeBuilder
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
+		// Access FeeRateEstimations through IWalletModel, CpfpInfoProvider through internal Wallet
+		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_walletModel.FeeRateEstimations, _walletModel.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
 			? TextHelpers.TimeSpanToFriendlyString(estimate)
 			: "";
 

@@ -64,7 +64,7 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 				return;
 			}
 
-			var verificationResult = wallet.Auth.VerifyRecoveryWords(currentMnemonics);
+			var verificationResult = await wallet.Auth.VerifyRecoveryWordsAsync(currentMnemonics);
 			if (verificationResult)
 			{
 				Navigate().To().Success(navigationMode: NavigationMode.Clear);

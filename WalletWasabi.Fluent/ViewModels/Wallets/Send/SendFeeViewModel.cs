@@ -7,10 +7,10 @@ using System.Windows.Input;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -23,15 +23,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _walletModel;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	public SendFeeViewModel(UiContext uiContext, Wallet wallet, TransactionInfo transactionInfo, bool isSilent) : base(uiContext)
+	public SendFeeViewModel(UiContext uiContext, IWalletModel walletModel, TransactionInfo transactionInfo, bool isSilent) : base(uiContext)
 	{
 		_isSilent = isSilent;
 		IsBusy = isSilent;
-		_wallet = wallet;
+		_walletModel = walletModel;
 		_transactionInfo = transactionInfo;
 
 		FeeChart = new FeeChartViewModel(uiContext);
@@ -100,7 +100,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		UiContext.Services.SubscribeToEvent<MiningFeeRatesChanged>()
 			.Select(e =>
 			{
-				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _wallet.Network, out var estimates);
+				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _walletModel.Network, out var estimates);
 				return estimates;
 			})
 			.WhereNotNull()
@@ -110,7 +110,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeRateEstimations) ||
+			if (!TransactionFeeHelper.TryGetFeeEstimates(_walletModel.FeeRateEstimations, _walletModel.Network, out var feeRateEstimations) ||
 				!FeeChart.TryUpdateFeeEstimates(feeRateEstimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			{
 				Logger.LogInfo("Transaction fee estimations are not available.");

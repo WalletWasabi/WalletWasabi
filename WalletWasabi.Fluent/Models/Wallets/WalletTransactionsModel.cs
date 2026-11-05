@@ -24,16 +24,19 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IServices _services;
 	private readonly IWalletModel _walletModel;
-	private readonly Wallet _wallet;
+	private readonly WalletId _walletId;
+	private readonly Wallet _wallet; // Internal access for complex operations
 	private readonly TransactionTreeBuilder _treeBuilder;
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletTransactionsModel(IServices services, IWalletModel walletModel, Wallet wallet)
+	public WalletTransactionsModel(IServices services, IWalletModel walletModel)
 	{
 		_services = services;
 		_walletModel = walletModel;
-		_wallet = wallet;
-		_treeBuilder = new TransactionTreeBuilder(wallet, services);
+		_walletId = walletModel.Id;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
+		_treeBuilder = new TransactionTreeBuilder(services, walletModel);
 
 		TransactionProcessed =
 			services.SubscribeToEvent<WalletRelevantTransactionProcessed>().ToSignal()
@@ -44,7 +47,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 		NewTransactionArrived =
 			services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
-				.Where(x => x.WalletName == wallet.WalletName)
+				.Where(x => x.WalletName == walletModel.Name)
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -52,7 +55,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		var coinjoinCostsAdded = services.SubscribeToEvent<CoinjoinCostsAdded>()
-			.Where(x => x.WalletName == wallet.WalletName)
+			.Where(x => x.WalletName == walletModel.Name)
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 

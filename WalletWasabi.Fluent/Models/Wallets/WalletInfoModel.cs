@@ -8,8 +8,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletInfoModel
 {
-	public WalletInfoModel(Wallet wallet)
+	public WalletInfoModel(IWalletModel walletModel)
 	{
+		// Internal access to Wallet through WalletModel for model-level operations (sensitive key info)
+		var wallet = ((WalletModel)walletModel).Wallet;
+
 		var network = wallet.Network;
 		if (!wallet.KeyManager.IsWatchOnly)
 		{

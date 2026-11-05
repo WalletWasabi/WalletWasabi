@@ -1,27 +1,27 @@
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class WalletAuthModel : ReactiveObject
 {
-	private readonly Wallet _wallet;
+	private readonly IServices _services;
+	private readonly WalletId _walletId;
 	[AutoNotify] private bool _isLoggedIn;
 
-	public WalletAuthModel(Wallet wallet)
+	public WalletAuthModel(IServices services, WalletId walletId)
 	{
-		_wallet = wallet;
+		_services = services;
+		_walletId = walletId;
 	}
 
-	public bool HasPassword => !string.IsNullOrEmpty(_wallet.Password);
+	public bool HasPassword => _services.HasPassword(_walletId);
 
 	public async Task LoginAsync(string password)
 	{
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out var _));
+		var isPasswordCorrect = await _services.TryLoginAsync(_walletId, password).ConfigureAwait(false);
 		if (!isPasswordCorrect)
 		{
 			throw new InvalidOperationException("Incorrect passphrase.");
@@ -32,9 +32,7 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public async Task<WalletLoginResult> TryLoginAsync(string password)
 	{
-		string? compatibilityPassword = null;
-		var isPasswordCorrect = await Task.Run(() => _wallet.TryLogin(password, out compatibilityPassword));
-
+		var (isPasswordCorrect, compatibilityPassword) = await _services.TryLoginWithCompatibilityAsync(_walletId, password).ConfigureAwait(false);
 		var compatibilityPasswordUsed = compatibilityPassword is { };
 
 		return new(isPasswordCorrect, compatibilityPasswordUsed);
@@ -42,7 +40,7 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public async Task<bool> TryPasswordAsync(string password)
 	{
-		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, password, out _));
+		return await _services.IsPasswordValidAsync(_walletId, password).ConfigureAwait(false);
 	}
 
 	public void CompleteLogin()
@@ -52,25 +50,12 @@ public partial class WalletAuthModel : ReactiveObject
 
 	public void Logout()
 	{
-		_wallet.Logout();
+		_services.Logout(_walletId);
 		IsLoggedIn = false;
 	}
 
-	public bool VerifyRecoveryWords(Mnemonic mnemonic)
+	public async Task<bool> VerifyRecoveryWordsAsync(Mnemonic mnemonic)
 	{
-		var saltSoup = _wallet.Password;
-
-		var recovered = KeyManager.Recover(
-			mnemonic,
-			saltSoup,
-			_wallet.Network,
-			_wallet.KeyManager.SegwitAccountKeyPath,
-			null,
-			null,
-			_wallet.KeyManager.MinGapLimit);
-
-		var result = _wallet.KeyManager.SegwitExtPubKey == recovered.SegwitExtPubKey;
-
-		return result;
+		return await _services.VerifyRecoveryWordsAsync(_walletId, mnemonic).ConfigureAwait(false);
 	}
 }

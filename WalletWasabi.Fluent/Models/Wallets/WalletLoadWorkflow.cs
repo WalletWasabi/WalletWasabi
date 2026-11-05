@@ -42,7 +42,9 @@ public partial class WalletLoadWorkflow
 
 	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
-	private readonly Wallet _wallet;
+	private readonly WalletId _walletId;
+	private readonly string _walletName;
+	private readonly Wallet _wallet; // Internal access for complex operations
 	private uint _blockHeadersTip;
 	private uint _filterHeadersTip;
 	private uint _compactFiltersTip;
@@ -53,14 +55,17 @@ public partial class WalletLoadWorkflow
 	// The progress of every stage syncing the wallet is measured from.
 	private readonly uint _walletStartHeight;
 
-	public WalletLoadWorkflow(IServices services, Wallet wallet)
+	public WalletLoadWorkflow(IServices services, IWalletModel walletModel)
 	{
 		_services = services;
-		_wallet = wallet;
+		_walletId = walletModel.Id;
+		_walletName = walletModel.Name;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
 		_progress = new();
 
 		var tipHeight = services.GetTipHeight();
-		var walletBestHeight = (uint)wallet.KeyManager.GetBestHeight();
+		var walletBestHeight = (uint)_wallet.KeyManager.GetBestHeight();
 
 		_blockHeadersTip = services.GetBlockHeadersTipHeight();
 		_filterHeadersTip = tipHeight;
@@ -68,7 +73,7 @@ public partial class WalletLoadWorkflow
 		_walletSyncHeight = walletBestHeight;
 
 		// Wallets created before the birth height was introduced don't have one.
-		_walletStartHeight = wallet.KeyManager.GetBirthHeight() is { } birthHeight ? (uint)birthHeight : walletBestHeight;
+		_walletStartHeight = _wallet.KeyManager.GetBirthHeight() is { } birthHeight ? (uint)birthHeight : walletBestHeight;
 
 		UpdateProgress();
 
@@ -99,7 +104,7 @@ public partial class WalletLoadWorkflow
 
 		LoadCompleted = services.SubscribeToEvent<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Where(x => x.Wallet == _wallet)
+			.Where(x => x.Wallet.WalletId == _walletId)
 			.Select(x => x.Wallet.Loaded)
 			.ToSignal();
 	}
@@ -135,7 +140,7 @@ public partial class WalletLoadWorkflow
 
 		try
 		{
-			await Task.Run(async () => await _services.StartWalletAsync(_wallet.WalletName));
+			await Task.Run(async () => await _services.StartWalletAsync(_walletName));
 		}
 		catch (OperationCanceledException ex)
 		{

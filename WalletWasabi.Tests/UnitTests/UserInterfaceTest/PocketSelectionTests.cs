@@ -1,18 +1,104 @@
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
+
+/// <summary>
+/// A minimal mock of IWalletModel for testing LabelSelectionViewModel.
+/// </summary>
+internal class MockWalletModel : IWalletModel
+{
+	private readonly KeyManager _keyManager;
+	private readonly string _password;
+
+	public MockWalletModel(KeyManager keyManager, string password)
+	{
+		_keyManager = keyManager;
+		_password = password;
+	}
+
+	// CanBuildTransaction is the only method actually used by LabelSelectionViewModel
+	public bool CanBuildTransaction(TransactionInfo info, IEnumerable<SmartCoin> coins, IEnumerable<SmartCoin> allCoins)
+	{
+		return TransactionHelpers.TryBuildTransactionWithoutPrevTx(
+			_keyManager,
+			info,
+			new CoinsView(allCoins),
+			coins,
+			_password,
+			out _);
+	}
+
+	// Properties and methods below are not used by LabelSelectionViewModel but required by interface
+	public bool IsLoggedIn { get; set; }
+	public bool IsLoaded { get; set; }
+	public bool IsSelected { get; set; }
+	public IObservable<bool> IsCoinjoinRunning => throw new NotImplementedException();
+	public IObservable<bool> IsCoinjoinStarted => throw new NotImplementedException();
+	public bool IsCoinJoinEnabled => false;
+	public AddressesModel Addresses => throw new NotImplementedException();
+	public WalletId Id => throw new NotImplementedException();
+	public string Name => "TestWallet";
+	public Network Network => Network.Main;
+	public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotImplementedException();
+	public bool SeveralReceivingScriptTypes => false;
+	public WalletTransactionsModel Transactions => throw new NotImplementedException();
+	public IObservable<Amount> Balances => throw new NotImplementedException();
+	public IObservable<bool> HasBalance => throw new NotImplementedException();
+	public WalletCoinsModel Coins => throw new NotImplementedException();
+	public WalletAuthModel Auth => throw new NotImplementedException();
+	public WalletLoadWorkflow Loader => throw new NotImplementedException();
+	public WalletSettingsModel Settings => throw new NotImplementedException();
+	public WalletPrivacyModel Privacy => throw new NotImplementedException();
+	public WalletCoinjoinModel? Coinjoin => null;
+	public IObservable<bool> Loaded => throw new NotImplementedException();
+	public AmountProvider AmountProvider => throw new NotImplementedException();
+	public bool IsHardwareWallet => false;
+	public bool IsWatchOnlyWallet => false;
+	public int AnonScoreTarget => 5;
+	public bool AreTherePendingPayments => false;
+	public FeeRateEstimations? FeeRateEstimations => null;
+
+	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent) => throw new NotImplementedException();
+	public IWalletStatsModel GetWalletStats() => throw new NotImplementedException();
+	public WalletInfoModel GetWalletInfo() => throw new NotImplementedException();
+	public PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow) => throw new NotImplementedException();
+	public void Rename(string newWalletName) => throw new NotImplementedException();
+	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithNewLabels) => throw new NotImplementedException();
+	public BuildTransactionResult BuildTransaction(TransactionInfo info, bool tryToSign = true) => throw new NotImplementedException();
+	public BuildTransactionResult BuildChangelessTransaction(Destination destination, LabelsArray recipient, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool tryToSign = true) => throw new NotImplementedException();
+	public BuildTransactionResult BuildTransaction(Destination destination, Money amount, LabelsArray recipient, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, bool tryToSign = true) => throw new NotImplementedException();
+	public FeeRate? TryGetMaxFeeRate(TransactionInfo info) => null;
+	public ICoinsView GetCoinsView() => throw new NotImplementedException();
+	public Pocket[] GetPockets() => throw new NotImplementedException();
+	public IReadOnlyList<Payment> GetBatchedPayments() => throw new NotImplementedException();
+	public void CancelCoinJoinPayment(Guid paymentId) => throw new NotImplementedException();
+	public void AddCoinJoinPayment(IDestination destination, Money amount) => throw new NotImplementedException();
+
+#pragma warning disable CS0067 // Event is never used - required by interface
+	public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore CS0067
+}
 
 public class PocketSelectionTests
 {
@@ -32,7 +118,8 @@ public class PocketSelectionTests
 			Recipient = recipient
 		};
 
-		return new LabelSelectionViewModel(null!,  km, pw, info, isSilent: false);
+		var mockWalletModel = new MockWalletModel(km, pw);
+		return new LabelSelectionViewModel(null!, mockWalletModel, info, isSilent: false);
 	}
 
 	[Fact]

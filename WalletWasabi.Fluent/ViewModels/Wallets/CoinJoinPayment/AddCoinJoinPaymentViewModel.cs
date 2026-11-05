@@ -9,8 +9,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -19,7 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 [NavigationMetaData(Title = "Add Coinjoin Payment", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly ShowQrCodeCameraDialog _showQrCodeCameraDialog;
 	private readonly IWalletModel _walletModel;
 	private Address? _parsedAddress;
@@ -29,9 +26,8 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _conversionReversed;
 
-	public AddCoinJoinPaymentViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet, ShowQrCodeCameraDialog showQrCodeCameraDialog) : base(uiContext)
+	public AddCoinJoinPaymentViewModel(UiContext uiContext, IWalletModel walletModel, ShowQrCodeCameraDialog showQrCodeCameraDialog) : base(uiContext)
 	{
-		_wallet = wallet;
 		_showQrCodeCameraDialog = showQrCodeCameraDialog;
 		_walletModel = walletModel;
 
@@ -96,7 +92,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 	private async Task OnAutoPasteAsync()
 	{
-		var isAutoPasteEnabled = UiContext.UiConfig.AutoPaste;
+		var isAutoPasteEnabled = UiContext.ApplicationSettings.AutoPaste;
 
 		if (string.IsNullOrWhiteSpace(To) && isAutoPasteEnabled)
 		{
@@ -180,10 +176,6 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC.");
 		}
-		else if (AmountBtc < PaymentBatch.MinimumPaymentAmount.ToDecimal(MoneyUnit.BTC))
-		{
-			errors.Add(ErrorSeverity.Error, $"Amount must be at least {PaymentBatch.MinimumPaymentAmount.ToDecimal(MoneyUnit.BTC)} BTC.");
-		}
 	}
 
 	private async Task OnAddPaymentAsync()
@@ -208,7 +200,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 		try
 		{
-			_wallet.AddCoinJoinPayment(destination, amount);
+			_walletModel.AddCoinJoinPayment(destination, amount);
 			Navigate().Back();
 		}
 		catch (Exception ex)

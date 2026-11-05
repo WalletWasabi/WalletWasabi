@@ -22,7 +22,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -40,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly ShowQrCodeCameraDialog _showQrCodeCameraDialog;
@@ -72,7 +70,6 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 
-		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
 		_parameters = parameters;
 		_showQrCodeCameraDialog = showQrCodeCameraDialog;

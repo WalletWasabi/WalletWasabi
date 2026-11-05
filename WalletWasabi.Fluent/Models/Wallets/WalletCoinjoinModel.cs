@@ -15,18 +15,18 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly IServices _services;
-	private readonly Wallet _wallet;
+	private readonly WalletId _walletId;
 	private readonly WalletSettingsModel _settings;
 	[AutoNotify] private bool _isCoinjoining;
 
-	public WalletCoinjoinModel(IServices services, Wallet wallet, WalletSettingsModel settings)
+	public WalletCoinjoinModel(IServices services, IWalletModel walletModel, WalletSettingsModel settings)
 	{
 		_services = services;
-		_wallet = wallet;
+		_walletId = walletModel.Id;
 		_settings = settings;
 
 		StatusUpdated = services.SubscribeToCoinJoinStatusChanged()
-			.Where(x => x.Wallet == wallet)
+			.Where(x => x.Wallet.WalletId == _walletId)
 			.Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs
 				or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
 			.ObserveOn(RxApp.MainThreadScheduler);
@@ -85,12 +85,12 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	{
 		if (_settings.OutputWalletId is { } outputWalletId)
 		{
-			_services.RequestCoinJoinStart(_wallet.WalletId, outputWalletId, stopWhenAllMixed, overridePlebStop);
+			_services.RequestCoinJoinStart(_walletId, outputWalletId, stopWhenAllMixed, overridePlebStop);
 		}
 	}
 
 	public async Task StopAsync()
 	{
-		_services.RequestCoinJoinStop(_wallet.WalletId);
+		_services.RequestCoinJoinStop(_walletId);
 	}
 }
