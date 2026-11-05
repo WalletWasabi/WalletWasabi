@@ -94,11 +94,6 @@ public static class CurrencyExtensions
 		};
 	}
 
-	public static string ToUsd(this decimal n)
-	{
-		return n.WithFriendlyDecimals() + " USD";
-	}
-
 	public static decimal WithFriendlyDecimals(this double n)
 	{
 		return WithFriendlyDecimals((decimal) n);
