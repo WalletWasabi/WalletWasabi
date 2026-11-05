@@ -8,31 +8,30 @@ using Avalonia.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(Title = "Privacy Control")]
 public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<SmartCoin>>
 {
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _sendFlow;
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(UiContext uiContext, Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent) : base(uiContext)
+	public PrivacyControlViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent) : base(uiContext)
 	{
-		_wallet = wallet;
+		_walletModel = walletModel;
 		_sendFlow = sendFlow;
 		_transactionInfo = transactionInfo;
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(uiContext, wallet.KeyManager, wallet.Password, _transactionInfo, isSilent);
+		LabelSelection = new LabelSelectionViewModel(uiContext, walletModel, _transactionInfo, isSilent);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;
@@ -53,10 +52,9 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 
 	private async Task InitializeLabelsAsync()
 	{
-		var privateThreshold = _wallet.AnonScoreTarget;
+		var privateThreshold = _walletModel.AnonScoreTarget;
 
-		var cjManager = UiContext.Services.GetHostedService<CoinJoinManager>();
-		var coinsToExclude = cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? [];
+		var coinsToExclude = UiContext.Services.GetCoinsInCriticalPhase(_walletModel.Id).ToList();
 
 		var pockets = _sendFlow.GetPockets();
 
@@ -69,7 +67,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		// TODO: Decoupling
-		UiContext.Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		UiContext.Services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);

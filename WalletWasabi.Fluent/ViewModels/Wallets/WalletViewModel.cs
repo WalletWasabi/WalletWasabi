@@ -18,7 +18,6 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
-using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
@@ -54,10 +53,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _loaded;
 
-	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
+	public WalletViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
 	{
 		WalletModel = walletModel;
-		Wallet = wallet;
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
@@ -124,9 +122,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			 });
 
 
-		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
-		DonateCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel, donate: true)));
-		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
+		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(walletModel)));
+		DonateCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(walletModel, donate: true)));
+		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel));
 		_defaultSendCommand = SendCommand;
 
 		this.WhenAnyValue(x => x.Settings.DefaultSendWorkflow)
@@ -171,10 +169,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
-			? new CoinJoinStateViewModel(uiContext, WalletModel, Wallet, WalletModel.Coinjoin!, Settings)
+			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
 			: null;
 
-		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel, Wallet));
+		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel));
 
 		if (WalletModel.IsCoinJoinEnabled)
 		{
@@ -204,9 +202,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
-
-	// TODO: Remove this
-	public Wallet Wallet { get; }
 
 	public IWalletModel WalletModel { get; }
 

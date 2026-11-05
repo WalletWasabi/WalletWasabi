@@ -12,12 +12,11 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
@@ -34,18 +33,16 @@ public partial class PrivacySuggestionsModel
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
 
-	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
 	private readonly IServices _services;
-	private readonly Wallet _wallet;
+	private readonly IWalletModel _walletModel;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
 
 	public PrivacySuggestionsModel(IServices services, SendFlowModel sendFlow)
 	{
 		_sendFlow = sendFlow;
-		_wallet = sendFlow.Wallet;
-		_cjManager = services.GetHostedService<CoinJoinManager>();
+		_walletModel = sendFlow.WalletModel;
 		_services = services;
 	}
 
@@ -112,7 +109,8 @@ public partial class PrivacySuggestionsModel
 	{
 		var pockets = _sendFlow.GetPockets();
 		var spentCoins = transactionResult.SpentCoins;
-		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
+		var anonScoreTarget = _walletModel.AnonScoreTarget;
+		var nonPrivateSpentCoins = spentCoins.Where(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.NonPrivate).ToList();
 		var usedPockets = pockets.Where(x => x.Coins.Any(coin => nonPrivateSpentCoins.Contains(coin))).ToList();
 
 		if (usedPockets.Count > 1)
@@ -121,7 +119,7 @@ public partial class PrivacySuggestionsModel
 			return new InterlinksLabelsWarning(new LabelsArray(pocketLabels));
 		}
 
-		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
+		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(anonScoreTarget)).Except(recipient);
 		var labelsArray = new LabelsArray(labels);
 
 		if (!labelsArray.IsEmpty)
@@ -135,16 +133,17 @@ public partial class PrivacySuggestionsModel
 	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(Parameters parameters)
 	{
 		var canModifyTransactionAmount = !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayToMany;
+		var anonScoreTarget = _walletModel.AnonScoreTarget;
 
-		var transactionLabels = parameters.Transaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
+		var transactionLabels = parameters.Transaction.SpentCoins.SelectMany(x => x.GetLabels(anonScoreTarget));
 		var onlyKnownByRecipient =
 			parameters.TransactionInfo.Recipient.Equals(new LabelsArray(transactionLabels), StringComparer.OrdinalIgnoreCase);
 
 		var foundNonPrivate = !onlyKnownByRecipient &&
-							  parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate);
+							  parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.NonPrivate);
 
 		var foundSemiPrivate =
-			parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate);
+			parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.SemiPrivate);
 
 		if (foundNonPrivate)
 		{
@@ -164,17 +163,17 @@ public partial class PrivacySuggestionsModel
 
 		var availableCoins = _sendFlow.AvailableCoins;
 
-		ImmutableList<SmartCoin> coinsToExclude = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
+		ImmutableList<SmartCoin> coinsToExclude = _services.GetCoinsInCriticalPhase(_walletModel.Id);
 		bool wasCoinjoiningCoinUsed = parameters.Transaction.SpentCoins.Any(coinsToExclude.Contains);
 
 		// Only exclude coins if the original transaction doesn't use them either.
-		var allPrivateCoin = availableCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.Private).ToArray();
+		var allPrivateCoin = availableCoins.Where(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.Private).ToArray();
 
 		allPrivateCoin = wasCoinjoiningCoinUsed ? allPrivateCoin : allPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var onlyKnownByTheRecipientCoins = availableCoins.Where(x => parameters.TransactionInfo.Recipient.Equals(x.GetLabels(_wallet.AnonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
+		var onlyKnownByTheRecipientCoins = availableCoins.Where(x => parameters.TransactionInfo.Recipient.Equals(x.GetLabels(anonScoreTarget), StringComparer.OrdinalIgnoreCase)).ToArray();
 		var allSemiPrivateCoin =
-			availableCoins.Where(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.SemiPrivate)
+			availableCoins.Where(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.SemiPrivate)
 						  .Union(onlyKnownByTheRecipientCoins)
 						  .ToArray();
 
@@ -226,14 +225,16 @@ public partial class PrivacySuggestionsModel
 
 	private IEnumerable<PrivacyItem> VerifyLargePercentSpent(Parameters parameters)
 	{
+		var anonScoreTarget = _walletModel.AnonScoreTarget;
+
 		// No need to check this warning if a Red Coin is selected.
-		if(parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate))
+		if(parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(anonScoreTarget) == PrivacyLevel.NonPrivate))
 		{
 			yield break;
 		}
 
 		var spentAmount = parameters.Transaction.SpentCoins.Sum(x => x.Amount);
-		var walletBalance = _wallet.Coins.TotalAmount().Satoshi;
+		var walletBalance = _walletModel.GetCoinsView().TotalAmount().Satoshi;
 
 		if (spentAmount <= LargePortionSpentMinAmount || spentAmount <= walletBalance * LargePortionSpentTolerance)
 		{
@@ -301,7 +302,7 @@ public partial class PrivacySuggestionsModel
 		ImmutableArray<SmartCoin> coinsToUse = usedPockets.SelectMany(x => x.Coins).ToImmutableArray();
 
 		// If the original transaction couldn't avoid the CJing coins, BnB can use them too. Otherwise exclude them.
-		var coinsInCoinJoin = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
+		var coinsInCoinJoin = _services.GetCoinsInCriticalPhase(_walletModel.Id);
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
 		// If the original transaction is using only confirmed coins, BnB can use only them too. Otherwise let unconfirmed coins stay in the list.
@@ -369,7 +370,7 @@ public partial class PrivacySuggestionsModel
 
 			try
 			{
-				transaction = _wallet.BuildChangelessTransaction(
+				transaction = _walletModel.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
@@ -406,7 +407,7 @@ public partial class PrivacySuggestionsModel
 		try
 		{
 			// TODO: Verify the subtract fee change
-			txn = _wallet.BuildTransaction(
+			txn = _walletModel.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,
 				transactionInfo.Recipient,
@@ -419,7 +420,7 @@ public partial class PrivacySuggestionsModel
 		{
 			try
 			{
-				txn = _wallet.BuildChangelessTransaction(
+				txn = _walletModel.BuildChangelessTransaction(
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,

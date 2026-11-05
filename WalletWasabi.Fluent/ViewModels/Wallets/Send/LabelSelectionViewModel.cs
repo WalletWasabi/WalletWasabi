@@ -4,17 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public partial class LabelSelectionViewModel : ViewModelBase
 {
-	private readonly KeyManager _keyManager;
-	private readonly string _password;
+	private readonly IWalletModel _walletModel;
 	private readonly TransactionInfo _info;
 	private readonly bool _isSilent;
 	private readonly List<Pocket> _hiddenIncludedPockets = new();
@@ -25,11 +24,10 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(UiContext uiContext, KeyManager keyManager, string password, TransactionInfo info,
+	public LabelSelectionViewModel(UiContext uiContext, IWalletModel walletModel, TransactionInfo info,
 		bool isSilent) : base(uiContext)
 	{
-		_keyManager = keyManager;
-		_password = password;
+		_walletModel = walletModel;
 		_info = info;
 		_isSilent = isSilent;
 	}
@@ -47,13 +45,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		var coins = Pocket.Merge(pockets).Coins;
 		var allCoins = Pocket.Merge(_allPockets).Coins;
 
-		return await Task.Run(() => TransactionHelpers.TryBuildTransactionWithoutPrevTx(
-			keyManager: _keyManager,
-			transactionInfo: _info,
-			allCoins: new CoinsView(allCoins),
-			allowedCoins: coins,
-			password: _password,
-			minimumAmount: out _));
+		return await Task.Run(() => _walletModel.CanBuildTransaction(_info, coins, allCoins));
 	}
 
 	public async Task<Pocket[]> AutoSelectPocketsAsync()

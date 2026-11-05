@@ -42,7 +42,9 @@ public partial class WalletLoadWorkflow
 
 	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
-	private readonly Wallet _wallet;
+	private readonly WalletId _walletId;
+	private readonly string _walletName;
+	private readonly Wallet _wallet; // Internal access for complex operations
 	private uint _blockHeadersTip;
 	private uint _filterHeadersTip;
 	private uint _compactFiltersTip;
@@ -53,14 +55,17 @@ public partial class WalletLoadWorkflow
 	// The progress of every stage syncing the wallet is measured from.
 	private readonly uint _walletStartHeight;
 
-	public WalletLoadWorkflow(IServices services, Wallet wallet)
+	public WalletLoadWorkflow(IServices services, IWalletModel walletModel)
 	{
 		_services = services;
-		_wallet = wallet;
+		_walletId = walletModel.Id;
+		_walletName = walletModel.Name;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
 		_progress = new();
 
 		var tipHeight = services.GetTipHeight();
-		var walletBestHeight = (uint)wallet.KeyManager.GetBestHeight();
+		var walletBestHeight = (uint)_wallet.KeyManager.GetBestHeight();
 
 		_blockHeadersTip = services.GetBlockHeadersTipHeight();
 		_filterHeadersTip = tipHeight;
@@ -68,21 +73,21 @@ public partial class WalletLoadWorkflow
 		_walletSyncHeight = walletBestHeight;
 
 		// Wallets created before the birth height was introduced don't have one.
-		_walletStartHeight = wallet.KeyManager.GetBirthHeight() is { } birthHeight ? (uint)birthHeight : walletBestHeight;
+		_walletStartHeight = _wallet.KeyManager.GetBirthHeight() is { } birthHeight ? (uint)birthHeight : walletBestHeight;
 
 		UpdateProgress();
 
-		services.EventBus.AsObservable<BlockHeadersTipChanged>()
+		services.SubscribeToEvent<BlockHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _blockHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<FilterHeadersTipChanged>()
+		services.SubscribeToEvent<FilterHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _filterHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<ClientTipHeightChanged>()
+		services.SubscribeToEvent<ClientTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x =>
 			{
@@ -92,14 +97,14 @@ public partial class WalletLoadWorkflow
 			})
 			.DisposeWith(_disposables);
 
-		services.EventBus.AsObservable<BlockDownloaded>()
+		services.SubscribeToEvent<BlockDownloaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
-		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
+		LoadCompleted = services.SubscribeToEvent<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Where(x => x.Wallet == _wallet)
+			.Where(x => x.Wallet.WalletId == _walletId)
 			.Select(x => x.Wallet.Loaded)
 			.ToSignal();
 	}
@@ -135,7 +140,7 @@ public partial class WalletLoadWorkflow
 
 		try
 		{
-			await Task.Run(async () => await _services.StartWalletAsync(_wallet));
+			await Task.Run(async () => await _services.StartWalletAsync(_walletName));
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -150,11 +155,11 @@ public partial class WalletLoadWorkflow
 	private async Task WaitForHeightsAsync()
 	{
 		// Wait until "server tip height" is initialized.
-		var waitForNetworkHeight = _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
+		var waitForNetworkHeight = _services.WaitForEventAsync<NetworkTipHeightChanged>(
 			() => _services.GetServerTipHeight() > 0);
 
 		// Wait until "client tip height" is initialized.
-		var waitForClientHeight = _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
+		var waitForClientHeight = _services.WaitForEventAsync<ClientTipHeightChanged>(
 			() => _services.GetTip() is not null);
 
 		await Task.WhenAll(waitForNetworkHeight, waitForClientHeight).ConfigureAwait(false);

@@ -1,3 +1,4 @@
+using System;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,33 +6,37 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-public record SendFlowModel
+public record SendFlowModel : IDisposable
 {
-	private SendFlowModel(Wallet wallet, ICoinsView availableCoins, ICoinListModel coinListModel, bool donate)
+	private readonly bool _ownsCoinList;
+
+	private SendFlowModel(IWalletModel walletModel, ICoinsView availableCoins, ICoinListModel coinListModel, bool ownsCoinList, bool donate)
 	{
-		Wallet = wallet;
+		WalletModel = walletModel;
 		AvailableCoins = availableCoins;
 		CoinList = coinListModel;
+		_ownsCoinList = ownsCoinList;
 		Donate = donate;
 	}
 
 	/// <summary>Regular Send Flow. Uses all wallet coins</summary>
-	public SendFlowModel(Wallet wallet, IWalletModel walletModel, bool donate = false):
-		this(wallet, wallet.Coins, walletModel.Coins, donate)
+	public SendFlowModel(IWalletModel walletModel, bool donate = false):
+		this(walletModel, walletModel.GetCoinsView(), walletModel.Coins, ownsCoinList: false, donate)
 	{
 	}
 
 	/// <summary>Manual Control Send Flow. Uses only the specified coins.</summary>
-	public SendFlowModel(Wallet wallet, IWalletModel walletModel, IEnumerable<SmartCoin> coins, IServices services, bool donate = false):
-		this(wallet, new CoinsView(coins), new UserSelectionCoinListModel(wallet, walletModel, coins.ToArray(), services), donate)
+#pragma warning disable CA2000 // Ownership of UserSelectionCoinListModel is transferred to this instance which will dispose it
+	public SendFlowModel(IWalletModel walletModel, IEnumerable<SmartCoin> coins, IServices services, bool donate = false):
+		this(walletModel, new CoinsView(coins), new UserSelectionCoinListModel(walletModel, coins.ToArray(), services), ownsCoinList: true, donate)
 	{
 	}
+#pragma warning restore CA2000
 
-	public Wallet Wallet { get; }
+	public IWalletModel WalletModel { get; }
 
 	public ICoinsView AvailableCoins { get; }
 
@@ -45,10 +50,18 @@ public record SendFlowModel
 
 	public Money AvailableAmount => AvailableCoins.TotalAmount();
 
-	public bool IsManual => AvailableCoins.TotalAmount() != Wallet.Coins.TotalAmount();
+	public bool IsManual => AvailableCoins.TotalAmount() != WalletModel.GetCoinsView().TotalAmount();
 
 	public Pocket[] GetPockets() =>
-		AvailableCoins.GetPockets(Wallet.AnonScoreTarget)
+		AvailableCoins.GetPockets(WalletModel.AnonScoreTarget)
 					  .Select(x => new Pocket(x))
 		              .ToArray();
+
+	public void Dispose()
+	{
+		if (_ownsCoinList && CoinList is IDisposable disposable)
+		{
+			disposable.Dispose();
+		}
+	}
 }

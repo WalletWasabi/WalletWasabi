@@ -27,10 +27,6 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 	{
 		WalletModel = walletModel;
 
-		// TODO: Finish partial refactor
-		// Wallet property must be removed
-		Wallet = UiContext.Services.GetWalletByName(walletModel.Name);
-
 		// Show Login Page when wallet is not logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
 			.Where(x => !x)
@@ -77,8 +73,6 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 	public IWalletModel WalletModel { get; }
 
-	public Wallet Wallet { get; }
-
 	private void ShowLogin()
 	{
 		CurrentPage = new LoginViewModel(UiContext, WalletModel);
@@ -94,8 +88,8 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 	{
 		WalletViewModel =
 			WalletModel.IsHardwareWallet
-			? new HardwareWalletViewModel(UiContext, WalletModel, Wallet)
-			: new WalletViewModel(UiContext, WalletModel, Wallet);
+			? new HardwareWalletViewModel(UiContext, WalletModel)
+			: new WalletViewModel(UiContext, WalletModel);
 
 		// Pass IsSelected down to WalletViewModel.IsSelected
 		this.WhenAnyValue(x => x.IsSelected)

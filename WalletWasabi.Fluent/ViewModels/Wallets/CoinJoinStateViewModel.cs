@@ -11,7 +11,6 @@ using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -47,7 +46,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
 
 	private readonly IWalletModel _wallet;
-	private readonly Wallet _walletInstance;
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
@@ -73,10 +71,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private CoinjoinError? _lastPlebStopActivatedEvent;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, Wallet walletInstance, WalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings) : base(uiContext)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, WalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings) : base(uiContext)
 	{
 		_wallet = wallet;
-		_walletInstance = walletInstance;
 
 		walletCoinjoinModel.StatusUpdated
 					   .Do(ProcessStatusChange)
@@ -113,7 +110,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Subscribe();
 
 		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
-		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
+		UiContext.Services.SubscribeToEvent<PaymentBatchChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
@@ -179,7 +176,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await mainViewModel.SettingsPage.ActivateCoordinatorTabAsync();
 			}
 		});
-		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
+		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet));
 
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
@@ -327,7 +324,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 		else if (AreAllCoinsPrivate)
 		{
-			var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
+			var hasPendingPayments = _wallet.AreTherePendingPayments;
 			PlayVisible = true;
 			PlayEnabled = hasPendingPayments;
 			CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;

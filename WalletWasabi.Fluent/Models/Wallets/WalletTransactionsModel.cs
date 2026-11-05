@@ -24,35 +24,38 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IServices _services;
 	private readonly IWalletModel _walletModel;
-	private readonly Wallet _wallet;
+	private readonly WalletId _walletId;
+	private readonly Wallet _wallet; // Internal access for complex operations
 	private readonly TransactionTreeBuilder _treeBuilder;
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletTransactionsModel(IServices services, IWalletModel walletModel, Wallet wallet)
+	public WalletTransactionsModel(IServices services, IWalletModel walletModel)
 	{
 		_services = services;
 		_walletModel = walletModel;
-		_wallet = wallet;
-		_treeBuilder = new TransactionTreeBuilder(wallet, services);
+		_walletId = walletModel.Id;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
+		_treeBuilder = new TransactionTreeBuilder(services, walletModel);
 
 		TransactionProcessed =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
-				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
+			services.SubscribeToEvent<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(services.SubscribeToEvent<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
-				.Where(x => x.WalletName == wallet.WalletName)
+			services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
+				.Where(x => x.WalletName == walletModel.Name)
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+		RequestedCpfpInfoArrived = services.SubscribeToEvent<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		var coinjoinCostsAdded = services.EventBus.AsObservable<CoinjoinCostsAdded>()
-			.Where(x => x.WalletName == wallet.WalletName)
+		var coinjoinCostsAdded = services.SubscribeToEvent<CoinjoinCostsAdded>()
+			.Where(x => x.WalletName == walletModel.Name)
 			.ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 

@@ -1,6 +1,7 @@
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -31,28 +32,33 @@ public class PrivacyContentControl : ContentControl
 		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MaxPrivacyChars), int.MaxValue);
 
 	private readonly CompositeDisposable _disposables = new();
-
-	private readonly UiConfig _uiConfig = Services.Instance.UiConfig;
+	private readonly ReplaySubject<bool> _isContentRevealed = new(1);
 
 	public PrivacyContentControl()
 	{
-		if (Design.IsDesignMode)
-		{
-			IsContentRevealed = null!; // Design-time value, won't be used at runtime.
-			return;
-		}
-
-		var isContentRevealed = PrivacyModeHelper.DelayedRevealAndHide(
-				this.WhenAnyValue(x => x.IsPointerOver),
-				this.WhenAnyValue(x => x._uiConfig.PrivacyMode),
-				this.WhenAnyValue(x => x.ForceShow))
-			.Replay();
-
-		IsContentRevealed = isContentRevealed;
-		isContentRevealed.Connect().DisposeWith(_disposables);
+		IsContentRevealed = _isContentRevealed.AsObservable();
 	}
 
 	public IObservable<bool> IsContentRevealed { get; }
+
+	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+	{
+		base.OnAttachedToVisualTree(e);
+
+		if (Design.IsDesignMode)
+		{
+			return;
+		}
+
+		var privacyModeObservable = PrivacyModeHelper.GetPrivacyModeEnabled(this) ?? Observable.Return(false);
+
+		PrivacyModeHelper.DelayedRevealAndHide(
+				this.WhenAnyValue(x => x.IsPointerOver),
+				privacyModeObservable,
+				this.WhenAnyValue(x => x.ForceShow))
+			.Subscribe(_isContentRevealed)
+			.DisposeWith(_disposables);
+	}
 
 	public ReplacementMode PrivacyReplacementMode
 	{

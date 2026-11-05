@@ -26,11 +26,12 @@ public abstract partial class CoinListModel : ICoinListModel, IDisposable
 	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinListModel(Wallet wallet, IWalletModel walletModel, IServices services)
+	public CoinListModel(IWalletModel walletModel, IServices services)
 	{
 		_services = services;
-		Wallet = wallet;
 		WalletModel = walletModel;
+		// Internal access to Wallet through WalletModel for model-level operations
+		Wallet = ((WalletModel)walletModel).Wallet;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
 		var anonScoreTargetChanged = this.WhenAnyValue(x => x.WalletModel.Settings.AnonScoreTarget).Skip(1).ToSignal();
 		var isCoinjoinRunningChanged = walletModel.IsCoinjoinRunning.ToSignal();

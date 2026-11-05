@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
@@ -16,16 +17,22 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public class AddressesModel
 {
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
-	private readonly Wallet _wallet;
+	private readonly IServices _services;
+	private readonly WalletId _walletId;
+	private readonly KeyManager _keyManager;
 	private readonly SourceList<HdPubKey> _source;
 
-	public AddressesModel(IServices services, Wallet wallet)
+	public AddressesModel(IServices services, IWalletModel walletModel)
 	{
-		_wallet = wallet;
+		_services = services;
+		_walletId = walletModel.Id;
+		// Internal access to KeyManager through WalletModel for model-level operations
+		_keyManager = ((WalletModel)walletModel).Wallet.KeyManager;
+
 		_source = new SourceList<HdPubKey>();
 		_source.AddRange(GetUnusedKeys());
 
-		services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		services.SubscribeToEvent<WalletRelevantTransactionProcessed>()
 			.Do(_ => UpdateUnusedKeys())
 			.Subscribe();
 
@@ -34,19 +41,20 @@ public class AddressesModel
 			.Subscribe();
 
 		_source.Connect()
-			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
+			.Transform(key => (IAddress) new Address(_keyManager, key, Hide))
 			.Bind(out var unusedAddresses)
 			.Subscribe();
 
 		Unused = unusedAddresses;
 	}
 
-	private IEnumerable<HdPubKey> GetUnusedKeys() => _wallet.KeyManager.GetKeys(x => x is { IsInternal: false, KeyState: KeyState.Clean, Labels.Count: > 0 });
+	private IEnumerable<HdPubKey> GetUnusedKeys() => _services.GetUnusedKeys(_walletId);
 
 	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels, ScriptPubKeyType scriptPubKeyType)
 	{
-		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels, scriptPubKeyType);
-		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, Hide);
+		var labels = new LabelsArray(destinationLabels);
+		var pubKey = _services.GetNextReceiveAddress(_walletId, labels, scriptPubKeyType);
+		var nextReceiveAddress = new Address(_keyManager, pubKey, Hide);
 		_newAddressGenerated.OnNext(pubKey);
 
 		return nextReceiveAddress;
@@ -56,8 +64,8 @@ public class AddressesModel
 
 	public void Hide(Address address)
 	{
-		_wallet.KeyManager.SetKeyState(KeyState.Locked, address.HdPubKey);
-		_wallet.KeyManager.ToFile();
+		_services.SetKeyState(_walletId, KeyState.Locked, address.HdPubKey);
+		_services.SaveKeyManager(_walletId);
 		_source.Remove(address.HdPubKey);
 	}
 

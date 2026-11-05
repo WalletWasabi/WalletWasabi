@@ -22,8 +22,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -41,11 +39,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
-	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly ShowQrCodeCameraDialog _showQrCodeCameraDialog;
-	private readonly CoinJoinManager? _coinJoinManager;
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private Address? _parsedAddress;
@@ -74,13 +70,11 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		_to = "";
 
-		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
 		_parameters = parameters;
 		_showQrCodeCameraDialog = showQrCodeCameraDialog;
-		_coinJoinManager = UiContext.Services.GetHostedService<CoinJoinManager>();
 
-		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
+		_conversionReversed = UiContext.UiConfig.SendAmountConversionReversed;
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
 
@@ -173,7 +167,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
-			.Subscribe(x => UiContext.Services.SetSendAmountConversionReversed(x));
+			.Subscribe(x => UiContext.UiConfig.SendAmountConversionReversed = x);
 	}
 
 	public IObservable<Amount> Balance { get; }
@@ -183,6 +177,8 @@ public partial class SendViewModel : RoutableViewModel
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public bool IsNotInDonationWorkflow => !_parameters.Donate;
+
+	public Network Network => _walletModel.Network;
 
 	public ICommand PasteCommand { get; }
 
@@ -358,10 +354,7 @@ public partial class SendViewModel : RoutableViewModel
 			AdditionalRecipients = additionalRecipients
 		};
 
-		if (_coinJoinManager is { } coinJoinManager)
-		{
-			await coinJoinManager.WalletEnteredSendingAsync(_wallet);
-		}
+		await UiContext.Services.WalletEnteredSendingAsync(_walletModel.Id);
 
 		var sendParameters = _parameters with { TransactionInfo = transactionInfo };
 
@@ -564,8 +557,8 @@ public partial class SendViewModel : RoutableViewModel
 		// Refresh in case the rate changed while we were not subscribed.
 		ExchangeRate = UiContext.Services.GetUsdExchangeRate();
 
-		UiContext.Services.EventBus
-			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.UsdBtcRate)
+		UiContext.Services.SubscribeToEvent<ExchangeRateChanged>()
+			.Subscribe(er => ExchangeRate = er.UsdBtcRate)
 			.DisposeWith(disposables);
 
 		if (!inHistory)
@@ -580,10 +573,7 @@ public partial class SendViewModel : RoutableViewModel
 			IsPrimarySubtractFee = false;
 			ClearValidations();
 
-			if (_coinJoinManager is { } coinJoinManager)
-			{
-				coinJoinManager.WalletEnteredSendWorkflow(_walletModel.Id);
-			}
+			UiContext.Services.WalletEnteredSendWorkflow(_walletModel.Id);
 		}
 
 		_suggestionLabels.Activate(disposables);
@@ -604,9 +594,9 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		base.OnNavigatedFrom(isInHistory);
 
-		if (!isInHistory && _coinJoinManager is { } coinJoinManager)
+		if (!isInHistory)
 		{
-			coinJoinManager.WalletLeftSendWorkflow(_wallet);
+			UiContext.Services.WalletLeftSendWorkflow(_walletModel.Id);
 		}
 	}
 }

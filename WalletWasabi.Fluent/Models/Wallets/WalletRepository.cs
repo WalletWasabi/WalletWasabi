@@ -17,22 +17,24 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletRepository : ReactiveObject
 {
 	private readonly IServices _services;
+	private readonly UiConfig _uiConfig;
 	private readonly AmountProvider _amountProvider;
 	private readonly Dictionary<WalletId, WalletModel> _walletDictionary = new();
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletRepository(IServices services, AmountProvider amountProvider)
+	public WalletRepository(IServices services, UiConfig uiConfig, AmountProvider amountProvider)
 	{
 		_services = services;
+		_uiConfig = uiConfig;
 		_amountProvider = amountProvider;
 
 		var signals =
-			Observable.FromEventPattern<Wallet>(services.WalletManager, nameof(WalletManager.WalletAdded))
+			services.SubscribeToWalletAdded()
 					  .Select(_ => System.Reactive.Unit.Default)
 					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => services.GetWallets(), x => x.WalletId)
+			signals.Fetch(() => services.GetWallets(), x => x.Id)
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
@@ -40,7 +42,7 @@ public partial class WalletRepository : ReactiveObject
 				   .AsObservableCache()
 				   .DisposeWith(_disposable);
 
-		DefaultWalletName = services.GetLastSelectedWallet();
+		DefaultWalletName = uiConfig.LastSelectedWallet;
 	}
 
 	public IObservableCache<IWalletModel, WalletId> Wallets { get; }
@@ -52,7 +54,7 @@ public partial class WalletRepository : ReactiveObject
 
 	public void StoreLastSelectedWallet(IWalletModel wallet)
 	{
-		_services.SetLastSelectedWallet(wallet.Name);
+		_uiConfig.LastSelectedWallet = wallet.Name;
 	}
 
 	public string GetNextWalletName()
@@ -87,10 +89,10 @@ public partial class WalletRepository : ReactiveObject
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
 	{
-		var existingWallet = _services.GetWallets().FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
+		var existingWallet = _services.GetWallets().FirstOrDefault(x => x.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
-			return GetById(existingWallet.WalletId);
+			return GetById(existingWallet.Id);
 		}
 		return null;
 	}
@@ -155,7 +157,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
-		var keyManager = await ImportWalletHelper.ImportWalletAsync(_services.WalletManager, walletName, filePath);
+		var keyManager = await _services.ImportWalletAsync(walletName, filePath);
 		return new WalletSettingsModel(_services, keyManager, true);
 	}
 
@@ -213,23 +215,24 @@ public partial class WalletRepository : ReactiveObject
 			: throw new InvalidOperationException($"Wallet not found: {id}");
 	}
 
-	private WalletModel CreateWalletModel(Wallet wallet)
+	private WalletModel CreateWalletModel(WalletData walletData)
 	{
-		if (_walletDictionary.TryGetValue(wallet.WalletId, out var existing))
+		if (_walletDictionary.TryGetValue(walletData.Id, out var existing))
 		{
-			if (!ReferenceEquals(existing.Wallet, wallet))
-			{
-				throw new InvalidOperationException($"Different instance of: {wallet.WalletName}");
-			}
 			return existing;
 		}
 
+		// Get the actual Wallet object from Services (internal use only)
+		// This is temporary until WalletModel is fully refactored to use IServices
+		var wallet = ((Services)_services).GetWalletsInternal().FirstOrDefault(w => w.WalletId == walletData.Id)
+			?? throw new InvalidOperationException($"Wallet not found: {walletData.Name}");
+
 		var result =
-			wallet.KeyManager.IsHardwareWallet
+			walletData.IsHardwareWallet
 			? new HardwareWalletModel(_services, wallet, _amountProvider)
 			: new WalletModel(_services, wallet, _amountProvider);
 
-		_walletDictionary[wallet.WalletId] = result;
+		_walletDictionary[walletData.Id] = result;
 
 		return result;
 	}

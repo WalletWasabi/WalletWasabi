@@ -6,14 +6,12 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 
 [NavigationMetaData(Title = "Coinjoin Payments", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 {
-	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly DispatcherTimer _refreshTimer;
 
@@ -26,9 +24,8 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _hasCompletedPayments;
 	[AutoNotify] private int _totalPaymentCount;
 
-	public CoinJoinPaymentsViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
+	public CoinJoinPaymentsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
 	{
-		_wallet = wallet;
 		_walletModel = walletModel;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -61,14 +58,14 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 
 	private void OnAddPayment()
 	{
-		Navigate(NavigationTarget.DialogScreen).To().AddCoinJoinPayment(_walletModel, _wallet);
+		Navigate(NavigationTarget.DialogScreen).To().AddCoinJoinPayment(_walletModel);
 	}
 
 	private void OnCancelPayment(CoinJoinPaymentViewModel payment)
 	{
 		try
 		{
-			_wallet.CancelCoinJoinPayment(payment.Id);
+			_walletModel.CancelCoinJoinPayment(payment.Id);
 			RefreshPayments();
 		}
 		catch (InvalidOperationException)
@@ -80,7 +77,7 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 
 	private void RefreshPayments()
 	{
-		var payments = _wallet.BatchedPayments.GetPayments();
+		var payments = _walletModel.GetBatchedPayments();
 		var network = _walletModel.Network;
 
 		var pending = new ObservableCollection<CoinJoinPaymentViewModel>();

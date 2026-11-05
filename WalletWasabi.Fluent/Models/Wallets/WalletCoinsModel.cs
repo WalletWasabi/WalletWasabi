@@ -6,12 +6,11 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel, IServices services)
-	: CoinListModel(wallet, walletModel, services)
+public partial class WalletCoinsModel(IWalletModel walletModel, IServices services)
+	: CoinListModel(walletModel, services)
 {
 	public async Task UpdateExcludedCoinsFromCoinjoinAsync(CoinModel[] coinsToExclude)
 	{

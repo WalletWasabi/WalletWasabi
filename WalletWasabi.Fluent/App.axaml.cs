@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
+	private readonly UiConfig? _uiConfig;
+	private readonly IServices? _services;
 	private readonly Func<Task>? _backendInitializeAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
@@ -26,8 +28,10 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitializeAsync, bool startInBg) : this()
+	public App(UiConfig uiConfig, IServices services, Func<Task> backendInitializeAsync, bool startInBg) : this()
 	{
+		_uiConfig = uiConfig;
+		_services = services;
 		_startInBg = startInBg;
 		_backendInitializeAsync = backendInitializeAsync;
 	}
@@ -87,68 +91,37 @@ public class App : Application
 		}
 	}
 
-	private static WalletRepository CreateWalletRepository(IServices services, AmountProvider amountProvider)
-	{
-		return new WalletRepository(services, amountProvider);
-	}
-
-	private static HardwareWalletInterface CreateHardwareWalletInterface(IServices services)
-	{
-		return new HardwareWalletInterface(services);
-	}
-
-	private static FileSystemModel CreateFileSystem()
-	{
-		return new FileSystemModel();
-	}
-
-	private static ClientConfigModel CreateConfig(IServices services)
-	{
-		return new ClientConfigModel(services);
-	}
-
-	private static ApplicationSettings CreateApplicationSettings(IServices services)
-	{
-		return new ApplicationSettings(services, services.PersistentConfig, services.Config, services.UiConfig);
-	}
-
-	private static TransactionBroadcasterModel CreateBroadcaster(IServices services, Network network)
-	{
-		return new TransactionBroadcasterModel(services, network);
-	}
-
-	private static AmountProvider CreateAmountProvider(IServices services)
-	{
-		return new AmountProvider(services);
-	}
-
 	private UiContext CreateUiContext()
 	{
-		var services = Services.Instance;
-		var amountProvider = CreateAmountProvider(services);
+		// These are guaranteed to be non-null when not in design mode
+		var services = _services!;
+		var uiConfig = _uiConfig!;
 
-		var applicationSettings = CreateApplicationSettings(services);
+		var amountProvider = new AmountProvider(services);
+
+		var applicationSettings = new ApplicationSettings(services, uiConfig);
 		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
 			services,
+			uiConfig,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
-			CreateWalletRepository(services, amountProvider),
+			new WalletRepository(services, uiConfig, amountProvider),
 			new CoinjoinModel(services),
-			CreateHardwareWalletInterface(services),
-			CreateFileSystem(),
-			CreateConfig(services),
+			new HardwareWalletInterface(services),
+			new FileSystemModel(),
+			new ClientConfigModel(services),
 			applicationSettings,
-			CreateBroadcaster(services, applicationSettings.Network),
+			new TransactionBroadcasterModel(services, applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSource(),
 			torStatusChecker,
 			new HealthMonitor(services, torStatusChecker),
 			new ReleaseHighlights(),
-			services.Scheme);
+			services.GetScheme());
 	}
 }

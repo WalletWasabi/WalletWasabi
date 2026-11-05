@@ -35,6 +35,9 @@ public interface IWalletStatsModel : IDisposable
 public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
+	private readonly IWalletModel _walletModel;
+	private readonly Wallet _wallet; // Internal access for complex operations
+
 	[AutoNotify] private int _coinCount;
 	[AutoNotify] private Amount _balance;
 	[AutoNotify] private Amount _confirmedBalance;
@@ -47,15 +50,19 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 	[AutoNotify] private int _coinjoinTransactionCount;
 	[AutoNotify] private uint _birthHeight;
 
-	public WalletStatsModel(IWalletModel walletModel, Wallet wallet)
+	public WalletStatsModel(IWalletModel walletModel)
 	{
+		_walletModel = walletModel;
+		// Internal access to Wallet through WalletModel for model-level operations
+		_wallet = ((WalletModel)walletModel).Wallet;
+
 		_balance = Amount.Zero;
 		_confirmedBalance = Amount.Zero;
 		_unconfirmedBalance = Amount.Zero;
-		_birthHeight = wallet.KeyManager.GetBirthHeight() is { } h ? h.Height : 0u;
+		_birthHeight = _wallet.KeyManager.GetBirthHeight() is { } h ? h.Height : 0u;
 
 		walletModel.Transactions.TransactionProcessed
-								.Do(_ => Update(walletModel, wallet))
+								.Do(_ => Update())
 								.Subscribe()
 								.DisposeWith(_disposables);
 	}
@@ -65,37 +72,37 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 		_disposables.Dispose();
 	}
 
-	private void Update(IWalletModel walletModel, Wallet wallet)
+	private void Update()
 	{
 		// Number of coins in the wallet.
-		CoinCount = wallet.Coins.Unspent().Count();
+		CoinCount = _wallet.Coins.Unspent().Count();
 
 		// Total amount of money in the wallet.
-		Balance = walletModel.AmountProvider.Create(wallet.Coins.TotalAmount());
+		Balance = _walletModel.AmountProvider.Create(_wallet.Coins.TotalAmount());
 
 		// Total amount of confirmed money in the wallet.
-		ConfirmedBalance = walletModel.AmountProvider.Create(wallet.Coins.Confirmed().TotalAmount());
+		ConfirmedBalance = _walletModel.AmountProvider.Create(_wallet.Coins.Confirmed().TotalAmount());
 
 		// Total amount of unconfirmed money in the wallet.
-		UnconfirmedBalance = walletModel.AmountProvider.Create(wallet.Coins.Unconfirmed().TotalAmount());
+		UnconfirmedBalance = _walletModel.AmountProvider.Create(_wallet.Coins.Unconfirmed().TotalAmount());
 
-		GeneratedKeyCount = wallet.KeyManager.GetKeys().Length;
-		GeneratedCleanKeyCount = wallet.KeyManager.GetKeys(KeyState.Clean).Length;
-		GeneratedUsedKeyCount = wallet.KeyManager.GetKeys(KeyState.Used).Length;
+		GeneratedKeyCount = _wallet.KeyManager.GetKeys().Length;
+		GeneratedCleanKeyCount = _wallet.KeyManager.GetKeys(KeyState.Clean).Length;
+		GeneratedUsedKeyCount = _wallet.KeyManager.GetKeys(KeyState.Used).Length;
 
 		var singleCoinjoins =
-			walletModel.Transactions.Cache.Items
+			_walletModel.Transactions.Cache.Items
 									.OfType<CoinJoinTransactionModel>()
 									.ToList();
 
 		var groupedCoinjoins =
-			walletModel.Transactions.Cache.Items
+			_walletModel.Transactions.Cache.Items
 									.OfType<CoinJoinTransactionGroupModel>()
 									.ToList();
 
 		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
 		var nonCoinjoins =
-			walletModel.Transactions.Cache.Items
+			_walletModel.Transactions.Cache.Items
 									.Where(x => x is not (CoinJoinTransactionModel or CoinJoinTransactionGroupModel))
 									.ToList();
 
