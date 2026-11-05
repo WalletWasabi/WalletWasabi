@@ -10,7 +10,9 @@
 /// * its basic compact filter, and
 /// * filter header.
 ///
-/// The script then prints checkpoint data suitable for WalletWasabi-style filter checkpoints.
+/// The script then prints checkpoint data suitable for WalletWasabi-style filter checkpoints, plus the block header
+/// checkpoint (the difficulty-retarget boundary at or below the requested height) that lets a fresh client start its
+/// block header chain there instead of at genesis.
 /// </summary>
 /// <remarks>Block hashes are looked up by height using multiple third-party block explorers (all must agree).</remarks>
 using NBitcoin;
@@ -76,8 +78,17 @@ try
 	Console.WriteLine($"Block hash for height {blockHeight} is '{blockHash}'.");
 	Console.WriteLine();
 
+	// The block header chain of a fresh client is rooted at a retarget boundary so that difficulty validation can
+	// always look one full interval back (see BlockHeaderCheckpoints in the main project).
+	var retargetInterval = (uint)network.Consensus.DifficultyAdjustmentInterval;
+	var headerCheckpointHeight = blockHeight.Value - (blockHeight.Value % retargetInterval);
+	Console.WriteLine($"Looking up hash of block {headerCheckpointHeight} (retarget boundary at or below {blockHeight})…");
+	var headerCheckpointHash = headerCheckpointHeight == blockHeight.Value ? blockHash : await GetBlockHashAsync(headerCheckpointHeight);
+	Console.WriteLine($"Block hash for height {headerCheckpointHeight} is '{headerCheckpointHash}'.");
+	Console.WriteLine();
+
 	Console.WriteLine($"Connecting to '{nodeEndpoint}' on {network.Name} network…");
-	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value);
+	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value, headerCheckpointHash);
 
 	var grFilter = new GolombRiceFilter(data.CompactFilterPayload.FilterBytes);
 	var actualCompactFilterHeader = grFilter.GetHeader(data.CompactFilterHeadersPayload.PreviousFilterHeader);
@@ -114,6 +125,16 @@ try
 				{blockTime}L),
 			new GolombRiceFilter(Convert.FromHexString("{blockFilter}"))
 		),
+		""");
+
+	var headerCheckpointHex = Convert.ToHexString(data.HeaderCheckpointBlock.Header.ToBytes()).ToLowerInvariant();
+
+	Console.WriteLine();
+	Console.WriteLine("=== C# code (BlockHeaderCheckpoints) ===");
+	Console.WriteLine();
+	Console.WriteLine($"""
+		// Block {headerCheckpointHeight}: {headerCheckpointHash}
+		({headerCheckpointHeight}u, "{headerCheckpointHex}"),
 		""");
 
 	return 0;
@@ -216,7 +237,8 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	Network network,
 	string endpoint,
 	uint256 blockHash,
-	uint blockHeight)
+	uint blockHeight,
+	uint256 headerCheckpointHash)
 {
 	using var node = await Node.ConnectAsync(network, endpoint);
 	node.Behaviors.Add(new PingPongBehavior());
@@ -228,17 +250,23 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	if (!node.PeerVersion.Services.HasFlag(NodeServices.Network))
 		throw new Exception("Peer does not provide blocks (NODE_NETWORK)");
 
-	// Get the block
+	// Get the block and the block whose header becomes the header checkpoint (the same block when the height is a retarget boundary).
 	Block block;
+	Block headerCheckpointBlock;
 	{
-		var blocks = node.GetBlocks([blockHash]);
-		block = blocks.Single();
+		var blocks = node.GetBlocks(new[] { blockHash, headerCheckpointHash }.Distinct()).ToDictionary(b => b.GetHash());
 
-		if (block.GetHash() != blockHash)
-			throw new Exception($"Received block hash mismatch: expected {blockHash}, got {block.GetHash()}");
+		if (!blocks.TryGetValue(blockHash, out block!))
+			throw new Exception($"Block {blockHash} was not received");
+
+		if (!blocks.TryGetValue(headerCheckpointHash, out headerCheckpointBlock!))
+			throw new Exception($"Block {headerCheckpointHash} was not received");
 
 		if (!block.CheckMerkleRoot())
 			throw new Exception("Block merkle root check failed");
+
+		if (!headerCheckpointBlock.Header.CheckProofOfWork())
+			throw new Exception("Header checkpoint block proof of work check failed");
 	}
 
 	CompactFilterPayload compactFilterPayload;
@@ -284,10 +312,11 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 		node.MessageReceived -= Listener;
 	}
 
-	return new CheckPointData(compactFilterHeadersPayload, compactFilterPayload, block);
+	return new CheckPointData(compactFilterHeadersPayload, compactFilterPayload, block, headerCheckpointBlock);
 }
 
 record CheckPointData(
 	CompactFilterHeadersPayload CompactFilterHeadersPayload,
 	CompactFilterPayload CompactFilterPayload,
-	Block Block);
+	Block Block,
+	Block HeaderCheckpointBlock);
