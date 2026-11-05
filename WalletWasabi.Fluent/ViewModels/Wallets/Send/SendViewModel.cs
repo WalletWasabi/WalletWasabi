@@ -82,7 +82,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
-		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		_exchangeRate = UiContext.Services.GetExchangeRate();
 
 		Balance =
 			_parameters.IsManual
@@ -562,10 +562,10 @@ public partial class SendViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 	{
 		// Refresh in case the rate changed while we were not subscribed.
-		ExchangeRate = UiContext.Services.GetUsdExchangeRate();
+		ExchangeRate = UiContext.Services.GetExchangeRate();
 
 		UiContext.Services.EventBus
-			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.UsdBtcRate)
+			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.ExchangeRate)
 			.DisposeWith(disposables);
 
 		if (!inHistory)

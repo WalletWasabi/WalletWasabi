@@ -7,7 +7,7 @@ namespace WalletWasabi.Client;
 public class StatusContainer : IDisposable
 {
 	public bool IsTorRunning { get; private set; }
-	public decimal UsdExchangeRate { get; private set; }
+	public decimal ExchangeRate { get; private set; }
 	public FeeRateEstimations? FeeRates { get; private set; }
 	public uint BestNetworkHeight { get; private set; }
 	public bool InstallOnClose { get; private set; }
@@ -29,7 +29,7 @@ public class StatusContainer : IDisposable
 			eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRates = e.AllFeeEstimate);
 
 		_exchangeRateSubscription =
-			eventBus.Subscribe<ExchangeRateChanged>(e => UsdExchangeRate = e.UsdBtcRate);
+			eventBus.Subscribe<ExchangeRateChanged>(e => ExchangeRate = e.ExchangeRate);
 
 		_bestHeightSubscription =
 			eventBus.Subscribe<NetworkTipHeightChanged>(e => BestNetworkHeight = e.Height);

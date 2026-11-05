@@ -180,7 +180,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _services.GetUsdExchangeRate();
+		var usdExchangeRate = _services.GetExchangeRate();
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -290,7 +290,7 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _services.GetUsdExchangeRate();
+		decimal usdExchangeRate = _services.GetExchangeRate();
 
 		// Only allow to create 2 more inputs with BnB.
 		int maxInputCount = transaction.SpentCoins.Count() + 2;
