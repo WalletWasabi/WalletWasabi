@@ -163,7 +163,7 @@
                                   ConversionCurrencyCode="USD"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                                   BalanceBtc="{Binding Balance^.Btc}"
-                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  BalanceUsd="{Binding Balance^.Fiat^}"
                                   ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
