@@ -10,7 +10,7 @@ public partial class BtcPriceTileViewModel : ActivatableViewModel
 
 	public BtcPriceTileViewModel(UiContext uiContext, AmountProvider amountProvider) : base(uiContext)
 	{
-		amountProvider.BtcToUsdExchangeRate
+		amountProvider.BtcToFiatExchangeRate
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.StartWith(amountProvider.ExchangeRate)
 			.Subscribe(x => UsdPerBtc = x);

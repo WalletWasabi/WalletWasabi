@@ -21,7 +21,7 @@ public class Amount
 	public Amount(Money money, AmountProvider exchangeRateProvider)
 	{
 		Btc = money;
-		Fiat = exchangeRateProvider.BtcToUsdExchangeRate
+		Fiat = exchangeRateProvider.BtcToFiatExchangeRate
 			.StartWith(exchangeRateProvider.ExchangeRate)
 			.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
 		HasFiatBalance = Fiat.Select(x => x != 0m);

@@ -11,17 +11,17 @@ public partial class AmountProvider : ReactiveObject
 
 	public AmountProvider(IServices services)
 	{
-		BtcToUsdExchangeRate = services.EventBus
+		BtcToFiatExchangeRate = services.EventBus
 			.AsObservable<ExchangeRateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.ExchangeRate);
 
-		BtcToUsdExchangeRate.Subscribe(x => ExchangeRate = x);
+		BtcToFiatExchangeRate.Subscribe(x => ExchangeRate = x);
 
 		ExchangeRate = services.GetExchangeRate();
 	}
 
-	public IObservable<decimal> BtcToUsdExchangeRate { get; }
+	public IObservable<decimal> BtcToFiatExchangeRate { get; }
 
 	public Amount Create(Money? money)
 	{
