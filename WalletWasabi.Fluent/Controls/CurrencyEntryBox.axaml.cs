@@ -40,8 +40,8 @@ public partial class CurrencyEntryBox : TextBox
 	public static readonly StyledProperty<Money> BalanceBtcProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, Money>(nameof(BalanceBtc));
 
-	public static readonly StyledProperty<decimal> BalanceUsdProperty =
-		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(BalanceUsd));
+	public static readonly StyledProperty<decimal> BalanceFiatProperty =
+		AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(BalanceFiat));
 
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
@@ -101,10 +101,10 @@ public partial class CurrencyEntryBox : TextBox
 		set => SetValue(BalanceBtcProperty, value);
 	}
 
-	public decimal BalanceUsd
+	public decimal BalanceFiat
 	{
-		get => GetValue(BalanceUsdProperty);
-		set => SetValue(BalanceUsdProperty, value);
+		get => GetValue(BalanceFiatProperty);
+		set => SetValue(BalanceFiatProperty, value);
 	}
 
 	public bool ValidatePasteBalance
@@ -346,7 +346,7 @@ public partial class CurrencyEntryBox : TextBox
 		else
 		{
 			var usd = ValidatePasteBalance
-				? ClipboardObserver.ParseToFiat(text, BalanceUsd)
+				? ClipboardObserver.ParseToFiat(text, BalanceFiat)
 				: ClipboardObserver.ParseToFiat(text);
 			if (usd is not null)
 			{
