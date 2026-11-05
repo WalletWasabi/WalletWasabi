@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
