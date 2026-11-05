@@ -65,7 +65,6 @@ public class PersistentConfigManagerTests
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "ExchangeRateProvider": "MempoolSpace",
-			  "FiatCurrency": "USD",
 			  "FeeRateEstimationProvider": "MempoolSpace",
 			  "ExternalTransactionBroadcaster": "MempoolSpace",
 			  "MaxCoinJoinMiningFeeRate": 50.0,

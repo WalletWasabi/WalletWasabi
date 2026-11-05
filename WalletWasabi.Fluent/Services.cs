@@ -114,7 +114,8 @@ public class Services : IServices
 	public TorMode GetUseTor() => Config.UseTor;
 
 	// ExchangeRate info
-	public ExchangeRate GetExchangeRate() => _status.ExchangeRate;
+	public ExchangeRate GetExchangeRate() =>
+		_status.ExchangeRates.ForCurrency(UiConfig.FiatCurrency) ?? new ExchangeRate(UiConfig.FiatCurrency, 0m);
 
 	// UI Config
 	public bool GetHideOnClose() => UiConfig.HideOnClose;

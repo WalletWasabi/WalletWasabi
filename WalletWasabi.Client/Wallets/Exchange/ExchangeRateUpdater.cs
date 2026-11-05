@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
@@ -9,19 +10,19 @@ public static class ExchangeRateUpdater
 	public static readonly string ServiceName = "ExchangeFeeRateUpdater";
 	public record UpdateMessage;
 
-	public static MessageHandler<UpdateMessage, decimal> CreateExchangeRateUpdater(
+	public static MessageHandler<UpdateMessage, ExchangeRate[]> CreateExchangeRateUpdater(
 		ExchangeRateProvider provider, EventBus eventBus) =>
-		(_, exchangeRate, cancellationToken) => UpdateExchangeRateAsync(exchangeRate, provider, eventBus, cancellationToken);
+		(_, exchangeRates, cancellationToken) => UpdateExchangeRatesAsync(exchangeRates, provider, eventBus, cancellationToken);
 
-	private static async Task<decimal> UpdateExchangeRateAsync(decimal exchangeRate, ExchangeRateProvider provider, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<ExchangeRate[]> UpdateExchangeRatesAsync(ExchangeRate[] exchangeRates, ExchangeRateProvider provider, EventBus eventBus, CancellationToken cancellationToken)
 	{
-		var newExchangeRate = await provider(cancellationToken).ConfigureAwait(false);
-		if (newExchangeRate.Rate != exchangeRate && newExchangeRate.Rate > 0m)
+		var newExchangeRates = await provider(cancellationToken).ConfigureAwait(false);
+		if (newExchangeRates.Length != 0 && !newExchangeRates.SequenceEqual(exchangeRates))
 		{
-			exchangeRate = newExchangeRate.Rate;
-			eventBus.Publish(new ExchangeRateChanged(newExchangeRate));
+			exchangeRates = newExchangeRates;
+			eventBus.Publish(new ExchangeRatesChanged(newExchangeRates));
 		}
 
-		return exchangeRate;
+		return exchangeRates;
 	}
 }

@@ -89,7 +89,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
-		_fiatCurrency = persistentConfig.FiatCurrency;
+		_fiatCurrency = uiConfig.FiatCurrency;
 		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -134,7 +134,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
-		FiatCurrency = persistentConfig.FiatCurrency;
+		FiatCurrency = uiConfig.FiatCurrency;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -194,10 +194,9 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.AbsoluteMinInputCount,
 					x => x.CoordinatorUri,
 					x => x.ExchangeRateProvider,
-					x => x.FiatCurrency,
 					x => x.FeeRateEstimationProvider,
 					x => x.ExternalTransactionBroadcaster,
-					(_, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -216,9 +215,11 @@ public partial class ApplicationSettings : ReactiveObject
 				x => x.CustomChangeAddress,
 				x => x.RunOnSystemStartup,
 				x => x.HideOnClose,
+				x => x.FiatCurrency,
 				x => x.Oobe,
 				x => x.LastVersionHighlightsDisplayed,
-				x => x.WindowState)
+				x => x.WindowState,
+				(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
@@ -329,7 +330,6 @@ public partial class ApplicationSettings : ReactiveObject
 				absoluteMinInputCount :
 				Constants.DefaultAbsoluteMinInputCount,
 			ExchangeRateProvider = ExchangeRateProvider,
-			FiatCurrency = FiatCurrency,
 			FeeRateEstimationProvider = FeeRateEstimationProvider,
 			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
 		};
@@ -371,6 +371,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.IsCustomChangeAddress = CustomChangeAddress;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+		_uiConfig.FiatCurrency = FiatCurrency;
 		_uiConfig.Oobe = Oobe;
 		_uiConfig.LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed;
 		_uiConfig.WindowState = WindowState.ToString();

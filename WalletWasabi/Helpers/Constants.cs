@@ -83,7 +83,6 @@ public static class Constants
 	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";
 
 	public const string DefaultExchangeRateProvider = "MempoolSpace";
-	public const string DefaultFiatCurrency = "USD";
 	public const string DefaultFeeRateEstimationProvider = "MempoolSpace";
 	public const string DefaultExternalTransactionBroadcaster= "MempoolSpace";
 

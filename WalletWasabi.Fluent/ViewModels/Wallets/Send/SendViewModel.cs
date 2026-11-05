@@ -566,7 +566,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = UiContext.Services.GetExchangeRate();
 
 		UiContext.Services.EventBus
-			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.ExchangeRate)
+			.Subscribe<ExchangeRatesChanged>(_ => ExchangeRate = UiContext.Services.GetExchangeRate())
 			.DisposeWith(disposables);
 
 		if (!inHistory)

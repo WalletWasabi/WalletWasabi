@@ -11,16 +11,16 @@
              x:DataType="settings:ConnectionsSettingsTabViewModel">
   <StackPanel Classes="settingsLayout">
 
-    <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
-      <TextBlock Text="Exchange Rate Provider" />
-      <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
-                SelectedItem="{Binding Settings.ExchangeRateProvider}" />
-    </DockPanel>
-
-    <DockPanel ToolTip.Tip="The exchange rate is fetched for this currency and amounts are also shown in it.">
+    <DockPanel ToolTip.Tip="Amounts are shown in this currency. Only the exchange rate providers quoting it can be selected.">
       <TextBlock Text="Fiat Currency" />
       <ComboBox ItemsSource="{Binding FiatCurrencies}"
                 SelectedItem="{Binding Settings.FiatCurrency}" />
+    </DockPanel>
+
+    <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
+      <TextBlock Text="Exchange Rate Provider" />
+      <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
+                SelectedItem="{Binding Settings.ExchangeRateProvider, Converter={x:Static conv:IgnoreEmptySelectionConverter.Instance}}" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="The client will try to fetch fee rate estimations from this provider. If unavailable, it will fallback to any other.">

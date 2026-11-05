@@ -28,7 +28,6 @@ public record PersistentConfig(
 	bool EnableGpu,
 	string CoordinatorIdentifier,
 	string ExchangeRateProvider,
-	string FiatCurrency,
 	string FeeRateEstimationProvider,
 	string ExternalTransactionBroadcaster,
 	decimal MaxCoinJoinMiningFeeRate,

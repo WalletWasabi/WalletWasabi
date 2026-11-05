@@ -34,7 +34,6 @@ public static class PersistentConfigEncode
 			("EnableGpu", Bool(cfg.EnableGpu)),
 			("CoordinatorIdentifier", String(cfg.CoordinatorIdentifier)),
 			("ExchangeRateProvider", String(cfg.ExchangeRateProvider)),
-			("FiatCurrency", String(cfg.FiatCurrency)),
 			("FeeRateEstimationProvider", String(cfg.FeeRateEstimationProvider)),
 			("ExternalTransactionBroadcaster", String(cfg.ExternalTransactionBroadcaster)),
 			("MaxCoinJoinMiningFeeRate", Decimal(cfg.MaxCoinJoinMiningFeeRate)),
@@ -85,7 +84,6 @@ public static class PersistentConfigDecode
 					DustThreshold: get.Required("DustThreshold", Decode.MoneyBitcoins),
 					EnableGpu: get.Required("EnableGpu", Decode.Bool),
 					ExchangeRateProvider: get.Optional("ExchangeRateProvider", ExchangeRateProvider) ?? "MempoolSpace",
-					FiatCurrency: get.Optional("FiatCurrency", Decode.String) ?? Constants.DefaultFiatCurrency,
 					FeeRateEstimationProvider: get.Optional("FeeRateEstimationProvider", Decode.String) ??
 					                           "BlockstreamInfo",
 					ExternalTransactionBroadcaster: get.Optional("ExternalTransactionBroadcaster", Decode.String) ??

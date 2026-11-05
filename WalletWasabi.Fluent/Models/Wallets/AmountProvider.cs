@@ -1,8 +1,8 @@
 using System.Reactive.Linq;
 using NBitcoin;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Services;
-using WalletWasabi.Client.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -15,9 +15,11 @@ public partial class AmountProvider : ReactiveObject
 		_exchangeRate = services.GetExchangeRate();
 
 		BtcToFiatExchangeRate = services.EventBus
-			.AsObservable<ExchangeRateChanged>()
+			.AsObservable<ExchangeRatesChanged>()
+			.ToSignal()
+			.Merge(services.UiConfig.WhenAnyValue(x => x.FiatCurrency).Skip(1).ToSignal())
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => x.ExchangeRate);
+			.Select(_ => services.GetExchangeRate());
 
 		BtcToFiatExchangeRate.Subscribe(x => ExchangeRate = x);
 	}

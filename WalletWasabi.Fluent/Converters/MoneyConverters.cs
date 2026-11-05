@@ -1,6 +1,5 @@
 using Avalonia.Data.Converters;
 using NBitcoin;
-using System.Globalization;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -9,9 +8,6 @@ namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToUsdNumber =
-		new FuncValueConverter<Money, string?>(n => n?.ToDecimal(MoneyUnit.BTC).WithFriendlyDecimals().ToString(CultureInfo.InvariantCulture));
-
 	public static readonly IValueConverter ToFiatAmountFormattedWithoutSpaces =
 		new FuncValueConverter<FiatAmount?, string?>(n => n?.Value.ToFiatAmountFormatted().Replace(" ", ""));
 
