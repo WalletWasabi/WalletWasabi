@@ -18,7 +18,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;

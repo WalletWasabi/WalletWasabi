@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Tests.UnitTests.Mocks;
-using WalletWasabi.Wallets.Exchange;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallets.Exchange;

@@ -1,7 +1,7 @@
 using NBitcoin;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Wallets.Exchange;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Extensions;

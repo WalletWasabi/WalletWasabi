@@ -8,9 +8,9 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
-using WalletWasabi.Models;
+using WalletWasabi.Client.Wallets.Exchange;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Services;
-using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;

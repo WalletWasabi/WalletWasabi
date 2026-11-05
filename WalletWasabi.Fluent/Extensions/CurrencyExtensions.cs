@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -61,7 +61,7 @@ public static class CurrencyExtensions
 	{
 		var fractionalCount =
 			originalText.Contains('.')
-			? originalText.Skip(originalText.LastIndexOf('.')).Where(char.IsDigit).Count()
+			? originalText.Skip(originalText.LastIndexOf('.')).Count(char.IsDigit)
 			: 0;
 
 		return FormattedBtcExactFractional(amount, fractionalCount);

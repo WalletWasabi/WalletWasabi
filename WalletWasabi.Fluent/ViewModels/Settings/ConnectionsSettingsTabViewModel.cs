@@ -1,15 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -45,11 +40,11 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public ApplicationSettings Settings { get; }
 
-	public IEnumerable<string> ExchangeRateProviders => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Providers;
-	public IEnumerable<string> FiatCurrencies => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Currencies;
+	public IEnumerable<string> ExchangeRateProviders => Client.Wallets.Exchange.ExchangeRateProviders.Providers;
+	public IEnumerable<string> FiatCurrencies => Client.Wallets.Exchange.ExchangeRateProviders.Currencies;
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;
 	public IEnumerable<string> ExternalBroadcastProviders { get; }
 
 	public IEnumerable<TorMode> TorModes =>
-		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
+		Enum.GetValues<TorMode>().Cast<TorMode>();
 }

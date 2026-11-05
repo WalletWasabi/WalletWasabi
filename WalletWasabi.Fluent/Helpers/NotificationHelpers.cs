@@ -5,12 +5,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Helpers;
 

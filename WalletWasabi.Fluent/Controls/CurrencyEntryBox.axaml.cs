@@ -335,8 +335,8 @@ public partial class CurrencyEntryBox : TextBox
 		if (!IsFiat)
 		{
 			var money = ValidatePasteBalance
-				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
-				: ClipboardObserver.ParseToMoney(text);
+				? ClipboardObserver.ParseToBtc(text, BalanceBtc)
+				: ClipboardObserver.ParseToBtc(text);
 			if (money is not null)
 			{
 				result = money.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);

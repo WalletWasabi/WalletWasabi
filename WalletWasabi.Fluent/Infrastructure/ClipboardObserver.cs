@@ -25,7 +25,7 @@ internal class ClipboardObserver
 			.Ensure(n => n.CountDecimalPlaces() <= 2);
 	}
 
-	public static Money? ParseToMoney(string? text)
+	public static Money? ParseToBtc(string? text)
 	{
 		if (text is null)
 		{
@@ -35,7 +35,7 @@ internal class ClipboardObserver
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 
-	public static string? ParseToMoney(string? text, Money balance)
+	public static string? ParseToBtc(string? text, Money balance)
 	{
 		// Ignore paste if there are invalid characters
 		if (text is null || !CurrencyInput.IsValidDecimal(text, out _))
@@ -43,7 +43,7 @@ internal class ClipboardObserver
 			return null;
 		}
 
-		var money = ParseToMoney(text).Ensure(m => m <= balance);
+		var money = ParseToBtc(text).Ensure(m => m <= balance);
 		return money?.ToDecimal(MoneyUnit.BTC).FormattedBtcExactFractional(text);
 	}
 }

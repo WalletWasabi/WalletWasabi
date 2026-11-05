@@ -10,7 +10,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;

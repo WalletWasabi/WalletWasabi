@@ -23,7 +23,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
@@ -391,7 +391,7 @@ public partial class SendViewModel : RoutableViewModel
 			var latestBalance = BalanceLatest;
 			if (latestBalance is not null)
 			{
-				var btc = ClipboardObserver.ParseToMoney(content, latestBalance.Btc);
+				var btc = ClipboardObserver.ParseToBtc(content, latestBalance.Btc);
 				if (btc is not null)
 				{
 					BitcoinContent = btc;

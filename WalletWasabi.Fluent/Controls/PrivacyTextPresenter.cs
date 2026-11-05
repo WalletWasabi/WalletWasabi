@@ -3,6 +3,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using WalletWasabi.Fluent.Configuration;
 
 namespace WalletWasabi.Fluent.Controls;
 

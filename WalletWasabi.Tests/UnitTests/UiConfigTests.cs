@@ -1,6 +1,6 @@
 using System.IO;
 using System.Text.Json;
-using WalletWasabi.Fluent;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

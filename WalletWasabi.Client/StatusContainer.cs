@@ -1,7 +1,7 @@
 using System;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Services;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Client;
 

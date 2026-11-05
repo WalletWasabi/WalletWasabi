@@ -11,12 +11,13 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
-using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.Client.Wallets.Exchange;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 

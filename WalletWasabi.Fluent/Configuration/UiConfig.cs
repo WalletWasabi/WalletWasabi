@@ -1,11 +1,10 @@
 using System.IO;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Serialization;
 using Unit = System.Reactive.Unit;
 
-namespace WalletWasabi.Fluent;
+namespace WalletWasabi.Fluent.Configuration;
 
 public class UiConfig : ConfigBase
 {

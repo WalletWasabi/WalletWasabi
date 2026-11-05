@@ -8,7 +8,6 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -110,7 +109,6 @@ public class EventBus
 }
 
 
-public record ExchangeRateChanged(ExchangeRate ExchangeRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record NetworkTipHeightChanged(uint Height);
 public record ClientTipHeightChanged(uint Height);

@@ -4,6 +4,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Configuration;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 

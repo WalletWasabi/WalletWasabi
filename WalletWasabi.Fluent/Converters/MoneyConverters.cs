@@ -1,6 +1,6 @@
-using System.Globalization;
 using Avalonia.Data.Converters;
 using NBitcoin;
+using System.Globalization;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -114,5 +114,5 @@ public static class MoneyConverters
 		new FuncValueConverter<Money?, string?>(n => n?.ToFeeDisplayUnitRawString());
 
 	public static readonly IValueConverter PercentageDifferenceConverter =
-			new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
+		new FuncValueConverter<double, string>(TextHelpers.FormatPercentageDiff );
 }
