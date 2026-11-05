@@ -11,7 +11,7 @@ public static class ExchangeRateUpdater
 
 	public static MessageHandler<UpdateMessage, decimal> CreateExchangeRateUpdater(
 		ExchangeRateProvider provider, EventBus eventBus) =>
-		(_, usdExchangeRate, cancellationToken) => UpdateExchangeRateAsync(usdExchangeRate, provider, eventBus, cancellationToken);
+		(_, exchangeRate, cancellationToken) => UpdateExchangeRateAsync(exchangeRate, provider, eventBus, cancellationToken);
 
 	private static async Task<decimal> UpdateExchangeRateAsync(decimal exchangeRate, ExchangeRateProvider provider, EventBus eventBus, CancellationToken cancellationToken)
 	{

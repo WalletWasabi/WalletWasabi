@@ -49,7 +49,7 @@ public static class NotificationHelpers
 
 	public static void Show(IWalletModel wallet, ProcessedResult result, Action onClick)
 	{
-		if (TryGetNotificationInputs(result, wallet.AmountProvider.UsdExchangeRate, out var message))
+		if (TryGetNotificationInputs(result, wallet.AmountProvider.ExchangeRate, out var message))
 		{
 			Show(wallet.Name, message, onClick);
 		}

@@ -12,7 +12,7 @@ public partial class BtcPriceTileViewModel : ActivatableViewModel
 	{
 		amountProvider.BtcToUsdExchangeRate
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.StartWith(amountProvider.UsdExchangeRate)
+			.StartWith(amountProvider.ExchangeRate)
 			.Subscribe(x => UsdPerBtc = x);
 	}
 }
