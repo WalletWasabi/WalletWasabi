@@ -35,7 +35,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		_showQrCodeCameraDialog = showQrCodeCameraDialog;
 		_walletModel = walletModel;
 
-		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		_exchangeRate = UiContext.Services.GetExchangeRate();
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);

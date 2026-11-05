@@ -9,7 +9,6 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -45,7 +44,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public ApplicationSettings Settings { get; }
 
-	public IEnumerable<string> ExchangeRateProviders => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Providers;
+	public IEnumerable<string> ExchangeRateProviders => Client.Wallets.Exchange.ExchangeRateProviders.Providers;
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;
 	public IEnumerable<string> ExternalBroadcastProviders { get; }
 

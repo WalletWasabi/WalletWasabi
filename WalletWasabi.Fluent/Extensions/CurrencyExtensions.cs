@@ -59,7 +59,7 @@ public static class CurrencyExtensions
 	{
 		var fractionalCount =
 			originalText.Contains('.')
-			? originalText.Skip(originalText.LastIndexOf('.')).Where(char.IsDigit).Count()
+			? originalText.Skip(originalText.LastIndexOf('.')).Count(char.IsDigit)
 			: 0;
 
 		return FormattedBtcExactFractional(amount, fractionalCount);
@@ -75,16 +75,16 @@ public static class CurrencyExtensions
 		return money.ToDecimal(MoneyUnit.BTC) * exchangeRate;
 	}
 
-	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsdFormatted(n)}" : "";
+	public static string ToFiatAprox(this decimal n) => n != decimal.Zero ? $"≈{ToFiatFormatted(n)}" : "";
 
-	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
+	public static string ToFiatAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToFiatAprox(n)})" : "";
 
-	public static string ToUsdFormatted(this decimal n)
+	public static string ToFiatFormatted(this decimal n)
 	{
-		return ToUsdAmountFormatted(n) + " USD";
+		return ToFiatAmountFormatted(n) + " USD";
 	}
 
-	public static string ToUsdAmountFormatted(this decimal n)
+	public static string ToFiatAmountFormatted(this decimal n)
 	{
 		return n switch
 		{
@@ -92,11 +92,6 @@ public static class CurrencyExtensions
 			>= 1 => n.ToString("N1", FormatInfo),
 			_ => n.ToString("N2", FormatInfo)
 		};
-	}
-
-	public static string ToUsd(this decimal n)
-	{
-		return n.WithFriendlyDecimals() + " USD";
 	}
 
 	public static decimal WithFriendlyDecimals(this double n)

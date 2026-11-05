@@ -1,8 +1,15 @@
+using System;
+using System.Collections.Immutable;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 
-namespace WalletWasabi.Wallets.Exchange;
+namespace WalletWasabi.Client.Wallets.Exchange;
 
 using ExchangeRateExtractor = Func<string, decimal>;
 public delegate Task<ExchangeRate> ExchangeRateProvider(CancellationToken cancellationToken);
@@ -33,7 +40,7 @@ public static class ExchangeRateProviders
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"),
+		cancellationToken => GetExchangeRateAsync("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider NoneAsync() =>
@@ -50,7 +57,7 @@ public static class ExchangeRateProviders
 				}
 				catch (Exception)
 				{
-					// ignore. Try the next provider
+					// Ignore. Try the next provider.
 				}
 			}
 

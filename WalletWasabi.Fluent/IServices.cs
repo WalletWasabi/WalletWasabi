@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Fluent.Configuration;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
@@ -53,7 +52,8 @@ public interface IServices
 	string GetTorLogFilePath();
 	TorMode GetUseTor();
 
-	decimal GetUsdExchangeRate();
+	/// <summary>Gets the current exchange rate of BTC to the configured currency.</summary>
+	decimal GetExchangeRate();
 
 	bool GetHideOnClose();
 	double? GetWindowWidth();

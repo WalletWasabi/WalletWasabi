@@ -113,7 +113,7 @@ public class Services : IServices
 	public TorMode GetUseTor() => Config.UseTor;
 
 	// ExchangeRate info
-	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
+	public decimal GetExchangeRate() => _status.ExchangeRate;
 
 	// UI Config
 	public bool GetHideOnClose() => UiConfig.HideOnClose;
