@@ -80,7 +80,7 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
-				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToFiatAproxBetweenParens();
 
 				if (result.Transaction.Transaction.IsCoinBase)
 				{
@@ -97,7 +97,7 @@ public static class NotificationHelpers
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToFiatAproxBetweenParens();
 					message = $"{sentAmount.ToFormattedString()} BTC {fiatSentAmount} sent";
 				}
 			}
@@ -108,7 +108,7 @@ public static class NotificationHelpers
 				Money incoming = receivedSum - spentSum;
 				Money receiveSpentDiff = incoming.Abs();
 				string amountString = receiveSpentDiff.ToFormattedString();
-				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+				string fiatString = receiveSpentDiff.BtcToUsd(fiatExchangeRate).ToFiatAproxBetweenParens();
 
 				if (isConfirmedSpent && receiveSpentDiff == miningFee)
 				{
@@ -121,7 +121,7 @@ public static class NotificationHelpers
 				else if (incoming < Money.Zero)
 				{
 					var sentAmount = receiveSpentDiff - miningFee;
-					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToUsdAproxBetweenParens();
+					var fiatSentAmount = sentAmount.BtcToUsd(fiatExchangeRate).ToFiatAproxBetweenParens();
 					message = $"{sentAmount.ToFormattedString()} BTC {fiatSentAmount} sent got confirmed";
 				}
 			}

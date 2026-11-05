@@ -8,13 +8,13 @@ namespace WalletWasabi.Fluent.Converters;
 public static class MoneyConverters
 {
 	public static readonly IValueConverter ToFiatAmountFormattedWithoutSpaces =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAmountFormatted().Replace(" ", ""));
+		new FuncValueConverter<decimal, string>(n => n.ToFiatAmountFormatted().Replace(" ", ""));
 
 	public static readonly IValueConverter ToFiatApprox =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAprox());
+		new FuncValueConverter<decimal, string>(n => n.ToFiatAprox());
 
 	public static readonly IValueConverter ToFiatApproxBetweenParens =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdAproxBetweenParens());
+		new FuncValueConverter<decimal, string>(n => n.ToFiatAproxBetweenParens());
 
 	private const string BtcAscii = "\u20bf ";
 

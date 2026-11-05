@@ -465,7 +465,7 @@ public partial class PrivacySuggestionsModel
 		var absFiatDifference = Math.Abs(fiatDifference);
 		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC" +
 			(absFiatDifference > 0
-				? $" {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}"
+				? $" {Math.Abs(fiatDifference).ToFiatAproxBetweenParens()}"
 				: "");
 	}
 
