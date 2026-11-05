@@ -29,7 +29,7 @@ public class BlockHeaderSyncBehaviorTests
 		chain.SetTip(new ChainedBlock(nodeHeaders[2016], 2016));
 
 		using var fakeNode = new FakeNode(nodeHeaders);
-		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+		var requests = await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2));
 
 		Assert.Equal(4116, chain.Tip!.Height);
 		Assert.Equal(nodeHeaders[4116].GetHash(), chain.Tip.HashBlock);
@@ -44,7 +44,7 @@ public class BlockHeaderSyncBehaviorTests
 		chain.SetTip(new ChainedBlock(MineChain(count: 1, salt: 1)[1], 2016)); // A base the node has never heard of.
 
 		using var fakeNode = new FakeNode(nodeHeaders);
-		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+		var requests = await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2));
 
 		Assert.Equal(2016, chain.Tip!.Height);
 		Assert.Equal(1, requests);
@@ -57,7 +57,7 @@ public class BlockHeaderSyncBehaviorTests
 		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 6116);
 
 		using var fakeNode = new FakeNode(headers.Take(4051).ToList()); // The node is at 4050.
-		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+		var requests = await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2));
 
 		Assert.Equal(6116, chain.Tip!.Height);
 		Assert.Equal(1, requests); // Its answer, 2017-4016, is all known: there is nothing to continue from.
@@ -70,9 +70,24 @@ public class BlockHeaderSyncBehaviorTests
 		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 6116);
 
 		using var fakeNode = new FakeNode(headers, alwaysAnswersFrom: 2017); // Ignores the locator and replays 2017-4016.
-		var requests = await fakeNode.SyncAsync(chain, settleTime: TimeSpan.FromSeconds(2));
+		var requests = await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2));
 
 		Assert.Equal(6116, chain.Tip!.Height);
+		Assert.Equal(1, requests);
+	}
+
+	[Fact]
+	public async Task APeerWithNothingNewStillTellsTheNetworkTipAsync()
+	{
+		var headers = MineChain(count: 2100);
+		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 2100); // Restarted with no new block: already at the peer's tip.
+		var filterHeaderChain = new FilterHeaderChain();
+
+		using var fakeNode = new FakeNode(headers);
+		var requests = await fakeNode.SyncAsync(chain, filterHeaderChain, settleTime: TimeSpan.FromSeconds(2));
+
+		Assert.Equal(2100, chain.Tip!.Height);
+		Assert.Equal(2100u, (uint)filterHeaderChain.ServerTipHeight); // The wallets wait for this before they load.
 		Assert.Equal(1, requests);
 	}
 
@@ -133,10 +148,10 @@ public class BlockHeaderSyncBehaviorTests
 			_server.Listen();
 		}
 
-		public async Task<int> SyncAsync(ConcurrentChain chain, TimeSpan settleTime)
+		public async Task<int> SyncAsync(ConcurrentChain chain, FilterHeaderChain filterHeaderChain, TimeSpan settleTime)
 		{
 			using var node = await Node.ConnectAsync(Network, _server.LocalEndpoint);
-			node.Behaviors.Add(new BlockHeaderSyncBehavior(chain, new FilterHeaderChain(), new EventBus()));
+			node.Behaviors.Add(new BlockHeaderSyncBehavior(chain, filterHeaderChain, new EventBus()));
 			await node.VersionHandshakeAsync();
 			await Task.Delay(settleTime);
 			node.Disconnect();

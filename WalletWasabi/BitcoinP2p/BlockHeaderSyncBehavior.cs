@@ -106,11 +106,17 @@ public class BlockHeaderSyncBehavior(
 			cursor = candidate;
 		}
 
-		var tip = blockHeaderChain.Tip;
-		if (cursor.GetChainWork(cacheResult: true) > tip.GetChainWork(cacheResult: true))
+		if (cursor.GetChainWork(cacheResult: true) > blockHeaderChain.Tip.GetChainWork(cacheResult: true))
 		{
 			blockHeaderChain.SetTip(cursor);
-			PublishTip((uint)cursor.Height);
+			eventBus.Publish(new BlockHeadersTipChanged((uint)cursor.Height));
+		}
+
+		var tipHeight = (uint)blockHeaderChain.Tip.Height;
+		if (tipHeight > filterHeaderChain.ServerTipHeight)
+		{
+			filterHeaderChain.SetServerTipHeight(tipHeight);
+			eventBus.Publish(new NetworkTipHeightChanged(tipHeight));
 		}
 
 		_peerTip = blockHeaderChain.GetBlock(cursor.HashBlock) ?? cursor;
@@ -118,16 +124,6 @@ public class BlockHeaderSyncBehavior(
 		if (headers.Headers.Count >= MaxHeadersPerMessage && cursor.Height > start.Height)
 		{
 			RequestHeaders(node);
-		}
-	}
-
-	private void PublishTip(uint height)
-	{
-		eventBus.Publish(new BlockHeadersTipChanged(height));
-		if (height > filterHeaderChain.ServerTipHeight)
-		{
-			filterHeaderChain.SetServerTipHeight(height);
-			eventBus.Publish(new NetworkTipHeightChanged(height));
 		}
 	}
 
