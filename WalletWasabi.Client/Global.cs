@@ -36,6 +36,7 @@ using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
+using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
@@ -683,25 +684,40 @@ public class Global
 	private static async Task WaitForTorBootstrapAsync(TorControlClient torControlClient, CancellationToken cancellationToken)
 	{
 		var startedAt = DateTimeOffset.UtcNow;
+		GetInfoBootstrapPhaseReply? lastKnownPhase = null;
 
 		try
 		{
 			while (true)
 			{
-				// Only the application's cancellation may interrupt the query: cancelling a control command while its
-				// reply is in flight leaves that reply queued for whichever command the shared client sends next.
-				var bootstrapPhase = await torControlClient.GetBootstrapPhaseAsync(cancellationToken).ConfigureAwait(false);
-				var elapsed = DateTimeOffset.UtcNow - startedAt;
-
-				if (bootstrapPhase.IsBootstrapped)
+				var remaining = TorBootstrapTimeout - (DateTimeOffset.UtcNow - startedAt);
+				if (remaining <= TimeSpan.Zero)
 				{
-					Logger.LogInfo($"Tor is bootstrapped ({elapsed.TotalSeconds:F1}s).");
+					var progress = lastKnownPhase is null ? "unknown progress" : $"{lastKnownPhase.Progress}%, {lastKnownPhase.Summary}";
+					Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s ({progress}). Starting the P2P network anyway.");
 					return;
 				}
 
-				if (elapsed >= TorBootstrapTimeout)
+				// Only the application's cancellation may interrupt the query itself: cancelling a control command while
+				// its reply is in flight leaves that reply queued for the next command on the shared client. The deadline
+				// therefore bounds this wait, not the command; a query that outlives it finishes on its own.
+				var queryTask = torControlClient.GetBootstrapPhaseAsync(cancellationToken);
+				using var delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+				var completedTask = await Task.WhenAny(queryTask, Task.Delay(remaining, delayCts.Token)).ConfigureAwait(false);
+
+				if (completedTask != queryTask)
 				{
-					Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s (progress: {bootstrapPhase.Progress}%, {bootstrapPhase.Summary}). Starting the P2P network anyway.");
+					_ = queryTask.ContinueWith(static t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+					Logger.LogWarning($"Tor did not answer the bootstrap status query within {TorBootstrapTimeout.TotalSeconds:F0}s. Starting the P2P network anyway.");
+					return;
+				}
+
+				delayCts.Cancel();
+				lastKnownPhase = await queryTask.ConfigureAwait(false);
+
+				if (lastKnownPhase.IsBootstrapped)
+				{
+					Logger.LogInfo($"Tor is bootstrapped ({(DateTimeOffset.UtcNow - startedAt).TotalSeconds:F1}s).");
 					return;
 				}
 
