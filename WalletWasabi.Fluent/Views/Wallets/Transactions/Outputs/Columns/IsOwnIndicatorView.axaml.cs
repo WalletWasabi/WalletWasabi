@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Columns;
 
-public class IsOwnIndicatorView : UserControl
+public partial class IsOwnIndicatorView : UserControl
 {
 	public IsOwnIndicatorView()
 	{

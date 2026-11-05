@@ -73,17 +73,17 @@ public partial class WalletLoadWorkflow
 		UpdateProgress();
 
 		services.EventBus.AsObservable<BlockHeadersTipChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x => _blockHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
 		services.EventBus.AsObservable<FilterHeadersTipChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x => _filterHeadersTip = x.Height)
 			.DisposeWith(_disposables);
 
 		services.EventBus.AsObservable<ClientTipHeightChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x =>
 			{
 				_compactFiltersTip = x.Height;
@@ -93,12 +93,12 @@ public partial class WalletLoadWorkflow
 			.DisposeWith(_disposables);
 
 		services.EventBus.AsObservable<BlockDownloaded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
 		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Where(x => x.Wallet == _wallet)
 			.Select(x => x.Wallet.Loaded)
 			.ToSignal();
@@ -111,13 +111,13 @@ public partial class WalletLoadWorkflow
 	public void Start()
 	{
 		Observable.FromAsync(() => Task.CompletedTask)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Take(1)
 			.SubscribeAsync(_ => LoadWalletAsync())
 			.DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(_ => UpdateProgress())
 			.DisposeWith(_disposables);
 	}

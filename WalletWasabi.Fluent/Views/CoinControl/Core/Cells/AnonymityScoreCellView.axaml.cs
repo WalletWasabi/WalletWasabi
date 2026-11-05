@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.CoinControl.Core.Cells;
 
-public class AnonymityScoreCellView : UserControl
+public partial class AnonymityScoreCellView : UserControl
 {
 	public AnonymityScoreCellView()
 	{

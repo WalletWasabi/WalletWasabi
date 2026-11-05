@@ -89,7 +89,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation,
 				x => x.OnlyUsePrivateFundsForPayments)
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxSchedulers.TaskpoolScheduler)
 			.Subscribe(_ =>
 			{
 				var selectedProfile = PrivacyProfiles.Profiles
@@ -109,7 +109,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxSchedulers.TaskpoolScheduler)
 			.Subscribe(
 				x =>
 				{
@@ -122,7 +122,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.SelectedOutputWallet)
 			.Skip(1)
-			.ObserveOn(RxApp.TaskpoolScheduler)
+			.ObserveOn(RxSchedulers.TaskpoolScheduler)
 			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
 		walletModel.IsCoinjoinStarted

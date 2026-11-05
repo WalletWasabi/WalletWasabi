@@ -209,7 +209,7 @@ The following is a list of UI specific coding conventions. Follow these any time
 
 ```cs
 Observable.FromEventPattern(...)
-	.ObserveOn(RxApp.MainThreadScheduler)
+	.ObserveOn(RxSchedulers.MainThreadScheduler)
 	.Subscribe(...)
 	.DisposeWith(Disposables);
 ```
@@ -218,7 +218,7 @@ Observable.FromEventPattern(...)
 
 ```cs
 this.WhenAnyValue(...)
-	.ObserveOn(RxApp.MainThreadScheduler)
+	.ObserveOn(RxSchedulers.MainThreadScheduler)
 	.Subscribe(...);
 ```
 
@@ -251,7 +251,7 @@ public class RepositoryViewModel : ReactiveObject
   public RepositoryViewModel()
   {
     _canDoIt = this.WhenAnyValue(...)
-		.ToProperty(this, x => x.CanDoIt, scheduler: RxApp.MainThreadScheduler);
+		.ToProperty(this, x => x.CanDoIt, scheduler: RxSchedulers.MainThreadScheduler);
   }
 
   public bool CanDoIt => _canDoIt?.Value ?? false;

@@ -79,7 +79,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 			ClearValidations();
 		}
 
-		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+		RxSchedulers.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 	}
 
 	private async Task ShowQrCameraDialogAsync()

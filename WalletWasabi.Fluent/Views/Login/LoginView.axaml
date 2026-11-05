@@ -50,7 +50,7 @@
           <DockPanel DockPanel.Dock="Top"
                      VerticalAlignment="Bottom"
                      IsVisible="{Binding IsPasswordNeeded}">
-            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Passphrase" PasswordChar="•"
+            <CopyablePasswordTextBox DockPanel.Dock="Top" Text="{Binding Password}" PlaceholderText="Passphrase" PasswordChar="•"
                                      Classes="revealPasswordButton copyablePasswordTextBox"
                                      x:Name="Password">
               <Interaction.Behaviors>

@@ -110,7 +110,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		confirmationWordsSourceList
 			.DisposeWith(disposables)
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Bind(ConfirmationWords)
 			.OnItemAdded(x => x.Reset())
 			.Subscribe()
@@ -124,7 +124,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			confirmationWordsSourceList
 				.Connect()
 				.WhenValueChanged(x => x.IsConfirmed)
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.ObserveOn(RxSchedulers.MainThreadScheduler)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
@@ -141,7 +141,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 				x => x.CurrentWord,
 				x => x.CurrentWord.SelectedWord,
 				x => x.AllWordsConfirmed)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
 				var currentWordMessage = AllWordsConfirmed
@@ -171,7 +171,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		availableWordsSourceList
 			.Connect()
 			.WhenPropertyChanged(x => x.IsSelected)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x => OnWordSelectionChanged(x.Sender))
 			.DisposeWith(disposables);
 

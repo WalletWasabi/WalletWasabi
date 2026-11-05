@@ -85,6 +85,6 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 	private void ChangeTheme(bool isDark)
 	{
-		RxApp.MainThreadScheduler.Schedule(() => ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light));
+		RxSchedulers.MainThreadScheduler.Schedule(() => ThemeHelper.ApplyTheme(isDark ? Theme.Dark : Theme.Light));
 	}
 }

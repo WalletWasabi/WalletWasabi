@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send;
 
-public class CustomFeeRateDialogView : UserControl
+public partial class CustomFeeRateDialogView : UserControl
 {
 	public CustomFeeRateDialogView()
 	{

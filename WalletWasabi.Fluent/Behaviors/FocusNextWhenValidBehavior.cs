@@ -1,3 +1,4 @@
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
@@ -23,16 +24,16 @@ public class FocusNextWhenValidBehavior : AttachedToVisualTreeBehavior<TextBox>
 		return hasErrors.ToSignal()
 			.Merge(text.ToSignal())
 			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
-				if (AssociatedObject is { } &&
+				if (AssociatedObject is { } tb &&
 					!DataValidationErrors.GetHasErrors(AssociatedObject) &&
 					!string.IsNullOrEmpty(AssociatedObject.Text) &&
-					KeyboardNavigationHandler.GetNext(AssociatedObject, NavigationDirection.Next) is
-					{ } nextFocus)
+					TopLevel.GetTopLevel(tb)?.FocusManager is { } focusManager)
 				{
-					nextFocus.Focus();
+					var options = new FindNextElementOptions() { FocusedElement = tb };
+					focusManager.TryMoveFocus(NavigationDirection.Next, options);
 				}
 			});
 	}

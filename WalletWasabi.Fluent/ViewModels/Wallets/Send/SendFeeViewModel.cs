@@ -104,11 +104,11 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 				return estimates;
 			})
 			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(estimations => FeeChart.TryUpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		RxSchedulers.MainThreadScheduler.Schedule(async () =>
 		{
 			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeRateEstimations) ||
 				!FeeChart.TryUpdateFeeEstimates(feeRateEstimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))

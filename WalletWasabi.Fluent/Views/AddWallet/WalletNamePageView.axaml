@@ -13,7 +13,7 @@
                  IsBusy="{Binding IsBusy}"
                  EnableNext="True" NextContent="Continue">
     <StackPanel DockPanel.Dock="Top">
-      <TextBox MaxLength="{StaticResource WalletNameMaxLength}" Text="{Binding WalletName}" Watermark="Type in a wallet name">
+      <TextBox MaxLength="{StaticResource WalletNameMaxLength}" Text="{Binding WalletName}" PlaceholderText="Type in a wallet name">
         <Interaction.Behaviors>
           <FocusOnAttachedBehavior />
           <TextBoxSelectAllTextBehavior />

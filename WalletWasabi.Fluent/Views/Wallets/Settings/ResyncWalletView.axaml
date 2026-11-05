@@ -32,7 +32,7 @@
           TextAlignment="Center"
           Text="Optionally, specify a block height to resync from:" />
         <TextBox Text="{Binding StartingHeight}"
-                 Watermark="0"
+                 PlaceholderText="0"
                  MaxWidth="125"
                  MaxLength="8">
           <Interaction.Behaviors>

@@ -55,7 +55,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 		this.WhenAnyValue(x => x.SelectedWallet)
 			.Buffer(2, 1)
 			.Select(buffer => (OldValue: buffer[0], NewValue: buffer[1]))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Do(x =>
 			{
 				if (x.OldValue is { } a)
