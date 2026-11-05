@@ -60,7 +60,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 	[AutoNotify] private string _defaultLabel;
 	[AutoNotify] private bool _isFixedAddress;
-	[AutoNotify] private string? _usdContent;
+	[AutoNotify] private string? _fiatContent;
 	[AutoNotify] private string? _bitcoinContent;
 	[AutoNotify] private bool _isPayToMany;
 	[AutoNotify] private bool _isPrimarySubtractFee;
@@ -382,7 +382,7 @@ public partial class SendViewModel : RoutableViewModel
 			var usd = ClipboardObserver.ParseToUsd(content);
 			if (usd is not null)
 			{
-				UsdContent = usd.Value.ToString("0.00");
+				FiatContent = usd.Value.ToString("0.00");
 			}
 		}
 		else
