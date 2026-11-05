@@ -64,7 +64,7 @@
                 <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}" />
               </EventTriggerBehavior>
             </Interaction.Behaviors>
-            <AmountControl Classes="WithUsd" Amount="{Binding Balance^}"/>
+            <AmountControl Classes="WithFiat" Amount="{Binding Balance^}"/>
           </Button>
         </StackPanel>
       </PrivacyContentControl>

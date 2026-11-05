@@ -17,7 +17,7 @@
     </Setter>
 
     <!-- Same as default but with USD value if available -->
-    <Style Selector="^.WithUsd">
+    <Style Selector="^.WithFiat">
       <Setter Property="Template">
         <ControlTemplate>
           <TextBlock FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" TextWrapping="Wrap"
