@@ -160,6 +160,50 @@ public class TorControlClient : IAsyncDisposable
 	}
 
 	/// <summary>
+	/// Polls <c>GETINFO status/bootstrap-phase</c> until Tor can build circuits, for at most <paramref name="timeout"/>.
+	/// </summary>
+	/// <returns>The last bootstrap status received, or <c>null</c> if Tor did not answer at all within the timeout.</returns>
+	/// <remarks>
+	/// The timeout bounds the wait, not the query: cancelling a control command while its reply is in flight would leave
+	/// the reply queued for the next command on this connection, so a query that outlives the timeout is left to finish.
+	/// </remarks>
+	public async Task<GetInfoBootstrapPhaseReply?> WaitForBootstrapAsync(TimeSpan timeout, TimeSpan pollInterval, CancellationToken cancellationToken)
+	{
+		DateTimeOffset startedAt = DateTimeOffset.UtcNow;
+		GetInfoBootstrapPhaseReply? lastKnownPhase = null;
+
+		while (true)
+		{
+			TimeSpan remaining = timeout - (DateTimeOffset.UtcNow - startedAt);
+			if (remaining <= TimeSpan.Zero)
+			{
+				return lastKnownPhase;
+			}
+
+			Task<GetInfoBootstrapPhaseReply> queryTask = GetBootstrapPhaseAsync(cancellationToken);
+			using CancellationTokenSource delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			Task completedTask = await Task.WhenAny(queryTask, Task.Delay(remaining, delayCts.Token)).ConfigureAwait(false);
+
+			if (completedTask != queryTask)
+			{
+				// Tor has not answered. Leave the query running so that its reply, if it ever comes, is consumed by it.
+				_ = queryTask.ContinueWith(static t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+				return lastKnownPhase;
+			}
+
+			delayCts.Cancel();
+			lastKnownPhase = await queryTask.ConfigureAwait(false);
+
+			if (lastKnownPhase.IsBootstrapped)
+			{
+				return lastKnownPhase;
+			}
+
+			await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
 	/// Instructs Tor to shut down when this control connection is closed.
 	/// </summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>

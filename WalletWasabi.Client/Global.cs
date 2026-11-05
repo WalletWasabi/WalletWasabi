@@ -684,44 +684,22 @@ public class Global
 	private static async Task WaitForTorBootstrapAsync(TorControlClient torControlClient, CancellationToken cancellationToken)
 	{
 		var startedAt = DateTimeOffset.UtcNow;
-		GetInfoBootstrapPhaseReply? lastKnownPhase = null;
 
 		try
 		{
-			while (true)
+			var phase = await torControlClient.WaitForBootstrapAsync(TorBootstrapTimeout, pollInterval: TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+
+			if (phase is { IsBootstrapped: true })
 			{
-				var remaining = TorBootstrapTimeout - (DateTimeOffset.UtcNow - startedAt);
-				if (remaining <= TimeSpan.Zero)
-				{
-					var progress = lastKnownPhase is null ? "unknown progress" : $"{lastKnownPhase.Progress}%, {lastKnownPhase.Summary}";
-					Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s ({progress}). Starting the P2P network anyway.");
-					return;
-				}
-
-				// Only the application's cancellation may interrupt the query itself: cancelling a control command while
-				// its reply is in flight leaves that reply queued for the next command on the shared client. The deadline
-				// therefore bounds this wait, not the command; a query that outlives it finishes on its own.
-				var queryTask = torControlClient.GetBootstrapPhaseAsync(cancellationToken);
-				using var delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-				var completedTask = await Task.WhenAny(queryTask, Task.Delay(remaining, delayCts.Token)).ConfigureAwait(false);
-
-				if (completedTask != queryTask)
-				{
-					_ = queryTask.ContinueWith(static t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
-					Logger.LogWarning($"Tor did not answer the bootstrap status query within {TorBootstrapTimeout.TotalSeconds:F0}s. Starting the P2P network anyway.");
-					return;
-				}
-
-				delayCts.Cancel();
-				lastKnownPhase = await queryTask.ConfigureAwait(false);
-
-				if (lastKnownPhase.IsBootstrapped)
-				{
-					Logger.LogInfo($"Tor is bootstrapped ({(DateTimeOffset.UtcNow - startedAt).TotalSeconds:F1}s).");
-					return;
-				}
-
-				await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+				Logger.LogInfo($"Tor is bootstrapped ({(DateTimeOffset.UtcNow - startedAt).TotalSeconds:F1}s).");
+			}
+			else if (phase is null)
+			{
+				Logger.LogWarning($"Tor did not answer the bootstrap status query within {TorBootstrapTimeout.TotalSeconds:F0}s. Starting the P2P network anyway.");
+			}
+			else
+			{
+				Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s ({phase.Progress}%, {phase.Summary}). Starting the P2P network anyway.");
 			}
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -741,10 +719,6 @@ public class Global
 			Logger.LogInfo($"{nameof(TorManager)} is initialized.");
 
 			var (_, torControlClient) = await _torManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
-			_torBootstrapTask = torControlClient is { } controlClient
-				? WaitForTorBootstrapAsync(controlClient, cancellationToken)
-				: Task.CompletedTask;
-
 			if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
 			{
 				var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
@@ -759,6 +733,12 @@ public class Global
 					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
 			}
+
+			// Started after the onion service is set up: control commands are answered in order, so ADD_ONION must not
+			// queue behind a bootstrap query that Tor never answers.
+			_torBootstrapTask = torControlClient is { } controlClient
+				? WaitForTorBootstrapAsync(controlClient, cancellationToken)
+				: Task.CompletedTask;
 
 			var torStatusHttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject");
 			var torStatusChecker = Spawn("TorStatusChecker",
