@@ -1,18 +1,17 @@
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
 public partial class BtcPriceTileViewModel : ActivatableViewModel
 {
-	[AutoNotify] private decimal _usdPerBtc;
+	[AutoNotify] private decimal _exchangeRate;
 
 	public BtcPriceTileViewModel(UiContext uiContext, AmountProvider amountProvider) : base(uiContext)
 	{
 		amountProvider.BtcToFiatExchangeRate
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.StartWith(amountProvider.ExchangeRate)
-			.Subscribe(x => UsdPerBtc = x);
+			.Subscribe(x => ExchangeRate = x);
 	}
 }
