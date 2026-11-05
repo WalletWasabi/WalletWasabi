@@ -11,8 +11,13 @@ using WalletWasabi.Services;
 using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Services;
 
-public class CompactFilterBlockHashReproTests
+/// <summary>
+/// Tests for <see cref="CompactFilterBehavior"/>.
+/// </summary>
+public class CompactFilterBehaviorTests
 {
+	private static readonly Network Network = Network.RegTest;
+
 	[Fact]
 	public void ValidFilterBytesAreAcceptedWithAnAttackerChosenBlockHash()
 	{
@@ -58,12 +63,6 @@ public class CompactFilterBlockHashReproTests
 
 		Assert.Null(result);
 	}
-}
-
-/// <summary>Drives <see cref="CompactFilterBehavior"/> against an in-process node that advertises compact filters.</summary>
-public class CompactFilterBehaviorTests
-{
-	private static readonly Network Network = Network.RegTest;
 
 	[Fact]
 	public async Task FilterRangeTimeoutCountsFromTheLastReceivedFilterAsync()

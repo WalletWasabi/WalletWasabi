@@ -50,7 +50,7 @@ public static class FeeRateProviders
 		async cancellationToken =>
 		{
 			var estimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
-			Logger.LogInfo($"Fetched fee rate from RPC node: {estimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
+			Logger.LogInfo($"Fetched fee rate estimations from RPC node: {estimations}.");
 			return estimations;
 		};
 
@@ -93,7 +93,7 @@ public static class FeeRateProviders
 			.Match(
 				estimations =>
 				{
-					Logger.LogInfo($"Fetched fee rate from {providerName}: {estimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
+					Logger.LogInfo($"Fetched fee rate estimations from {providerName}: {estimations}.");
 					return estimations;
 				},
 				ex => throw new InvalidOperationException($"Error parsing fee rate estimations provider response.", ex));

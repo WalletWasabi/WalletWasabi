@@ -4,9 +4,15 @@
 #:property TargetFramework=net10.0
 
 /// <summary>
-/// Standalone tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), fetches a block + its basic compact 
-/// filter + filter header, and prints checkpoint data suitable for WalletWasabi-style filter checkpoints.
+/// Standalone tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), and fetches:
+/// 
+/// * a block,
+/// * its basic compact filter, and
+/// * filter header.
+///
+/// The script then prints checkpoint data suitable for WalletWasabi-style filter checkpoints.
 /// </summary>
+/// <remarks>Block hashes are looked up by height using multiple third-party block explorers (all must agree).</remarks>
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -16,32 +22,33 @@ static void PrintUsage()
 {
 	Console.WriteLine("""
 		Usage:
-		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [options]
+		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> [options]
 
 		Required:
 		  --height <uint>              Block height
-		  --hash   <hex>               Block hash (64 hex chars)
 
 		Optional:
 		  -e, --endpoint <host:port>   Bitcoin peer endpoint _providing_ compact filters
 		                               (default: [::ffff:89.58.60.208]:8333)
 		  --help                       Show this help
 
+		The block hash is looked up by height from mempool.space and blockstream.info (both must agree).
+
 		Examples:
-		  # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using a predefined P2P node.
-		  dotnet run --file GenerateCheckpoint.cs -- --height 960000 --hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
-		  # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using '[::ffff:89.58.60.208]:8333' peer.
-		  dotnet run --file GenerateCheckpoint.cs -- --endpoint "[::ffff:89.58.60.208]:8333" --height 960000 --hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
+		  # Get checkpoint data for the block with height 960000 using a predefined P2P node.
+		  dotnet run --file GenerateCheckpoint.cs -- --height 960000
+		  # Get checkpoint data for the block with height 960000 using '[::ffff:89.58.60.208]:8333' peer.
+		  dotnet run --file GenerateCheckpoint.cs -- --endpoint "[::ffff:89.58.60.208]:8333" --height 960000
 		""");
 }
 
 // Default parameters.
 string nodeEndpoint = "[::ffff:89.58.60.208]:8333";
 Network network = Network.Main;
-uint256? blockHash = null;
 uint? blockHeight = null;
+const string BlockHashProviders = "https://mempool.space/api/block-height/;https://blockstream.info/api/block-height/";
 
-if (!TryParseArgs(args, ref nodeEndpoint, ref blockHash, ref blockHeight, out var showHelp, out var error))
+if (!TryParseArgs(args, ref nodeEndpoint, ref blockHeight, out var showHelp, out var error))
 {
 	if (error is not null)
 		Console.Error.WriteLine($"error: {error}");
@@ -55,18 +62,21 @@ if (showHelp)
 	return 0;
 }
 
-if (blockHeight is null || blockHash is null)
+if (blockHeight is null)
 {
-	Console.Error.WriteLine("error: --height and --hash are required");
+	Console.Error.WriteLine("error: --height is required");
 	PrintUsage();
 	return 1;
 }
 
-Console.WriteLine($"Connecting to '{nodeEndpoint}' on {network.Name} ...");
-Console.WriteLine($"Target block: height={blockHeight}, hash={blockHash}");
-
 try
 {
+	Console.WriteLine($"Looking up hash of block {blockHeight}…");
+	var blockHash = await GetBlockHashAsync(blockHeight.Value);
+	Console.WriteLine($"Block hash for height {blockHeight} is '{blockHash}'.");
+	Console.WriteLine();
+
+	Console.WriteLine($"Connecting to '{nodeEndpoint}' on {network.Name} network…");
 	var data = await GetCheckPointDataAsync(network, nodeEndpoint, blockHash, blockHeight.Value);
 
 	var grFilter = new GolombRiceFilter(data.CompactFilterPayload.FilterBytes);
@@ -116,7 +126,7 @@ catch (Exception ex)
 	return 1;
 }
 
-static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, out bool showHelp, out string? error)
+static bool TryParseArgs(string[] args, ref string endpoint, ref uint? height, out bool showHelp, out string? error)
 {
 	showHelp = false;
 	error = null;
@@ -145,23 +155,7 @@ static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, 
 				height = h;
 				break;
 
-			case "--hash":
-				if (i + 1 >= args.Length)
-				{
-					error = $"{arg} requires a value";
-					return false;
-				}
-				try
-				{
-					hash = uint256.Parse(args[++i]);
-				}
-				catch
-				{
-					error = $"Invalid block hash: {args[i]}";
-					return false;
-				}
-				break;
-
+			case "-e":
 			case "--endpoint":
 				if (i + 1 >= args.Length)
 				{
@@ -180,13 +174,51 @@ static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, 
 	return true;
 }
 
+/// <summary>
+/// Gets block hash for the provided block height from multiple block explorers.
+/// </summary>
+static async Task<uint256> GetBlockHashAsync(uint height)
+{
+#pragma warning disable RS0030 // Do not use banned APIs – Clearnet is acceptable here.
+	using var httpClient = new HttpClient()
+	{
+		Timeout = TimeSpan.FromSeconds(15)
+	};
+#pragma warning restore RS0030 // Do not use banned APIs
+
+	(string Provider, uint256 Hash)[] results = await Task.WhenAll(BlockHashProviders.Split(";").Select(async baseUrl =>
+	{
+		try
+		{
+			var response = await httpClient.GetStringAsync($"{baseUrl}{height}").ConfigureAwait(false);
+			var hash = uint256.Parse(response.Trim());
+
+			return (Provider: baseUrl, Hash: hash);
+		}
+		catch (Exception e)
+		{
+			throw new Exception($"Exception while processing '{baseUrl}': {e.Message}", e);
+		}
+	})).ConfigureAwait(false);
+
+	var hash = results[0].Hash;
+
+	if (results.Any(r => r.Hash != hash))
+	{
+		var details = string.Join(", ", results.Select(r => $"{new Uri(r.Provider).Host}={r.Hash}"));
+		throw new Exception($"Providers disagree on the hash of block {height}: {details}");
+	}
+
+	return hash;
+}
+
 static async Task<CheckPointData> GetCheckPointDataAsync(
 	Network network,
 	string endpoint,
 	uint256 blockHash,
 	uint blockHeight)
 {
-	var node = await Node.ConnectAsync(network, endpoint);
+	using var node = await Node.ConnectAsync(network, endpoint);
 	node.Behaviors.Add(new PingPongBehavior());
 	await node.VersionHandshakeAsync().ConfigureAwait(false);
 
@@ -250,14 +282,12 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
 	finally
 	{
 		node.MessageReceived -= Listener;
-		node.Disconnect();
 	}
 
-	return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block);
+	return new CheckPointData(compactFilterHeadersPayload, compactFilterPayload, block);
 }
 
 record CheckPointData(
-	Node Node,
 	CompactFilterHeadersPayload CompactFilterHeadersPayload,
 	CompactFilterPayload CompactFilterPayload,
 	Block Block);

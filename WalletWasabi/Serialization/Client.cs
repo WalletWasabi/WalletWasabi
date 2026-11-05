@@ -7,8 +7,8 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Serialization;
 

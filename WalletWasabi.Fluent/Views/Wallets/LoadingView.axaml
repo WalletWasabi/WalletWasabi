@@ -106,10 +106,20 @@
                 <Panel>
                   <PathIcon Data="{StaticResource entities_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
                   <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                    <!-- Hourglass when target is unknown -->
+                    <PathIcon Data="{StaticResource hourglass_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}"
+                              ToolTip.Tip="Please wait"
+                              IsVisible="{Binding !IsTargetKnown}" />
+
+                    <Panel IsVisible="{Binding IsTargetKnown}">
+                      <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                                Foreground="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding IsComplete}" />
+                      <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                                Foreground="{StaticResource SyncProgressNeutralBrush}"
+                                IsVisible="{Binding !IsComplete}" />
+                    </Panel>
                   </Panel>
                 </Panel>
                 <TextBlock Text="Peers connected" Classes="CardLabel" HorizontalAlignment="Center" />
@@ -137,10 +147,20 @@
                 <Panel>
                   <PathIcon Data="{StaticResource organization_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
                   <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                    <!-- Hourglass when target is unknown -->
+                    <PathIcon Data="{StaticResource hourglass_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}"
+                              ToolTip.Tip="Please wait"
+                              IsVisible="{Binding !IsTargetKnown}" />
+
+                    <Panel IsVisible="{Binding IsTargetKnown}">
+                      <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                                Foreground="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding IsComplete}" />
+                      <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                                Foreground="{StaticResource SyncProgressNeutralBrush}"
+                                IsVisible="{Binding !IsComplete}" />
+                    </Panel>
                   </Panel>
                 </Panel>
                 <TextBlock Text="Block headers" Classes="CardLabel" HorizontalAlignment="Center" />
@@ -168,10 +188,20 @@
                 <Panel>
                   <PathIcon Data="{StaticResource sorting}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
                   <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                    <!-- Hourglass when target is unknown -->
+                    <PathIcon Data="{StaticResource hourglass_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}"
+                              ToolTip.Tip="Please wait"
+                              IsVisible="{Binding !IsTargetKnown}" />
+
+                    <Panel IsVisible="{Binding IsTargetKnown}">
+                      <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                                Foreground="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding IsComplete}" />
+                      <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                                Foreground="{StaticResource SyncProgressNeutralBrush}"
+                                IsVisible="{Binding !IsComplete}" />
+                    </Panel>
                   </Panel>
                 </Panel>
                 <TextBlock Text="Filter headers" Classes="CardLabel" HorizontalAlignment="Center" />
@@ -199,10 +229,20 @@
                 <Panel>
                   <PathIcon Data="{StaticResource fingerprint_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
                   <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                    <!-- Hourglass when target is unknown -->
+                    <PathIcon Data="{StaticResource hourglass_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}"
+                              ToolTip.Tip="Please wait"
+                              IsVisible="{Binding !IsTargetKnown}" />
+
+                    <Panel IsVisible="{Binding IsTargetKnown}">
+                      <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                                Foreground="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding IsComplete}" />
+                      <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                                Foreground="{StaticResource SyncProgressNeutralBrush}"
+                                IsVisible="{Binding !IsComplete}" />
+                    </Panel>
                   </Panel>
                 </Panel>
                 <TextBlock Text="Compact filters" Classes="CardLabel" HorizontalAlignment="Center" />
@@ -230,10 +270,20 @@
                 <Panel>
                   <PathIcon Data="{StaticResource cube_multiple_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
                   <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                    <!-- Hourglass when target is unknown -->
+                    <PathIcon Data="{StaticResource hourglass_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}"
+                              ToolTip.Tip="Please wait"
+                              IsVisible="{Binding !IsTargetKnown}" />
+
+                    <Panel IsVisible="{Binding IsTargetKnown}">
+                      <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                                Foreground="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding IsComplete}" />
+                      <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                                Foreground="{StaticResource SyncProgressNeutralBrush}"
+                                IsVisible="{Binding !IsComplete}" />
+                    </Panel>
                   </Panel>
                 </Panel>
                 <TextBlock Text="Blocks" Classes="CardLabel" HorizontalAlignment="Center" />
@@ -256,10 +306,7 @@
           <!-- Status line -->
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0 0 0 10">
             <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" VerticalAlignment="Center" />
-            <TextBlock Opacity="0.7" VerticalAlignment="Center">
-              <Run Text="Syncing with the Bitcoin network — Latest block:" />
-              <Run Text="{Binding LatestBlock, StringFormat={}{0:N0}}" />
-            </TextBlock>
+            <TextBlock Opacity="0.7" VerticalAlignment="Center" Text="{Binding Status}" />
           </StackPanel>
         </StackPanel>
       </Panel>

@@ -1,18 +1,9 @@
-using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
@@ -30,11 +21,6 @@ public record P2pNodeClient(
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
 			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
-
-			if (block is null)
-			{
-				return null;
-			}
 
 			// Validate block
 			if (!block.Check())
@@ -76,14 +62,20 @@ public class P2pConnectionManager : IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
-	private const double RotationScoreThreshold = 1.1;
+	private const double RotationScoreMargin = PeerInfo.MaxScore * 0.1;
 	private const int DefaultCrawlerCount = 10;
 	private const int MaxPeersPerNetgroup = 3;
 
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
-	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
+
+	/// <summary>Short rotation interval used when we have fewer than <see cref="MinCompactFilterNodes"/> compact filter nodes.</summary>
+	private static readonly TimeSpan ShortRotationInterval = TimeSpan.FromSeconds(4);
+
+	/// <summary>Rotation interval when we have enough compact filter nodes.</summary>
+	private static readonly TimeSpan DefaultRotationInterval = TimeSpan.FromMinutes(3);
+
 	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(15);
 	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(4);
 
@@ -105,7 +97,7 @@ public class P2pConnectionManager : IDisposable
 
 	private int _isReevaluating;
 	private DateTimeOffset _lastMaintainTime;
-	private DateTimeOffset _lastRotateTime;
+	private DateTimeOffset _lastRotationTime;
 
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
@@ -202,11 +194,18 @@ public class P2pConnectionManager : IDisposable
 				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			if ((now - _lastRotateTime >= RotateInterval && count > TargetConnections - 3) ||
-			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters) < MinCompactFilterNodes))
+			// Intentionally refresh the value as it could have changed.
+			count = _connectedNodes.Count;
+			if (count >= TargetConnections)
 			{
-				_lastRotateTime = now;
-				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+				var compactFilterNodesCount = _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters);
+				var rotationInterval = compactFilterNodesCount < MinCompactFilterNodes ? ShortRotationInterval : DefaultRotationInterval;
+
+				if (now - _lastRotationTime >= rotationInterval)
+				{
+					_lastRotationTime = now;
+					await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+				}
 			}
 		}
 		catch (OperationCanceledException)
@@ -222,6 +221,7 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
+	/// <inheritdoc cref="P2pNodeProvider"/>
 	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
@@ -565,7 +565,7 @@ public class P2pConnectionManager : IDisposable
 
 		var bestDiscoveredScore = bestDiscoveredNode.Score;
 
-		if (bestDiscoveredScore > worstConnectedNode.PeerInfo.Score * RotationScoreThreshold)
+		if (bestDiscoveredScore >= worstConnectedNode.PeerInfo.Score + RotationScoreMargin)
 		{
 			Logger.LogInfo($"Replacing peer {worstConnectedNode.PeerInfo.Endpoint} (score: {worstConnectedNode.PeerInfo.Score:F1}) with {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1})");
 
