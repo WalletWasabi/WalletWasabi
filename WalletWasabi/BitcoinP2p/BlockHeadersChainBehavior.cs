@@ -196,8 +196,8 @@ public class BlockHeadersChainBehavior(
 	}
 
 	/// <summary>
-	/// Builds a block locator like <see cref="ChainedBlock.GetLocator"/> (exponentially spaced heights) but stops at
-	/// the root of a chain that does not start at genesis.
+	/// Builds a block locator like <see cref="ChainedBlock.GetLocator"/> (exponentially spaced heights) that always
+	/// ends with the root of the chain, which is genesis or a checkpoint block without a previous block.
 	/// </summary>
 	internal static BlockLocator CreateLocator(ChainedBlock tip)
 	{
@@ -205,16 +205,16 @@ public class BlockHeadersChainBehavior(
 		var step = 1;
 		var block = tip;
 
-		while (block is not null)
+		while (true)
 		{
 			hashes.Add(block.HashBlock);
-			if (block.Height == 0)
+			if (block.Previous is null)
 			{
 				break;
 			}
 
 			var targetHeight = Math.Max(block.Height - step, 0);
-			while (block is not null && block.Height > targetHeight)
+			while (block.Height > targetHeight && block.Previous is not null)
 			{
 				block = block.Previous;
 			}

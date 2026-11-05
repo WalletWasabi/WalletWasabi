@@ -35,6 +35,23 @@ public class BlockHeadersChainBehaviorTests
 	}
 
 	[Fact]
+	public void LocatorAlwaysEndsWithTheCheckpointRootWhenStepsGrow()
+	{
+		// With more than 10 entries the step doubles, so a naive walk overshoots the root and leaves it out.
+		var chain = TestChain.CreateRootedAt(100);
+		TestChain.Extend(chain, 14);
+
+		var locator = BlockHeadersChainBehavior.CreateLocator(chain.Tip);
+
+		var heights = locator.Blocks.Select(h => chain.GetBlock(h).Height).ToArray();
+		Assert.Equal(heights.OrderByDescending(h => h), heights);
+		Assert.Equal(114, heights[0]);
+		Assert.Equal(100, heights[^1]);
+		Assert.Equal(heights.Distinct().Count(), heights.Length);
+		Assert.Equal([114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 101, 100], heights);
+	}
+
+	[Fact]
 	public void LocatorOfARootOnlyChainContainsJustTheRoot()
 	{
 		var chain = TestChain.CreateRootedAt(969696);
