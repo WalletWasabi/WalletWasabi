@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -34,5 +35,36 @@ public class UiConfigTests
 		config.ToFile();
 		using var updated = JsonDocument.Parse(File.ReadAllText(filePath));
 		Assert.False(updated.RootElement.GetProperty(nameof(UiConfig.Oobe)).GetBoolean());
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("SEK")]
+	public void FiatCurrencyIsUsdWhenTheFileHasNoneOrOneNobodyQuotes(string? fiatCurrencyInFile)
+	{
+		string workDir = Common.GetWorkDir();
+		Directory.CreateDirectory(workDir);
+		string filePath = Path.Combine(workDir, $"{Guid.NewGuid():N}.json");
+		new UiConfig(filePath).ToFile();
+		var json = JsonNode.Parse(File.ReadAllText(filePath))!.AsObject();
+		json[nameof(UiConfig.FiatCurrency)] = fiatCurrencyInFile;
+		File.WriteAllText(filePath, json.ToJsonString());
+
+		var config = UiConfig.LoadFile(filePath);
+
+		Assert.Equal(UiConstants.DefaultFiatCurrency, config.FiatCurrency);
+	}
+
+	[Fact]
+	public void FiatCurrencyIsPersisted()
+	{
+		string workDir = Common.GetWorkDir();
+		Directory.CreateDirectory(workDir);
+		string filePath = Path.Combine(workDir, $"{Guid.NewGuid():N}.json");
+		var config = new UiConfig(filePath) { FiatCurrency = "JPY" };
+
+		config.ToFile();
+
+		Assert.Equal("JPY", UiConfig.LoadFile(filePath).FiatCurrency);
 	}
 }

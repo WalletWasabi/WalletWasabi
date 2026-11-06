@@ -493,7 +493,7 @@ public class Global
 				Service("Exchange Rate Updater",
 					Periodically(
 						TimeSpan.FromMinutes(20),
-						0m,
+						[],
 						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeFeeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))

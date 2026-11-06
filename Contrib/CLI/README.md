@@ -23,6 +23,15 @@ $ ./wcli.sh getstatus
   "filtersLeft": 0,
   "network": "Main",
   "exchangeRate": 29610.18,
+  "exchangeRates": {
+    "usd": 29610.18,
+    "eur": 27213.37,
+    "gbp": 23488.92,
+    "jpy": 4211460.11,
+    "chf": 26591.04,
+    "cad": 39960.15,
+    "aud": 44373.56
+  },
   "peers": [
     {
       "isConnected": true,

@@ -43,6 +43,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
+	[AutoNotify] private string _fiatCurrency;
 	[AutoNotify] private string _feeRateEstimationProvider;
 	[AutoNotify] private string _externalTransactionBroadcaster;
 
@@ -88,6 +89,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		_fiatCurrency = uiConfig.FiatCurrency;
 		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -132,6 +134,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Connections
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		FiatCurrency = uiConfig.FiatCurrency;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
@@ -212,9 +215,11 @@ public partial class ApplicationSettings : ReactiveObject
 				x => x.CustomChangeAddress,
 				x => x.RunOnSystemStartup,
 				x => x.HideOnClose,
+				x => x.FiatCurrency,
 				x => x.Oobe,
 				x => x.LastVersionHighlightsDisplayed,
-				x => x.WindowState)
+				x => x.WindowState,
+				(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
@@ -366,6 +371,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.IsCustomChangeAddress = CustomChangeAddress;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
+		_uiConfig.FiatCurrency = FiatCurrency;
 		_uiConfig.Oobe = Oobe;
 		_uiConfig.LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed;
 		_uiConfig.WindowState = WindowState.ToString();

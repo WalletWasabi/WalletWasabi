@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -11,40 +13,60 @@ using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Client.Wallets.Exchange;
 
-using ExchangeRateExtractor = Func<string, decimal>;
-public delegate Task<ExchangeRate> ExchangeRateProvider(CancellationToken cancellationToken);
+using ExchangeRatesExtractor = Func<string, ExchangeRate[]>;
+public record ExchangeRatesChanged(ExchangeRate[] ExchangeRates);
+public record ExchangeRateProviderInfo(string Name, ImmutableArray<string> Currencies);
+public delegate Task<ExchangeRate[]> ExchangeRateProvider(CancellationToken cancellationToken);
 
 public static class ExchangeRateProviders
 {
-	public static readonly ImmutableArray<string> Providers =
+	public static readonly ImmutableArray<string> Currencies =
 	[
-		"BlockchainInfo",
-		"MempoolSpace",
-		"CoinGecko",
-		"Gemini",
-		"None"
+		"USD",
+		"EUR",
+		"GBP",
+		"JPY",
+		"CHF",
+		"CAD",
+		"AUD",
+		"CZK"
+	];
+
+	private static readonly ImmutableArray<string> BlockchainInfoCurrencies = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD"];
+	private static readonly ImmutableArray<string> MempoolSpaceCurrencies = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD"];
+	private static readonly ImmutableArray<string> GeminiCurrencies = ["USD", "EUR", "GBP"];
+
+	public static readonly ImmutableArray<ExchangeRateProviderInfo> Providers =
+	[
+		new("BlockchainInfo", BlockchainInfoCurrencies),
+		new("MempoolSpace", MempoolSpaceCurrencies),
+		new("CoinGecko", Currencies),
+		new("Gemini", GeminiCurrencies)
 	];
 
 	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
 
+	public static string[] ProviderNamesFor(string currency) =>
+		[.. Providers.Where(x => x.Currencies.Contains(currency)).Select(x => x.Name), "None"];
+
 	public static ExchangeRateProvider BlockchainInfoAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
+		cancellationToken => GetExchangeRatesAsync("BlockchainInfo", "https://blockchain.info/ticker", BlockchainInfoHandler(),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath(".USD"),
+		cancellationToken => GetExchangeRatesAsync("MempoolSpace", "https://mempool.space/api/v1/prices", MempoolSpaceHandler(),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider CoinGeckoAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price"),
+		cancellationToken => GetExchangeRatesAsync("CoinGecko", $"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies={string.Join(',', Currencies).ToLowerInvariant()}", CoinGeckoHandler(),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"),
+		cancellationToken => GetExchangeRatesAsync("Gemini", "https://api.gemini.com/v1/pricefeed", GeminiHandler(),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider NoneAsync() =>
-		_ => Task.FromResult(new ExchangeRate("USD", -1m));
+		_ => Task.FromResult<ExchangeRate[]>([]);
 
 	public static ExchangeRateProvider Composed(ExchangeRateProvider[] exchangeRateProviders) =>
 		async cancellationToken =>
@@ -65,7 +87,7 @@ public static class ExchangeRateProviders
 			throw new InvalidOperationException("All exchange rate providers failed to give us an exchange rate.");
 		};
 
-	private static async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string apiUrl, ExchangeRateExtractor extractor, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
+	private static async Task<ExchangeRate[]> GetExchangeRatesAsync(string providerName, string apiUrl, ExchangeRatesExtractor extractor, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
 	{
 		var url = new Uri(apiUrl);
 
@@ -77,19 +99,50 @@ public static class ExchangeRateProviders
 		response.EnsureSuccessStatusCode($"Error requesting exchange rate to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		Logger.LogDebug(json);
-		return Result<decimal, Exception>
+		return Result<ExchangeRate[], Exception>
 			.Catch(() => extractor(json))
 			.Match(
-				rate =>
+				exchangeRates =>
 				{
-					Logger.LogInfo($"Fetched exchange rate from {providerName}: {rate}.");
-					return new ExchangeRate("USD", rate);
+					if (exchangeRates.Length == 0)
+					{
+						throw new InvalidOperationException($"'{providerName}' quoted none of the known currencies.");
+					}
+
+					Logger.LogInfo($"Fetched exchange rates from {providerName}: {string.Join(", ", exchangeRates.Select(x => $"{x.Ticker} {x.Rate}"))}.");
+					return exchangeRates;
 				},
 				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));
 	}
 
-	private static ExchangeRateExtractor JsonPath(string xpath) =>
-		json =>
-			JToken.Parse(json).SelectToken(xpath)?.Value<decimal>()
-			?? throw new ArgumentException($@"The xpath {xpath} was not found.", nameof(xpath));
+	private static ExchangeRatesExtractor BlockchainInfoHandler() =>
+		json => JsonDocument.Parse(json).RootElement
+			.EnumerateObject()
+			.Where(x => BlockchainInfoCurrencies.Contains(x.Name))
+			.Select(x => new ExchangeRate(x.Name, x.Value.GetProperty("buy").GetDecimal()))
+			.ToArray();
+
+	private static ExchangeRatesExtractor MempoolSpaceHandler() =>
+		json => JsonDocument.Parse(json).RootElement
+			.EnumerateObject()
+			.Where(x => MempoolSpaceCurrencies.Contains(x.Name))
+			.Select(x => new ExchangeRate(x.Name, x.Value.GetDecimal()))
+			.ToArray();
+
+	private static ExchangeRatesExtractor CoinGeckoHandler() =>
+		json => JsonDocument.Parse(json).RootElement
+			.GetProperty("bitcoin")
+			.EnumerateObject()
+			.Select(x => new ExchangeRate(x.Name.ToUpperInvariant(), x.Value.GetDecimal()))
+			.ToArray();
+
+	private static ExchangeRatesExtractor GeminiHandler() =>
+		json => JsonDocument.Parse(json).RootElement
+			.EnumerateArray()
+			.Select(x => (Pair: x.GetProperty("pair").GetString()!, Price: x.GetProperty("price").GetString()!))
+			.Where(x => x.Pair.StartsWith("BTC"))
+			.Select(x => (Currency: x.Pair[3..], x.Price))
+			.Where(x => GeminiCurrencies.Contains(x.Currency))
+			.Select(x => new ExchangeRate(x.Currency, decimal.Parse(x.Price, CultureInfo.InvariantCulture)))
+			.ToArray();
 }

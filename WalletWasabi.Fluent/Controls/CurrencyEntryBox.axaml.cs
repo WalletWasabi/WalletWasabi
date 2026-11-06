@@ -345,12 +345,12 @@ public partial class CurrencyEntryBox : TextBox
 		}
 		else
 		{
-			var usd = ValidatePasteBalance
+			var fiat = ValidatePasteBalance
 				? ClipboardObserver.ParseToFiat(text, BalanceFiat)
 				: ClipboardObserver.ParseToFiat(text);
-			if (usd is not null)
+			if (fiat is not null)
 			{
-				result = usd.Value.ToString("0.00");
+				result = fiat.Value.ToString("0.00");
 				return true;
 			}
 		}

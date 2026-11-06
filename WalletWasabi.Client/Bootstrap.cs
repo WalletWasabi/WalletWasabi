@@ -10,6 +10,7 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using NScheme;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Helpers;
 using WalletWasabi.Rpc.JsonConverters;
 using WalletWasabi.Wallets;
@@ -63,7 +64,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
 		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
 		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
-		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRate);
+		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRates.ForCurrency("USD")?.Rate ?? 0m);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");

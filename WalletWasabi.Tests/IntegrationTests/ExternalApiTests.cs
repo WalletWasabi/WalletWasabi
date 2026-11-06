@@ -29,8 +29,8 @@ public class ExternalApiTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = providerFactory(new HttpClientFactory());
-		var exchangeRate = await provider(timeoutCts.Token).ConfigureAwait(false);
-		Assert.True(exchangeRate.Rate > 0);
+		var exchangeRates = await provider(timeoutCts.Token).ConfigureAwait(false);
+		Assert.All(exchangeRates, x => Assert.True(x.Rate > 0));
 	}
 
 	[Fact]
