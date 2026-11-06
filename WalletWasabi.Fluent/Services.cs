@@ -66,6 +66,7 @@ public class Services : IServices
 		DataDir = global.DataDir;
 		PersistentConfig = global.Config.PersistentConfig;
 		WalletManager = global.WalletManager;
+		HardwareWallets = global.HardwareWallets;
 		UiConfig = uiConfig;
 		Config = global.Config;
 		EventBus = global.EventBus;
@@ -75,6 +76,7 @@ public class Services : IServices
 	public string PersistentConfigFilePath => Path.Combine(DataDir, PersistentConfig.GetConfigFileName());
 	public PersistentConfig PersistentConfig { get; }
 	public WalletManager WalletManager { get; }
+	public HardwareWalletService HardwareWallets { get; }
 	public UiConfig UiConfig { get; }
 	public Config Config { get; }
 	public EventBus EventBus { get; }

@@ -1,0 +1,124 @@
+using System.Threading;
+using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Client;
+using System.Threading.Tasks;
+using WalletWasabi.Hwi.Trezor;
+using Xunit;
+
+namespace WalletWasabi.Tests.UnitTests.Hwi;
+
+/// <summary>
+/// A device kept across coinjoin rounds has to notice when the bridge forgot its session (the bridge was
+/// restarted, or dropped the device after a USB error), so that the wallet acquires it again instead of
+/// failing every call on the dead session.
+/// </summary>
+public class TrezorSessionTests
+{
+	[Fact]
+	public async Task ASessionTheBridgeStillKnowsIsAliveAsync()
+	{
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.Features));
+		using var device = new TrezorDevice(transport);
+
+		Assert.True(await device.IsSessionAliveAsync(CancellationToken.None));
+
+		// The probe must not touch the device state.
+		Assert.Equal(TrezorMessageType.GetFeatures, Assert.Single(transport.Received).MessageType);
+	}
+
+	[Fact]
+	public async Task ASessionTheBridgeForgotIsDeadAsync()
+	{
+		using var transport = new ScriptedTransport(); // Nothing scripted: every call fails as on a forgotten session.
+		using var device = new TrezorDevice(transport);
+
+		Assert.False(await device.IsSessionAliveAsync(CancellationToken.None));
+	}
+
+	/// <summary>The bridge and the device are untrusted: an answer that does not parse fails like any device error, not with whatever the parser threw.</summary>
+	[Fact]
+	public async Task AnUnreadableAnswerIsATrezorFailureAsync()
+	{
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(new TrezorMessage(TrezorMessageType.PublicKey, [0x18])); // root_fingerprint (field 3) cut off before its value.
+		using var device = new TrezorDevice(transport);
+
+		await Assert.ThrowsAsync<TrezorException>(() => device.GetMasterFingerprintAsync(CancellationToken.None));
+	}
+
+	/// <summary>A spent authorization or a forgotten session fails every later round, so the key chain says it needs a new authorization.</summary>
+	[Fact]
+	public void AFailedPreauthorizedCallAsksForANewAuthorization()
+	{
+		using var transport = new ScriptedTransport(); // Nothing scripted: DoPreauthorized fails as on a forgotten session.
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager);
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+
+		Assert.False(((IKeyChain)keyChain).NeedsAuthorization);
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
+	}
+
+	/// <summary>A bridge or device that never answers must not hold the round forever: the call is cut off and fails like any device call.</summary>
+	[Fact]
+	public void ADeviceThatDoesNotAnswerIsCutOffAndAsksForANewAuthorization()
+	{
+		using var transport = new SilentTransport();
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager) { DeviceCallTimeout = TimeSpan.FromMilliseconds(100) };
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
+	}
+
+	/// <summary>The device is asked for the limits the wallet keeps, and the key chain then signs under exactly those.</summary>
+	[Fact]
+	public async Task AnAuthorizationAsksForTheWalletLimitsAndClearsTheNeedForOneAsync()
+	{
+		using var transport = new ScriptedTransport();
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		keyManager.CoinJoinDeviceMaxRounds = 7;
+		keyManager.CoinJoinDeviceMaxMiningFeeRate = 3m;
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager);
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.Success));
+		await keyChain.AuthorizeAsync("coordinator", CancellationToken.None);
+
+		var fields = Assert.Single(transport.Received, message => message.MessageType == TrezorMessageType.AuthorizeCoinJoin).ReadFields();
+		Assert.Equal(7UL, fields[2][0].VarInt);
+		Assert.Equal(3_000UL, fields[4][0].VarInt); // sat per 1000 vbytes
+		Assert.Equal(new FeeRate(3m), ((IKeyChain)keyChain).MaxMiningFeeRate);
+		Assert.False(((IKeyChain)keyChain).NeedsAuthorization);
+	}
+
+	[Fact]
+	public async Task ADisposedDeviceIsDeadWithoutAskingTheBridgeAsync()
+	{
+		using var transport = new ScriptedTransport();
+		using var device = new TrezorDevice(transport); // Disposing twice is fine, the device shrugs off the second.
+		device.Dispose();
+
+		Assert.False(await device.IsSessionAliveAsync(CancellationToken.None));
+		Assert.Empty(transport.Received);
+	}
+
+	private class SilentTransport : ScriptedTransport
+	{
+		public override async Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
+		{
+			await Task.Delay(Timeout.Infinite, cancellationToken);
+			throw new InvalidOperationException("Unreachable.");
+		}
+	}
+}

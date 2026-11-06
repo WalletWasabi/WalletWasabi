@@ -94,6 +94,8 @@ public class TransactionFactory
 			}
 		}
 
+		allowedSmartCoinInputs = RestrictToSingleAccount(allowedSmartCoinInputs, payments, parameters.FeeRate);
+
 		var builder = new TransactionBuilderWithSilentPaymentSupport(Network);
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
@@ -132,7 +134,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			changeHdPubKey = KeyManager.GetNextChangeKey();
+			bool spendsCoinJoinAccountOnly = KeyManager.HasCoinJoinAccount
+				&& allowedSmartCoinInputs.All(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath());
+			changeHdPubKey = KeyManager.GetNextChangeKey(coinJoinAccount: spendsCoinJoinAccountOnly);
 
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
@@ -286,6 +290,43 @@ public class TransactionFactory
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
+	}
+
+	/// <summary>
+	/// A device unlocks the segwit and the SLIP-25 coinjoin account separately, so one transaction can only be
+	/// signed from one of them: never mix them.
+	/// </summary>
+	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, PaymentIntent payments, FeeRate feeRate)
+	{
+		if (!KeyManager.HasCoinJoinAccount)
+		{
+			return allowedSmartCoinInputs;
+		}
+
+		var slip25Coins = allowedSmartCoinInputs.Where(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath()).ToList();
+		var otherCoins = allowedSmartCoinInputs.Where(x => !x.HdPubKey.FullKeyPath.IsSlip25KeyPath()).ToList();
+		if (slip25Coins.Count == 0 || otherCoins.Count == 0)
+		{
+			return allowedSmartCoinInputs;
+		}
+
+		// Sending everything would need both accounts. Otherwise prefer the regular account so the coinjoined (private)
+		// coins stay untouched, and fall back to the coinjoin account when only it covers the payment and its fee.
+		if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
+		{
+			// The outputs (payments and change) and the transaction overhead cost the same from either account; each coin pays for its own input.
+			var needed = payments.TotalAmount + feeRate.GetFee(10 + (payments.Requests.Count() + 1) * Constants.P2trOutputVirtualSize);
+			if (otherCoins.Sum(x => x.EffectiveValue(feeRate)) >= needed)
+			{
+				return otherCoins;
+			}
+			if (slip25Coins.Sum(x => x.EffectiveValue(feeRate)) >= needed)
+			{
+				return slip25Coins;
+			}
+		}
+
+		throw new InvalidOperationException("The amount spans both the regular and the coinjoin account, which cannot be spent in one transaction. Send a smaller amount or use two transactions.");
 	}
 }
 
