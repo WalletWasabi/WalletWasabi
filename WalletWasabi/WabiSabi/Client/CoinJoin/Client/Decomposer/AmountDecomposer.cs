@@ -36,7 +36,7 @@ public class AmountDecomposer
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private readonly RandomnessProvider _random;
 
-	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
+	private IReadOnlyList<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
 		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
