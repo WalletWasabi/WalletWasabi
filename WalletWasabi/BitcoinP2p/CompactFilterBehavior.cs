@@ -18,6 +18,7 @@ public class CompactFilterBehavior(
 	private static readonly TimeSpan FilterAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan HeaderAssignmentTimeoutForTor = TimeSpan.FromSeconds(45);
 	private static readonly TimeSpan FilterAssignmentTimeoutForTor = TimeSpan.FromSeconds(70);
+	private static readonly TimeSpan FilterRangeMaxDuration = TimeSpan.FromMinutes(10);
 
 	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
 	private TimeSpan _filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
@@ -30,6 +31,9 @@ public class CompactFilterBehavior(
 
 	/// <summary>Assignment of the node to download headers/filters from the node, or <c>null</c> if there is none at the moment.</summary>
 	private Assignment? _assignment;
+
+	/// <summary>When the last filter of the assigned range arrived, or when the range was assigned if none has yet.</summary>
+	private DateTime _lastFilterProgressAt;
 
 	private volatile bool _invalidReceived;
 
@@ -210,6 +214,7 @@ public class CompactFilterBehavior(
 		}
 
 		_collectedFilters.Add(filterPayload);
+		_lastFilterProgressAt = DateTime.UtcNow;
 
 		// Check if we've received all filters for this range
 		if (filterPayload.BlockHash != assignment.StopHash && _collectedFilters.Count < assignment.Count)
@@ -359,6 +364,7 @@ public class CompactFilterBehavior(
 		}
 
 		_assignment = new Assignment(IsHeaderRequest: false, filterAssignment, DateTime.UtcNow);
+		_lastFilterProgressAt = _assignment.AssignedAt;
 		Logger.LogDebug($"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
@@ -427,15 +433,22 @@ public class CompactFilterBehavior(
 				return false;
 			}
 
-			var elapsed = nowUtc - _assignment.AssignedAt;
-			var timeout = _assignment.IsHeaderRequest
-				? _headerAssignmentTimeout
-				: _filterAssignmentTimeout;
-
-			if (elapsed > timeout)
+			var runningFor = nowUtc - _assignment.AssignedAt;
+			if (_assignment.IsHeaderRequest)
 			{
-				var kind = _assignment.IsHeaderRequest ? "Header" : "Filter";
-				HandleInvalidNoLock(node, $"{kind} assignment at {_assignment.RangeRequest.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+				if (runningFor > _headerAssignmentTimeout)
+				{
+					HandleInvalidNoLock(node, $"Header assignment at {_assignment.RangeRequest.StartHeight} timed out after {runningFor.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+					return true;
+				}
+
+				return false;
+			}
+
+			var stalledFor = nowUtc - _lastFilterProgressAt;
+			if (stalledFor > _filterAssignmentTimeout || runningFor > FilterRangeMaxDuration)
+			{
+				HandleInvalidNoLock(node, $"Filter range {_assignment.RangeRequest} incomplete after {runningFor.TotalSeconds:F1}s ({_collectedFilters.Count}/{_assignment.RangeRequest.Count} filters received, nothing for {stalledFor.TotalSeconds:F1}s), disconnecting {node.Peer.Endpoint}");
 				return true;
 			}
 
