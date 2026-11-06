@@ -84,6 +84,11 @@ public class RpcTests
 					"""{"jsonrpc":"2.0","error":{"code":-32603,"message":"the error"},"id":"1"}"""
 				},
 				{
+					// Valid request but internal server error in an async method
+					"""{"jsonrpc":"2.0","method":"failasync","params":[],"id":"1"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32603,"message":"the error"},"id":"1"}"""
+				},
+				{
 					// Valid request to async method
 					"""{"jsonrpc":"2.0","method":"substractasync","params":{"minuend":42,"subtrahend":23},"id":"7"}""",
 					"""{"jsonrpc":"2.0","result":19,"id":"7"}"""

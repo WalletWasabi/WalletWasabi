@@ -574,17 +574,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new InvalidOperationException("The experimental 'scripting' feature is not enabled.");
 		}
-		try
-		{
-			var expressionResult = await Global.Scheme.ExecuteAsync(script).ConfigureAwait(false);
-			var result = Scheme.ToObject(Scheme.ToNativeObject(expressionResult));
-			return result;
-		}
-		catch (Exception e)
-		{
-			return e.Message;
-		}
 
+		// A failing script is a JSON-RPC error, not a string result that a client cannot tell apart from a script's own output.
+		var expressionResult = await Global.Scheme.ExecuteAsync(script).ConfigureAwait(false);
+		return Scheme.ToObject(Scheme.ToNativeObject(expressionResult));
 	}
 
 	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
