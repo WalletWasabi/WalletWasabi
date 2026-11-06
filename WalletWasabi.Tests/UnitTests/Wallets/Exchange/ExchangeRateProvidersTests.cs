@@ -75,7 +75,8 @@ public class ExchangeRateProvidersTests
 	[Fact]
 	public async Task NoneQuotesNothingAsync()
 	{
-		var exchangeRates = await ExchangeRateProviders.NoneAsync()(CancellationToken.None);
+		var provider = ExchangeRateProviders.NoneAsync();
+		var exchangeRates = await provider(CancellationToken.None);
 
 		Assert.Empty(exchangeRates);
 	}
