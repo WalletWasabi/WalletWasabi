@@ -1,9 +1,5 @@
-using NBitcoin;
-using System.Threading;
-using System.Threading.Tasks;
+using NBitcoin.Protocol;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 
 namespace WalletWasabi.Wallets;
@@ -20,6 +16,7 @@ public static class BlockProviders
 		{
 			try
 			{
+				Logger.LogInfo($"Obtaining block {blockHash} from the Bitcoin RPC provider…");
 				return await rpcClient.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -32,14 +29,19 @@ public static class BlockProviders
 	public static BlockProvider P2pBlockProvider(P2pNodeProvider getNode) =>
 		async (blockHash, cancellationToken) =>
 		{
+			Node[] triedNodes = [];
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				var singleUseNode = await getNode(cancellationToken).ConfigureAwait(false);
+				var singleUseNode = await getNode(triedNodes, cancellationToken).ConfigureAwait(false);
+
+				Logger.LogInfo($"Obtaining block {blockHash} from '{singleUseNode.Node.RemoteSocketEndpoint}'…");
 				var block = await singleUseNode.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 				if (block is not null)
 				{
 					return block;
 				}
+
+				triedNodes = [.. triedNodes, singleUseNode.Node];
 			}
 			cancellationToken.ThrowIfCancellationRequested();
 			throw new InvalidOperationException("Failed to retrieve the requested block.");
