@@ -1,21 +1,8 @@
-using WalletWasabi.Crypto.Randomness;
-
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 public static class DenominationBuilder
 {
-	public static IReadOnlyList<Output> CreateDenominations(
-		Money minAllowedOutputAmount,
-		Money maxAllowedOutputAmount,
-		FeeRate feeRate,
-		IEnumerable<ScriptType> allowedOutputTypes,
-		RandomnessProvider random) =>
-		CreateDenominationAmounts(minAllowedOutputAmount, maxAllowedOutputAmount)
-			.Select(denomination => Output.FromDenomination(denomination, allowedOutputTypes.RandomElement(random), feeRate))
-			.OrderByDescending(x => x.EffectiveAmount)
-			.ToArray();
-
-	public static IReadOnlyList<Money> CreateDenominationAmounts(Money minAllowedOutputAmount, Money maxAllowedOutputAmount)
+	public static IReadOnlyList<Money> CreateDenominations(Money minAllowedOutputAmount, Money maxAllowedOutputAmount)
 	{
 		IEnumerable<decimal> Times(int times, IEnumerable<decimal> values) =>
 			values

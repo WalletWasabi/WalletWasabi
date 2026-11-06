@@ -20,7 +20,10 @@ public class AmountDecomposer
 		_random = random;
 
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes, random);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount)
+			.Select(denomination => Output.FromDenomination(denomination, AllowedOutputTypes.RandomElement(random), FeeRate))
+			.OrderByDescending(x => x.EffectiveAmount)
+			.ToArray();
 
 		ChangeScriptType = AllowedOutputTypes.RandomElement(random);
 	}
