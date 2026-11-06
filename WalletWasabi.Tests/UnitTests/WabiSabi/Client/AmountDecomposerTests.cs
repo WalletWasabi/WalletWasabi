@@ -83,9 +83,9 @@ public class AmountDecomposerTests
 	[InlineData(1)]
 	[InlineData(2)]
 	[InlineData(3)]
-	public void InputsSharingADenominationGetThatDenominationTest(int seed)
+	public void SharedDenominationIsKeptDespiteRandomScriptTypes(int seed)
 	{
-		// The two 32,850 inputs break down to 32,768. The last two share 50,000 and the middle one stands alone with 39,366.
+		// Effective values of all inputs registered in a round: The two 32,850 inputs break down to 32,768. The last two share 50,000 and the middle one stands alone with 39,366.
 		var allInputEffectiveValues = new long[] { 32_850, 32_850, 39_450, 50_100, 59_150 }.Select(Money.Satoshis).ToArray();
 
 		var amountDecomposer = new AmountDecomposer(
@@ -96,6 +96,7 @@ public class AmountDecomposerTests
 			allowedOutputTypes: [ScriptType.P2WPKH, ScriptType.Taproot],
 			RandomExtensions.CreateSeeded(seed));
 
+		// Every participant must be able to decompose without throwing, and the outputs must not exceed the input's effective value.
 		foreach (var myInputSum in allInputEffectiveValues)
 		{
 			var outputValues = amountDecomposer.Decompose(myInputSum, allInputEffectiveValues).ToArray();
@@ -104,6 +105,7 @@ public class AmountDecomposerTests
 			Assert.True(outputValues.Sum(x => x.EffectiveCost) <= myInputSum);
 		}
 
+		// The two 32,850 inputs share the denomination 32,768, so it must survive the filter and be the only output.
 		var output = Assert.Single(amountDecomposer.Decompose(Money.Satoshis(32_850), allInputEffectiveValues));
 		Assert.Equal(Money.Satoshis(32_768), output.Amount);
 	}
