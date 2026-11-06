@@ -116,13 +116,11 @@ public record WabiSabiConfig
 	public bool PublishAsOnionService { get; init; }
 	public string? OnionServicePrivateKey { get; set; }
 
-	public Script GetNextCleanCoordinatorScript() => DeriveCoordinatorScript(CoordinatorExtPubKeyCurrentDepth);
-
 	public Script DeriveCoordinatorScript(int index) => CoordinatorExtPubKey.Derive(0, false).Derive(index, false).PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 
-	public void MakeNextCoordinatorScriptDirty()
+	public void MakeNextCoordinatorScriptsDirty(int count)
 	{
-		CoordinatorExtPubKeyCurrentDepth++;
+		CoordinatorExtPubKeyCurrentDepth += count;
 		if (!string.IsNullOrWhiteSpace(FilePath))
 		{
 			ToFile();
