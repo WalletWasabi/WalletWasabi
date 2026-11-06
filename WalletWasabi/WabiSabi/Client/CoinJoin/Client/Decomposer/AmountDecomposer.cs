@@ -2,9 +2,6 @@ using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
-/// <summary>
-/// Pull requests to this file must be up to date with this simulation to ensure correctness: https://github.com/nopara73/Sake
-/// </summary>
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
@@ -70,6 +67,8 @@ public class AmountDecomposer
 		return denoms;
 	}
 
+	/// <param name="myInputSum">Effective sum of my inputs being decomposed, i.e. the input amount minus the fee to spend it.</param>
+	/// <param name="allInputCoinEffectiveValues">Effective values of all coins registered as inputs in the round, including mine.</param>
 	public IEnumerable<Output> Decompose(Money myInputSum, IEnumerable<Money> allInputCoinEffectiveValues, bool isPerformingAPayment = false)
 	{
 		var denoms = GetFilteredDenominations(allInputCoinEffectiveValues);
