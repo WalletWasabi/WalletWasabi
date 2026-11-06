@@ -98,13 +98,16 @@ public static class Tokenizer
 			throw new TorControlReplyParseException("Unexpected end of string.");
 		}
 
-		// Do not stop at escaped quotes (").
+		// Do not stop at escaped quotes (\").
 		while ((endAt = input.IndexOf('"', endAt)) != -1)
 		{
 			if (input[endAt - 1] != '\\')
 			{
 				break;
 			}
+
+			// Continue the search after the escaped quote, otherwise it is found again and again.
+			endAt++;
 		}
 
 		if (endAt == -1)

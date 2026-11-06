@@ -36,6 +36,7 @@ using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
+using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
@@ -124,11 +125,14 @@ public class Global
 		_stoppingCts.DisposeUsing(_disposables);
 	}
 
+	private static readonly TimeSpan TorBootstrapTimeout = TimeSpan.FromSeconds(60);
+
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
 	private readonly P2pConnectionManager _p2pConnectionManager;
 	private TorManager? _torManager;
+	private Task _torBootstrapTask = Task.CompletedTask;
 	private readonly IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly ConcurrentChain _blockHeaders;
@@ -599,6 +603,9 @@ public class Global
 				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
 
+			// Connecting through Tor before it can build circuits only produces timeouts and reconnect cooldowns.
+			await _torBootstrapTask.ConfigureAwait(false);
+
 			// Bitcoin P2P network can be started after filters are initialized.
 			_p2pConnectionManager.Start(linkedCtsToken);
 
@@ -673,6 +680,34 @@ public class Global
 		}
 	}
 
+	/// <summary>Waits until Tor reports that it can build circuits, at most <see cref="TorBootstrapTimeout"/>.</summary>
+	private static async Task WaitForTorBootstrapAsync(TorControlClient torControlClient, CancellationToken cancellationToken)
+	{
+		var startedAt = DateTimeOffset.UtcNow;
+
+		try
+		{
+			var phase = await torControlClient.WaitForBootstrapAsync(TorBootstrapTimeout, pollInterval: TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+
+			if (phase is { IsBootstrapped: true })
+			{
+				Logger.LogInfo($"Tor is bootstrapped ({(DateTimeOffset.UtcNow - startedAt).TotalSeconds:F1}s).");
+			}
+			else if (phase is null)
+			{
+				Logger.LogWarning($"Tor did not answer the bootstrap status query within {TorBootstrapTimeout.TotalSeconds:F0}s. Starting the P2P network anyway.");
+			}
+			else
+			{
+				Logger.LogWarning($"Tor did not bootstrap within {TorBootstrapTimeout.TotalSeconds:F0}s ({phase.Progress}%, {phase.Summary}). Starting the P2P network anyway.");
+			}
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			Logger.LogWarning($"Could not query Tor's bootstrap status: {ex.Message}");
+		}
+	}
+
 	private async Task StartTorProcessManagerAsync(CancellationToken cancellationToken)
 	{
 		if (Config.UseTor != TorMode.Disabled)
@@ -698,6 +733,12 @@ public class Global
 					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
 			}
+
+			// Started after the onion service is set up: control commands are answered in order, so ADD_ONION must not
+			// queue behind a bootstrap query that Tor never answers.
+			_torBootstrapTask = torControlClient is { } controlClient
+				? WaitForTorBootstrapAsync(controlClient, cancellationToken)
+				: Task.CompletedTask;
 
 			var torStatusHttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject");
 			var torStatusChecker = Spawn("TorStatusChecker",

@@ -65,6 +65,7 @@ public class P2pConnectionManager : IDisposable
 	private const double RotationScoreMargin = PeerInfo.MaxScore * 0.1;
 	private const int DefaultCrawlerCount = 10;
 	private const int MaxPeersPerNetgroup = 3;
+	private const int DnsQueriesPerSeedOverTor = 2;
 
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
@@ -910,7 +911,10 @@ public class P2pConnectionManager : IDisposable
 		var dnsHosts = _network.DNSSeeds.Select(x => x.Host);
 		if (_dnsResolver is DnsSocksResolver)
 		{
-			dnsHosts = Enumerable.Repeat(dnsHosts, 16).SelectMany(x => x).Shuffle();
+			// Tor's RESOLVE returns a single address per query, so each seed is queried a few times. Every
+			// isolated query needs its own circuit and Tor builds at most 32 circuits at a time, so a large
+			// fan-out just makes the queries time out.
+			dnsHosts = Enumerable.Repeat(dnsHosts, DnsQueriesPerSeedOverTor).SelectMany(x => x).Shuffle();
 		}
 		var tasks = dnsHosts.Select(GetAddressesFromDnsAsync);
 
