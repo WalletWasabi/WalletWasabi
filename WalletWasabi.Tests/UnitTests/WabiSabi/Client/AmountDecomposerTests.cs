@@ -87,9 +87,14 @@ public class AmountDecomposerTests
 	{
 		// The two 32,850 inputs break down to 32,768. The last two share 50,000 and the middle one stands alone with 39,366.
 		var allInputEffectiveValues = new long[] { 32_850, 32_850, 39_450, 50_100, 59_150 }.Select(Money.Satoshis).ToArray();
-		var allowedOutputTypes = new List<ScriptType> { ScriptType.P2WPKH, ScriptType.Taproot };
-		var availableVsize = (int)ProtocolConstants.MaxVsizeCredentialValue - Constants.P2trInputVirtualSize;
-		var amountDecomposer = new AmountDecomposer(new FeeRate(1m), Money.Satoshis(5_000), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), availableVsize, allowedOutputTypes, RandomExtensions.CreateSeeded(seed));
+
+		var amountDecomposer = new AmountDecomposer(
+			new FeeRate(1m),
+			minAllowedOutputAmount: Money.Satoshis(5_000),
+			maxAllowedOutputAmount: Money.Satoshis(ProtocolConstants.MaxAmountPerAlice),
+			availableVsize: (int)ProtocolConstants.MaxVsizeCredentialValue - Constants.P2trInputVirtualSize,
+			allowedOutputTypes: [ScriptType.P2WPKH, ScriptType.Taproot],
+			RandomExtensions.CreateSeeded(seed));
 
 		foreach (var myInputSum in allInputEffectiveValues)
 		{
