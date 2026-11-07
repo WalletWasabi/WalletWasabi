@@ -106,7 +106,6 @@ public static class Tokenizer
 				break;
 			}
 
-			// Continue the search after the escaped quote, otherwise it is found again and again.
 			endAt++;
 		}
 
