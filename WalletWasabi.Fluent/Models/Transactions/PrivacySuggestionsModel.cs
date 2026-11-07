@@ -74,6 +74,7 @@ public partial class PrivacySuggestionsModel
 		using (await _asyncLock.LockAsync(CancellationToken.None))
 		{
 			result.Add(VerifyLabels(parameters));
+			result.Add(VerifyRecipients(parameters));
 			result.Add(VerifyPrivacyLevel(parameters));
 			result.Add(VerifyLargePercentSpent(parameters));
 			result.Add(VerifyUnconfirmedInputs(parameters));
@@ -130,6 +131,16 @@ public partial class PrivacySuggestionsModel
 		}
 
 		return null;
+	}
+
+	private IEnumerable<PrivacyItem> VerifyRecipients(Parameters parameters)
+	{
+		var recipients = parameters.TransactionInfo.AllRecipients.Select(x => x.Label).Distinct(LabelsComparer.Instance).ToArray();
+
+		if (recipients.Length > 1)
+		{
+			yield return new InterlinksRecipientsWarning(LabelsArray.Merge(recipients));
+		}
 	}
 
 	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(Parameters parameters)

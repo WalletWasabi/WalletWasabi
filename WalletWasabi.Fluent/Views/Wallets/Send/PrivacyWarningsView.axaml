@@ -152,6 +152,18 @@
           </Border>
         </DataTemplate>
 
+        <!-- Interlinks Recipients Warning -->
+        <DataTemplate DataType="{x:Type model:InterlinksRecipientsWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="Transaction interlinks recipients:" Margin="0 0 5 0"
+                         ToolTip.Tip="Every recipient of this transaction can see the payments to the others and learn that the same wallet made them. Send separate transactions to recipients who should not know about each other." />
+              <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
         <!-- Non-private funds Warning -->
         <DataTemplate DataType="{x:Type model:NonPrivateFundsWarning}">
           <Border Classes="warning critical">
