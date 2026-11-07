@@ -41,10 +41,17 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		TotalAmount = coinList.Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 		PrivateAmount = coinList.Filter(x => x.IsPrivate, suppressEmptyChangeSets: false).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 		SemiPrivateAndPrivateAmount = coinList.Filter(x => x.IsPrivate || x.IsSemiPrivate, suppressEmptyChangeSets: false).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
-		IsPrivacyProgressDisplayed = SemiPrivateAndPrivateAmount.CombineLatest(TotalAmount, resultSelector: IsProgressVisible);
+
+		var isPrivacyMode = uiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode);
+		IsPrivacyProgressDisplayed = SemiPrivateAndPrivateAmount.CombineLatest(TotalAmount, resultSelector: IsProgressVisible)
+			.CombineLatest(isPrivacyMode, (isProgressVisible, privacyMode) => isProgressVisible || privacyMode);
+		IsPrivateBalanceDisplayed = this.WhenAnyValue(x => x.HasPrivateBalance)
+			.CombineLatest(isPrivacyMode, (hasPrivateBalance, privacyMode) => hasPrivateBalance || privacyMode);
 	}
 
 	public IObservable<bool> IsPrivacyProgressDisplayed { get; }
+
+	public IObservable<bool> IsPrivateBalanceDisplayed { get; }
 
 	public ICommand ShowDetailsCommand { get; }
 

@@ -9,12 +9,21 @@ namespace WalletWasabi.Fluent.Controls;
 
 public class PrivacyTextPresenter : UserControl
 {
+	public static readonly StyledProperty<int> MinPrivacyCharsProperty =
+		AvaloniaProperty.Register<PrivacyTextPresenter, int>(nameof(MinPrivacyChars));
+
 	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyTextPresenter, int>(nameof(MaxPrivacyChars), int.MaxValue);
 
 	private GlyphRun? _glyphRun;
 	private double _width;
 	private FormattedText? _formattedText;
+
+	public int MinPrivacyChars
+	{
+		get => GetValue(MinPrivacyCharsProperty);
+		set => SetValue(MinPrivacyCharsProperty, value);
+	}
 
 	public int MaxPrivacyChars
 	{
@@ -38,24 +47,25 @@ public class PrivacyTextPresenter : UserControl
 		};
 	}
 
+	private double PrivacyCharAdvance()
+	{
+		var glyphTypeface = new Typeface(FontFamily).GlyphTypeface;
+		var scale = FontSize / glyphTypeface.Metrics.DesignEmHeight;
+		return glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph(UiConstants.PrivacyChar)) * scale;
+	}
+
 	private GlyphRun? CreateGlyphRun(double width)
 	{
-		var privacyChar = UiConstants.PrivacyChar;
-
-		var glyphTypeface = new Typeface(FontFamily).GlyphTypeface;
-		var glyph = glyphTypeface.GetGlyph(privacyChar);
-
-		var scale = FontSize / glyphTypeface.Metrics.DesignEmHeight;
-		var advance = glyphTypeface.GetGlyphAdvance(glyph) * scale;
-
-		var count = Math.Min(width > 0 && width < advance ? 1 : (int)(width / advance), MaxPrivacyChars);
+		var advance = PrivacyCharAdvance();
+		var count = Math.Clamp(width > 0 && width < advance ? 1 : (int)(width / advance), MinPrivacyChars, MaxPrivacyChars);
 		if (count == 0)
 		{
 			return null;
 		}
 
-		var characters = new ReadOnlyMemory<char>(Enumerable.Repeat(privacyChar, count).ToArray());
-		var glyphs = Enumerable.Repeat(glyph, count).ToArray();
+		var glyphTypeface = new Typeface(FontFamily).GlyphTypeface;
+		var characters = new ReadOnlyMemory<char>(Enumerable.Repeat(UiConstants.PrivacyChar, count).ToArray());
+		var glyphs = Enumerable.Repeat(glyphTypeface.GetGlyph(UiConstants.PrivacyChar), count).ToArray();
 
 		return new GlyphRun(glyphTypeface, FontSize, characters, glyphs);
 	}
@@ -64,7 +74,7 @@ public class PrivacyTextPresenter : UserControl
 	{
 		_formattedText ??= CreateFormattedText();
 
-		return new Size(0, _formattedText.Height);
+		return new Size(MinPrivacyChars * PrivacyCharAdvance(), _formattedText.Height);
 	}
 
 	public override void Render(DrawingContext context)
