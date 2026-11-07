@@ -244,11 +244,6 @@ public class HardwareWalletServiceTests
 	private static BitcoinAddress SegwitAddress(KeyManager seed, uint index) =>
 		seed.SegwitExtPubKey.Derive(0).Derive(index).PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
 
-	private sealed class ShownAddresses : List<BitcoinAddress>, IProgress<BitcoinAddress>
-	{
-		public void Report(BitcoinAddress address) => Add(address);
-	}
-
 	/// <summary>
 	/// The bridge is an unauthenticated local process, so an account it hands out is only saved once the
 	/// device has shown the first address of the account and the caller was told which address to expect.
@@ -263,14 +258,56 @@ public class HardwareWalletServiceTests
 		transport.Responses.Enqueue(PublicKey(seed.SegwitExtPubKey));
 		transport.Responses.Enqueue(Address(SegwitAddress(seed, 0)));
 		using var device = new TrezorDevice(transport);
-		var shown = new ShownAddresses();
+		var shown = new List<BitcoinAddress>();
 
-		var keyManager = await service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, shown, CancellationToken.None);
+		var keyManager = await service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, shown.Add, CancellationToken.None);
 
 		Assert.Equal(TrezorMessageType.GetAddress, transport.Received.Last().MessageType);
 		Assert.Equal(SegwitAddress(seed, 0), Assert.Single(shown));
 		Assert.Equal(seed.SegwitExtPubKey, keyManager.SegwitExtPubKey);
 		Assert.True(File.Exists(walletFilePath));
+	}
+
+	/// <summary>The coinjoin account goes through the same check as the other one, and the device first has to unlock its path.</summary>
+	[Fact]
+	public async Task AnImportWithCoinJoinUnlocksAndShowsTheCoinJoinAccountTooAsync()
+	{
+		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
+		var seed = TestKeyManagers.MasterKey;
+		var segwit = seed.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit)).Neuter();
+		var coinJoin = seed.Derive(coinJoinAccountKeyPath).Neuter();
+		var segwitAddress = segwit.Derive(0).Derive(0).PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
+		var coinJoinAddress = coinJoin.Derive(0).Derive(0).PubKey.GetAddress(ScriptPubKeyType.TaprootBIP86, Network.Main);
+		var walletFilePath = Path.Combine(await Common.GetEmptyWorkDirAsync(), "wallet.json");
+		using var service = new HardwareWalletService(Network.Main);
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(PublicKey(segwit));
+		transport.Responses.Enqueue(Address(segwitAddress));
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.UnlockedPathRequest));
+		transport.Responses.Enqueue(PublicKey(coinJoin));
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.UnlockedPathRequest));
+		transport.Responses.Enqueue(Address(coinJoinAddress));
+		using var device = new TrezorDevice(transport);
+		var shown = new List<BitcoinAddress>();
+
+		var keyManager = await service.ReadAccountsAsync(device, seed.Neuter().PubKey.GetHDFingerPrint(), walletFilePath, enableCoinjoin: true, shown.Add, CancellationToken.None);
+
+		Assert.Equal(
+			[
+				TrezorMessageType.GetPublicKey,
+				TrezorMessageType.GetAddress,
+				TrezorMessageType.UnlockPath,
+				TrezorMessageType.GetPublicKey,
+				TrezorMessageType.UnlockPath,
+				TrezorMessageType.GetAddress,
+			],
+			transport.Received.Select(message => message.MessageType));
+		Assert.Equal((ulong)TrezorInputScriptType.SpendWitness, transport.Received[0].ReadFields()[5][0].VarInt);
+		Assert.Equal((ulong)TrezorInputScriptType.SpendTaproot, transport.Received[3].ReadFields()[5][0].VarInt);
+		Assert.Equal((ulong)TrezorInputScriptType.SpendTaproot, transport.Received[5].ReadFields()[5][0].VarInt);
+		Assert.Equal([segwitAddress, coinJoinAddress], shown);
+		Assert.True(keyManager.HasCoinJoinAccount);
+		Assert.Equal(coinJoin, keyManager.TaprootExtPubKey);
 	}
 
 	[Fact]

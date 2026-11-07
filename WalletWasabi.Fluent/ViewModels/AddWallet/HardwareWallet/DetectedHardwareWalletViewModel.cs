@@ -2,7 +2,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using NBitcoin;
+using Avalonia.Threading;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -31,19 +31,16 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		TypeName = device.Model.FriendlyName();
 
-		// Coinjoin is opt-in: only offer it for models that can sign coinjoins on the device.
 		SupportsCoinjoin = HardwareWalletService.CanSignCoinJoins(device);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		EnableBack = false;
 
-		// The device shows the first address of every account it hands out; the page shows the same address so
-		// the user can compare the two, which is what proves the wallet got the keys of this device.
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with
 		{
 			EnableCoinjoin = EnableCoinjoin,
-			AddressToConfirm = new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString())
+			AddressToConfirm = address => Dispatcher.UIThread.Post(() => AddressToConfirm = address.ToString())
 		}));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
@@ -102,15 +99,14 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			CancelCts = null;
 		}));
 
-		// Warn up front when coinjoin is offered but the bridge that it needs is not running, so the user
-		// can start the vendor bridge software before checking the box instead of hitting an error after confirming.
+		// Warn before the box is checked rather than with an error after confirming.
 		if (SupportsCoinjoin)
 		{
 			Task.Run(async () =>
 			{
 				try
 				{
-					IsBridgeUnavailable = !await UiContext.HardwareWalletInterface.IsCoinJoinTransportAvailableAsync(CancellationToken.None);
+					IsBridgeUnavailable = !await UiContext.Services.HardwareWallets.IsCoinJoinTransportAvailableAsync(CancellationToken.None);
 				}
 				catch (Exception ex)
 				{

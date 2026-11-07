@@ -292,10 +292,7 @@ public class TransactionFactory
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
-	/// <summary>
-	/// A device unlocks the segwit and the SLIP-25 coinjoin account separately, so one transaction can only be
-	/// signed from one of them: never mix them.
-	/// </summary>
+	/// <summary>Never mixes the coins of the payment and the coinjoin account: a device signs one transaction from one of them (see <see cref="Slip25"/>).</summary>
 	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, PaymentIntent payments, FeeRate feeRate)
 	{
 		if (!KeyManager.HasCoinJoinAccount)
