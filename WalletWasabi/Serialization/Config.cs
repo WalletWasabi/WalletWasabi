@@ -1,8 +1,7 @@
-using System.Linq;
 using System.Net;
 using System.Text.Json.Nodes;
-using NBitcoin;
 using WalletWasabi.Discoverability;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Coordinator;
 
@@ -44,6 +43,8 @@ public static partial class Encode
 			("DoSMinTimeInPrison", TimeSpan(cfg.DoSMinTimeInPrison) ),
 			("MinRegistrableAmount", MoneyBitcoins(cfg.MinRegistrableAmount) ),
 			("MaxRegistrableAmount", MoneyBitcoins(cfg.MaxRegistrableAmount) ),
+			("MinimumAcceptableFeeRate", FeeRatePerKvB(cfg.MinimumAcceptableFeeRate) ),
+			("MaximumAcceptableFeeRate", FeeRatePerKvB(cfg.MaximumAcceptableFeeRate) ),
 			("AllowNotedInputRegistration", Bool(cfg.AllowNotedInputRegistration) ),
 			("StandardInputRegistrationTimeout", TimeSpan(cfg.StandardInputRegistrationTimeout) ),
 			("BlameInputRegistrationTimeout", TimeSpan(cfg.BlameInputRegistrationTimeout) ),
@@ -123,6 +124,8 @@ public static partial class Decode
 			DoSMinTimeInPrison = get.Required("DoSMinTimeInPrison", TimeSpan),
 			MinRegistrableAmount = get.Required("MinRegistrableAmount", MoneyBitcoins),
 			MaxRegistrableAmount = get.Required("MaxRegistrableAmount", MoneyBitcoins),
+			MinimumAcceptableFeeRate = get.Optional("MinimumAcceptableFeeRate", FeeRatePerKvB, FeeRateEstimations.MinimumSanityFeeRate),
+			MaximumAcceptableFeeRate = get.Optional("MaximumAcceptableFeeRate", FeeRatePerKvB, FeeRateEstimations.MaxFeeRate),
 			AllowNotedInputRegistration = get.Required("AllowNotedInputRegistration", Bool),
 			StandardInputRegistrationTimeout = get.Required("StandardInputRegistrationTimeout", TimeSpan),
 			BlameInputRegistrationTimeout = get.Required("BlameInputRegistrationTimeout", TimeSpan),

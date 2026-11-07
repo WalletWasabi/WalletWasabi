@@ -251,21 +251,21 @@ public static partial class Decode
 		public List<string> Errors { get; } = [];
 		public JsonElement Value => value;
 
-		public T Required<T>(string fileName, Decoder<T> decoder) =>
-			Field(fileName, decoder)(value)
+		public T Required<T>(string field, Decoder<T> decoder) =>
+			Field(field, decoder)(value)
 				.Match(v => v, e =>
 				{
 					Errors.Add(e);
 					return default!;
 				});
 
-		public T? Optional<T>(string fileName, Decoder<T> decoder) =>
-			Field(fileName, decoder)(value).Match(
+		public T? Optional<T>(string field, Decoder<T> decoder) =>
+			Field(field, decoder)(value).Match(
 				v => v,
 				_ => (T?) (object?) null);
 
-		public T Optional<T>(string fileName, Decoder<T> decoder, T def) where T : struct =>
-			Field(fileName, decoder)(value).Match(v => v, _ => def);
+		public T Optional<T>(string field, Decoder<T> decoder, T def) =>
+			Field(field, decoder)(value).Match(v => v, _ => def);
 	}
 
 	public static Decoder<T> Object<T>(Func<Getters, T> builder) =>
