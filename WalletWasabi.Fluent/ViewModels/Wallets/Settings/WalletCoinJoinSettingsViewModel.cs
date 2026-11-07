@@ -53,7 +53,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
 		_onlyUsePrivateFundsForPayments = _wallet.Settings.OnlyUsePrivateFundsForPayments;
-		HasDeviceAuthorizationLimits = _wallet.HasSeparateCoinJoinAccount;
 		_deviceMaxRounds = _wallet.Settings.CoinJoinDeviceMaxRounds.ToString();
 		_deviceMaxMiningFeeRate = _wallet.Settings.CoinJoinDeviceMaxMiningFeeRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
@@ -133,16 +132,14 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
-		// A device only signs rounds whose outputs return to its own coinjoin account.
 		walletModel.IsCoinjoinStarted
-			.Select(isRunning => !isRunning && !_wallet.HasSeparateCoinJoinAccount)
+			.Select(isRunning => !isRunning && !_wallet.HasCoinJoinAccount)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
 		ManuallyUpdateOutputWalletList();
 	}
 
-	/// <summary>Whether the device authorization limits apply to this wallet, so they can be edited.</summary>
-	public bool HasDeviceAuthorizationLimits { get; }
+	public bool HasCoinJoinAccount => _wallet.HasCoinJoinAccount;
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
