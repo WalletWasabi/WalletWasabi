@@ -2,7 +2,10 @@ using System;
 
 namespace WalletWasabi.Client.Wallets.Exchange;
 
-public record ExchangeRate(string Ticker, decimal Rate);
+public record ExchangeRate(string Ticker, decimal Rate)
+{
+	public override string ToString() => $"{Rate} {Ticker}";
+}
 
 public static class ExchangeRateExtensions
 {

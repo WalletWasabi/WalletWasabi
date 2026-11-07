@@ -47,7 +47,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 			.Subscribe(providers =>
 			{
 				ExchangeRateProviders = providers;
-				if (!providers.Contains(Settings.ExchangeRateProvider))
+				if (!providers.Contains(Settings.ExchangeRateProvider, StringComparer.OrdinalIgnoreCase))
 				{
 					Settings.ExchangeRateProvider = providers[0];
 				}

@@ -109,7 +109,7 @@ public static class ExchangeRateProviders
 						throw new InvalidOperationException($"'{providerName}' quoted none of the known currencies.");
 					}
 
-					Logger.LogInfo($"Fetched exchange rates from {providerName}: {string.Join(", ", exchangeRates.Select(x => $"{x.Ticker} {x.Rate}"))}.");
+					Logger.LogInfo($"Fetched exchange rates from {providerName}: {string.Join(", ", exchangeRates)}.");
 					return exchangeRates;
 				},
 				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));

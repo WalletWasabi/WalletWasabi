@@ -9,43 +9,41 @@ namespace WalletWasabi.Tests.IntegrationTests;
 
 public class ExternalApiTests
 {
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task MempoolSpaceExchangeRateProviderTestsAsync() =>
-		await AssertExchangeRateProviderAsync(ExchangeRateProviders.MempoolSpaceAsync);
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.MempoolSpaceAsync, TestContext.Current.CancellationToken);
 
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertExchangeRateProviderAsync(ExchangeRateProviders.BlockchainInfoAsync);
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.BlockchainInfoAsync, TestContext.Current.CancellationToken);
 
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
-		await AssertExchangeRateProviderAsync(ExchangeRateProviders.CoinGeckoAsync);
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.CoinGeckoAsync, TestContext.Current.CancellationToken);
 
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
-		await AssertExchangeRateProviderAsync(ExchangeRateProviders.GeminiAsync);
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.GeminiAsync, TestContext.Current.CancellationToken);
 
-	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, ExchangeRateProvider> providerFactory)
+	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, ExchangeRateProvider> providerFactory, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = providerFactory(new HttpClientFactory());
-		var exchangeRates = await provider(timeoutCts.Token).ConfigureAwait(false);
+		var exchangeRates = await provider(cancellationToken).ConfigureAwait(false);
 		Assert.All(exchangeRates, x => Assert.True(x.Rate > 0));
 	}
 
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task BlockstreamFeeRateProviderTestsAsync() =>
-		await AssertFeeProviderAsync(FeeRateProviders.BlockstreamAsync);
+		await AssertFeeProviderAsync(FeeRateProviders.BlockstreamAsync, TestContext.Current.CancellationToken);
 
-	[Fact]
+	[Fact(Timeout = 180_000)]
 	public async Task MempoolSpaceRateProviderTestsAsync() =>
-		await AssertFeeProviderAsync(FeeRateProviders.MempoolSpaceAsync);
+		await AssertFeeProviderAsync(FeeRateProviders.MempoolSpaceAsync, TestContext.Current.CancellationToken);
 
-	private async Task AssertFeeProviderAsync(Func<HttpClientFactory, FeeRateProvider> providerFactory)
+	private async Task AssertFeeProviderAsync(Func<HttpClientFactory, FeeRateProvider> providerFactory, CancellationToken cancellationToken)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = providerFactory(new HttpClientFactory());
-		var estimations = await provider(timeoutCts.Token).ConfigureAwait(false);
+		var estimations = await provider(cancellationToken).ConfigureAwait(false);
 		Assert.NotEmpty(estimations.Estimations);
 	}
 }

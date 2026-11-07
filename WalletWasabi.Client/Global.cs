@@ -475,16 +475,17 @@ public class Global
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
-		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
-		var blockchainInfoExchangeProvider = ExchangeRateProviders.BlockchainInfoAsync(ExternalSourcesHttpClientFactory);
-		var coinGeckoExchangeProvider = ExchangeRateProviders.CoinGeckoAsync(ExternalSourcesHttpClientFactory);
-		var geminiExchangeProvider = ExchangeRateProviders.GeminiAsync(ExternalSourcesHttpClientFactory);
+		var mempoolSpaceProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
+		var blockchainInfoProvider = ExchangeRateProviders.BlockchainInfoAsync(ExternalSourcesHttpClientFactory);
+		var coinGeckoProvider = ExchangeRateProviders.CoinGeckoAsync(ExternalSourcesHttpClientFactory);
+		var geminiProvider = ExchangeRateProviders.GeminiAsync(ExternalSourcesHttpClientFactory);
+
 		ExchangeRateProvider exchangeRateProvider = Config.ExchangeRateProvider.ToLower() switch
 		{
-			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider ]),
-			"blockchaininfo" => ExchangeRateProviders.Composed([blockchainInfoExchangeProvider, mempoolSpaceExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider]),
-			"coingecko" => ExchangeRateProviders.Composed([coinGeckoExchangeProvider, mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, geminiExchangeProvider]),
-			"gemini" => ExchangeRateProviders.Composed([geminiExchangeProvider, blockchainInfoExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, ]),
+			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceProvider, blockchainInfoProvider, coinGeckoProvider, geminiProvider ]),
+			"blockchaininfo" => ExchangeRateProviders.Composed([blockchainInfoProvider, mempoolSpaceProvider, coinGeckoProvider, geminiProvider]),
+			"coingecko" => ExchangeRateProviders.Composed([coinGeckoProvider, mempoolSpaceProvider, blockchainInfoProvider, geminiProvider]),
+			"gemini" => ExchangeRateProviders.Composed([geminiProvider, mempoolSpaceProvider, blockchainInfoProvider, coinGeckoProvider, ]),
 			"" or "none" => ExchangeRateProviders.NoneAsync(),
 			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};

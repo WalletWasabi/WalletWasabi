@@ -19,8 +19,9 @@ public static class ExchangeRateUpdater
 		var newExchangeRates = await provider(cancellationToken).ConfigureAwait(false);
 		if (newExchangeRates.Length != 0 && !newExchangeRates.SequenceEqual(exchangeRates))
 		{
-			exchangeRates = newExchangeRates;
-			eventBus.Publish(new ExchangeRatesChanged(newExchangeRates));
+			// Preserve the old exchange rates if the new ones are missing some currencies. Thus some values can be outdated but that's acceptable here.
+			exchangeRates = newExchangeRates.UnionBy(exchangeRates, x => x.Ticker).ToArray();
+			eventBus.Publish(new ExchangeRatesChanged(exchangeRates));
 		}
 
 		return exchangeRates;
