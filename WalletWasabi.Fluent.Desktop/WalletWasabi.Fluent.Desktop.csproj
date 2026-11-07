@@ -49,4 +49,15 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<!-- Building while the bundled Tor of this output directory is running fails with a locked tor.exe. -->
+	<Target Name="FailIfTorIsRunning" BeforeTargets="CopyFilesToOutputDirectory" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<PropertyGroup>
+			<FullOutDir>$([System.IO.Path]::GetFullPath('$(OutDir)'))</FullOutDir>
+		</PropertyGroup>
+		<Exec Command="powershell -NoProfile -Command &quot;(Get-Process tor -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith('$(FullOutDir)', 'OrdinalIgnoreCase') }).Count&quot;" ConsoleToMSBuild="true" StandardOutputImportance="low" IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="RunningTorCount" />
+		</Exec>
+		<Error Condition="'$(RunningTorCount)' != '' And '$(RunningTorCount)' != '0'" Text="tor.exe from '$(FullOutDir)' is still running and would be locked. Close Wasabi or stop Tor, then build again." />
+	</Target>
 </Project>
