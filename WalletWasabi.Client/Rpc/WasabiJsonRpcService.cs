@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -18,6 +19,10 @@ using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -29,9 +34,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public WasabiJsonRpcService(Global global)
 	{
 		Global = global;
+		if (global?.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+		{
+			coinJoinManager.StatusChanged += (_, e) => _lastCoinJoinStatus[e.Wallet.WalletId] = e;
+		}
 	}
 
 	private Global Global { get; }
+	private readonly ConcurrentDictionary<WalletId, StatusChangedEventArgs> _lastCoinJoinStatus = new();
 	private Wallet? ActiveWallet { get; set; }
 
 	[JsonRpcMethod("listunspentcoins")]
@@ -531,6 +541,92 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		coinJoinManager.RequestCoinJoinStart(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true);
+	}
+
+	[JsonRpcMethod("getcoinjoinstatus")]
+	public JsonRpcResult GetCoinJoinStatus()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+
+		var registeredCoins = activeWallet.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+		return new JsonRpcResult
+		{
+			["status"] = GetCoinjoinStatus(activeWallet),
+			["registeredCoinCount"] = registeredCoins.Length,
+			["registeredAmount"] = registeredCoins.Sum(x => x.Amount.Satoshi),
+			["lastEvent"] = _lastCoinJoinStatus.GetValueOrDefault(activeWallet.WalletId) is { } lastEvent ? DescribeCoinJoinEvent(lastEvent) : null
+		};
+	}
+
+	public static JsonRpcResult DescribeCoinJoinEvent(StatusChangedEventArgs e)
+	{
+		EventArgs source = e is CoinJoinStatusEventArgs status ? status.CoinJoinProgressEventArgs : e;
+		var result = new JsonRpcResult { ["event"] = source.GetType().Name.Replace("EventArgs", "") };
+		switch (source)
+		{
+			case StartErrorEventArgs error:
+				result["error"] = error.Error.ToString();
+				break;
+
+			case CompletedEventArgs completed:
+				result["completionStatus"] = completed.CompletionStatus.ToString();
+				break;
+
+			case RoundStateChanged changed:
+				result["round"] = DescribeRound(changed.RoundState);
+				result["timeoutAt"] = changed.TimeoutAt;
+				break;
+
+			case RoundEnded ended:
+				result["round"] = DescribeRound(ended.LastRoundState);
+				break;
+
+			case WaitingForBlameRound blame:
+				result["timeoutAt"] = blame.TimeoutAt;
+				break;
+
+			case CoinBanned banned:
+				result["coin"] = banned.Coin.Outpoint.ToString();
+				result["banUntilUtc"] = banned.BanUntilUtc;
+				break;
+
+			case TransactionSigned signed:
+				result["txid"] = signed.TransactionId.ToString();
+				break;
+		}
+
+		return result;
+	}
+
+	private static JsonRpcResult DescribeRound(RoundState round)
+	{
+		var parameters = round.CoinjoinState.Parameters;
+		var result = new JsonRpcResult
+		{
+			["id"] = round.Id.ToString(),
+			["isBlame"] = round.IsBlame,
+			["phase"] = round.Phase.ToString(),
+			["endRoundState"] = round.EndRoundState.ToString(),
+			["inputRegistrationEnd"] = round.InputRegistrationEnd,
+			["maxAmountCredentialValue"] = parameters.MaxAmountCredentialValue.Satoshi,
+			["miningFeeRate"] = parameters.MiningFeeRate.SatoshiPerByte
+		};
+
+		// The coordinator publishes an input when its connection gets confirmed and the outputs during output registration,
+		// so before the phase that follows, the lists are empty however many coins are registered.
+		if (round.Phase >= Phase.OutputRegistration)
+		{
+			var inputs = round.CoinjoinState.Inputs.ToArray();
+			result["inputCount"] = inputs.Length;
+			result["inputAmount"] = inputs.Sum(x => x.Amount.Satoshi);
+		}
+		if (round.Phase >= Phase.TransactionSigning)
+		{
+			result["outputCount"] = round.CoinjoinState.Outputs.Count();
+		}
+
+		return result;
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
