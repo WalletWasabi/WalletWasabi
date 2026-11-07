@@ -234,4 +234,83 @@ public class TorControlClientTests
 			await task;
 		}
 	}
+
+	[Fact]
+	public async Task WaitForBootstrapReturnsOnceTorReportsDoneAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
+
+		Pipe toServer = new();
+		Pipe toClient = new();
+		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+		Task<int> serverTask = Task.Run(async () =>
+		{
+			int queries = 0;
+			foreach (string progress in new[] { "10", "75", "100" })
+			{
+				string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
+				Assert.Equal("GETINFO status/bootstrap-phase", command);
+				queries++;
+				await toClient.Writer.WriteAsciiAndFlushAsync($"250-status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS={progress} TAG=x SUMMARY=\"Step {progress}\"\r\n250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
+			}
+
+			return queries;
+		});
+
+		GetInfoBootstrapPhaseReply? result = await client.WaitForBootstrapAsync(TimeSpan.FromSeconds(30), TimeSpan.FromMilliseconds(10), timeoutCts.Token);
+
+		Assert.NotNull(result);
+		Assert.True(result.IsBootstrapped);
+		Assert.Equal(100, result.Progress);
+		Assert.Equal(3, await serverTask);
+	}
+
+	[Fact]
+	public async Task WaitForBootstrapReportsTheLastKnownProgressWhenTorIsSlowAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
+
+		Pipe toServer = new();
+		Pipe toClient = new();
+		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+		Task serverTask = Task.Run(async () =>
+		{
+			while (!timeoutCts.IsCancellationRequested)
+			{
+				await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
+				await toClient.Writer.WriteAsciiAndFlushAsync("250-status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS=45 TAG=requesting_descriptors SUMMARY=\"Asking for relay descriptors\"\r\n250 OK\r\n", timeoutCts.Token).ConfigureAwait(false);
+			}
+		});
+
+		GetInfoBootstrapPhaseReply? result = await client.WaitForBootstrapAsync(TimeSpan.FromMilliseconds(300), TimeSpan.FromMilliseconds(20), timeoutCts.Token);
+
+		Assert.NotNull(result);
+		Assert.False(result.IsBootstrapped);
+		Assert.Equal(45, result.Progress);
+
+		timeoutCts.Cancel();
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => serverTask);
+	}
+
+	[Fact]
+	public async Task WaitForBootstrapGivesUpWhenTorDoesNotAnswerAsync()
+	{
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(60));
+
+		Pipe toServer = new();
+		Pipe toClient = new();
+		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+		// Tor reads the query but never replies, as a hung process with an open control socket would.
+		Task<string> serverTask = Task.Run(async () => await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false));
+
+		DateTimeOffset startedAt = DateTimeOffset.UtcNow;
+		GetInfoBootstrapPhaseReply? result = await client.WaitForBootstrapAsync(TimeSpan.FromMilliseconds(300), TimeSpan.FromMilliseconds(20), timeoutCts.Token);
+
+		Assert.Null(result);
+		Assert.InRange(DateTimeOffset.UtcNow - startedAt, TimeSpan.FromMilliseconds(250), TimeSpan.FromSeconds(20));
+		Assert.Equal("GETINFO status/bootstrap-phase", await serverTask);
+	}
 }
