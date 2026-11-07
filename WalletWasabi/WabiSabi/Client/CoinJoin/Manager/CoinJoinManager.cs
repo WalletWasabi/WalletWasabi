@@ -557,6 +557,11 @@ public class CoinJoinManager : BackgroundService
 			{
 				clientState = new(CoinJoinClientState.InSchedule, autoStartTracker.StopWhenAllMixed, autoStartTracker.OverridePlebStop, autoStartTracker.OutputWallet);
 			}
+			else if (_pendingAuthorizations.TryGetValue(wallet.WalletId, out var pendingStart))
+			{
+				// The device is showing the prompt, and taking it away now would lose the authorization.
+				clientState = new(CoinJoinClientState.InSchedule, pendingStart.StopWhenAllMixed, pendingStart.OverridePlebStop, pendingStart.OutputWallet);
+			}
 
 			coinJoinClientStates.Add(wallet.WalletId, clientState);
 		}
@@ -646,6 +651,11 @@ public class CoinJoinManager : BackgroundService
 			// This can happen when the coordinator aborts the round in Signing phase because of detected double spend.
 			Logger.LogInfo(FormatLog($"{nameof(CoinJoinClient)} failed with: '{wpe.Message}'", wallet));
 		}
+		catch (HardwareWalletException e)
+		{
+			// Unplugged, refused or no answer: no bug of ours, and the key chain now asks for a new authorization.
+			Logger.LogWarning(FormatLog($"The device failed the round: '{e.Message}'", wallet));
+		}
 		catch (Exception e)
 		{
 			Logger.LogError(FormatLog($"{nameof(CoinJoinClient)} failed with exception: '{e}'", wallet));
@@ -669,11 +679,17 @@ public class CoinJoinManager : BackgroundService
 		// When to stop mixing:
 		// - If stop was requested by user.
 		// - If cancellation was requested.
+		// - If the device lost its authorization: its screen only lights up for a start the user asked for.
 		if (forceStop
 			|| finishedCoinJoin.IsStopped
 			|| cancellationToken.IsCancellationRequested)
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
+		}
+		else if (NeedsDeviceAuthorization(wallet))
+		{
+			NotifyWalletStoppedCoinJoin(wallet);
+			NotifyCoinJoinStartError(wallet, CoinjoinError.DeviceAuthorizationFailed);
 		}
 		else if (wallet.IsWalletPrivate() && !wallet.BatchedPayments.AreTherePendingPayments)
 		{

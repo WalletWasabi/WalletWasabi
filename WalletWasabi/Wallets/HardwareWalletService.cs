@@ -276,7 +276,7 @@ public class HardwareWalletService : IDisposable
 	}
 
 	/// <summary>Asks the device to authorize the wallet's coinjoin limits (shown on its screen, confirmed physically); the returned key chain then signs the rounds without further interaction.</summary>
-	public async Task<IKeyChain> AuthorizeCoinJoinAsync(KeyManager keyManager, string coordinatorIdentifier, CancellationToken cancellationToken)
+	public virtual async Task<IKeyChain> AuthorizeCoinJoinAsync(KeyManager keyManager, string coordinatorIdentifier, CancellationToken cancellationToken)
 	{
 		if (!keyManager.HasCoinJoinAccount)
 		{

@@ -650,8 +650,9 @@ public class CoinJoinClient
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
 
 		// A device signs all our inputs in one go and takes its time doing it: sign first, then post the signatures
-		// on the same spread-out schedule as any other signer, so that their timing does not link our inputs.
-		if (_keyChain.SigningTakesTime)
+		// on the same spread-out schedule as any other signer, so that their timing does not link our inputs. It fails
+		// for all of them or none: asking per input would only retry a device that just failed.
+		if (_keyChain.SigningTakesTime && !aliceClients.IsEmpty)
 		{
 			var firstCoin = aliceClients[0].SmartCoin.Coin;
 			await Task.Run(() => _keyChain.Sign(unsignedCoinJoinTransaction, firstCoin), cancellationToken).ConfigureAwait(false);
