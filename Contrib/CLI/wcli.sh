@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 # $HOME is not correct on Windows, so we need to use $APPDATA instead.
 if [ -n "$APPDATA" ]; then
     CONFIG="$APPDATA/WalletWasabi/Client/Config.json"
