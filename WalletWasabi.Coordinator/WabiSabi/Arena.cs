@@ -306,7 +306,17 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo(FormatLog($"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.", round));
 
 					// Broadcasting.
-					await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					try
+					{
+						await _rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
+					}
+					catch (RPCException ex)
+					{
+						Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
+						await FailTransactionBroadcastAsync(round, cancellationToken).ConfigureAwait(false);
+						continue;
+					}
+
 					EndRound(round, EndRoundState.TransactionBroadcasted);
 					Logger.LogInfo(FormatLog($"Successfully broadcast the coinjoin: {coinjoin.GetHash()}.", round));
 
@@ -345,11 +355,6 @@ public partial class Arena : PeriodicRunner
 					}
 				}
 			}
-			catch (RPCException ex)
-			{
-				Logger.LogError(FormatLog($"Transaction broadcasting failed: '{ex}'.", round));
-				EndRound(round, EndRoundState.TransactionBroadcastFailed);
-			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(FormatLog($"Signing phase failed, reason: '{ex}'.", round));
@@ -374,6 +379,27 @@ public partial class Arena : PeriodicRunner
 			var alices = await Task.WhenAll(spendStatusCheckingTasks).ConfigureAwait(false);
 			yield return alices.Where(x => x.Status is null).Select(x => x.Alice).ToArray();
 		}
+	}
+
+	private async Task FailTransactionBroadcastAsync(Round round, CancellationToken cancellationToken)
+	{
+		var registeredOutpoints = round.Alices.Select(alice => alice.Coin.Outpoint).ToArray();
+		var spendingTxIds = await _rpc.GetTxSpendingPrevOutAsync(registeredOutpoints, cancellationToken).ConfigureAwait(false);
+		if (spendingTxIds.Count == 0)
+		{
+			EndRound(round, EndRoundState.TransactionBroadcastFailed);
+			return;
+		}
+
+		foreach (var (outpoint, spendingTxId) in spendingTxIds)
+		{
+			Logger.LogInfo(FormatLog($"Input {outpoint} was spent by {spendingTxId}.", round));
+		}
+
+		var removedAliceCount = round.Alices.RemoveAll(alice => spendingTxIds.ContainsKey(alice.Coin.Outpoint));
+		Logger.LogInfo(FormatLog($"Removed {removedAliceCount} alices, because they spent their coins. Remaining: {round.InputCount}", round));
+
+		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
