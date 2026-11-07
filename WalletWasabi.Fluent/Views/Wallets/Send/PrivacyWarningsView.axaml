@@ -158,7 +158,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="Transaction interlinks recipients:" Margin="0 0 5 0"
-                         ToolTip.Tip="Every recipient of this transaction can see the payments to the others and learn that the same wallet made them. Send separate transactions to recipients who should not know about each other." />
+                         ToolTip.Tip="Every recipient of this transaction can see the payments to the others and learn that the same wallet made them. Send separate transactions to recipients who should not know about each other, or use Coinjoin Payments." />
               <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
             </DockPanel>
           </Border>
