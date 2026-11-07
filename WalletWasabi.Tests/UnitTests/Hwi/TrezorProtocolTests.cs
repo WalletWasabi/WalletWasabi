@@ -59,6 +59,81 @@ public class TrezorProtocolTests
 		Assert.Equal(5UL, fields[7][0].VarInt); // SPENDTAPROOT
 	}
 
+	/// <summary>Everything the signing flow answers is a TxAck { tx = 1 }; which field of tx holds the payload tells them apart.</summary>
+	[Fact]
+	public void EveryAckNestsItsPayloadInTx()
+	{
+		static Dictionary<int, List<(ulong VarInt, byte[] Bytes)>> Tx(TrezorMessage ack)
+		{
+			Assert.Equal(TrezorMessageType.TxAck, ack.MessageType);
+			return ProtoReader.ReadAllFields(ack.ReadFields()[1][0].Bytes);
+		}
+
+		static Dictionary<int, List<(ulong VarInt, byte[] Bytes)>> Payload(TrezorMessage ack, int field) =>
+			ProtoReader.ReadAllFields(Tx(ack)[field][0].Bytes);
+
+		var meta = Tx(TrezorMessages.TxAckPrevMeta(version: 2, lockTime: 7, inputsCount: 3, outputsCount: 4));
+		Assert.Equal(2UL, meta[1][0].VarInt);
+		Assert.Equal(7UL, meta[4][0].VarInt);
+		Assert.Equal(3UL, meta[6][0].VarInt);
+		Assert.Equal(4UL, meta[7][0].VarInt);
+
+		var prevInput = Payload(TrezorMessages.TxAckPrevInput([0xAB], prevIndex: 5, scriptSig: [0xCD], sequence: 6), 2);
+		Assert.Equal(new byte[] { 0xAB }, prevInput[2][0].Bytes);
+		Assert.Equal(5UL, prevInput[3][0].VarInt);
+		Assert.Equal(new byte[] { 0xCD }, prevInput[4][0].Bytes);
+		Assert.Equal(6UL, prevInput[5][0].VarInt);
+
+		var prevOutput = Payload(TrezorMessages.TxAckPrevOutput(amount: 9, scriptPubKey: [0xEF]), 3);
+		Assert.Equal(9UL, prevOutput[1][0].VarInt);
+		Assert.Equal(new byte[] { 0xEF }, prevOutput[2][0].Bytes);
+
+		var output = Payload(new TrezorTxOutput { Address = "bc1q", Amount = 8, ScriptType = TrezorOutputScriptType.PayToAddress }.ToTxAckOutput(), 5);
+		Assert.Equal("bc1q", System.Text.Encoding.UTF8.GetString(output[1][0].Bytes));
+		Assert.Equal(8UL, output[3][0].VarInt);
+	}
+
+	/// <summary>A key path says whose an input or output is and which script it spends or pays to; without one the device gets what it needs to treat it as foreign.</summary>
+	[Fact]
+	public void TheKeyPathDecidesHowTheDeviceSeesAnInputOrOutput()
+	{
+		var slip25 = Slip25.GetCoinJoinAccountKeyPath(Network.Main).Derive(0, false).Derive(0, false);
+		var segwit = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit).Derive(0, false).Derive(0, false);
+		using var key = new Key();
+		var txIn = new TxIn(new OutPoint(uint256.One, 3)) { Sequence = 7 };
+		var txOut = new TxOut(Money.Satoshis(1_000), key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+
+		var ownTaproot = TrezorTxInput.From(txIn, txOut, slip25);
+		Assert.Equal(TrezorInputScriptType.SpendTaproot, ownTaproot.ScriptType);
+		Assert.Equal(slip25.Indexes, ownTaproot.AddressN);
+		Assert.Equal(uint256.One.ToBytes(lendian: false), ownTaproot.PrevHash);
+		Assert.Equal(3u, ownTaproot.PrevIndex);
+		Assert.Equal(7u, ownTaproot.Sequence);
+		Assert.Equal(1_000UL, ownTaproot.Amount);
+
+		Assert.Equal(TrezorInputScriptType.SpendWitness, TrezorTxInput.From(txIn, txOut, segwit).ScriptType);
+
+		var foreignInput = TrezorTxInput.From(txIn, txOut, keyPath: null);
+		Assert.Equal(TrezorInputScriptType.External, foreignInput.ScriptType);
+		Assert.Empty(foreignInput.AddressN);
+		Assert.Equal(txOut.ScriptPubKey.ToBytes(), foreignInput.ScriptPubKey);
+
+		var ownOutput = TrezorTxOutput.From(txOut, slip25, Network.Main);
+		Assert.Equal(TrezorOutputScriptType.PayToTaproot, ownOutput.ScriptType);
+		Assert.Equal(slip25.Indexes, ownOutput.AddressN);
+		Assert.Empty(ownOutput.Address);
+
+		Assert.Equal(TrezorOutputScriptType.PayToWitness, TrezorTxOutput.From(txOut, segwit, Network.Main).ScriptType);
+
+		var shownOutput = TrezorTxOutput.From(txOut, verifiableKeyPath: null, Network.Main);
+		Assert.Equal(TrezorOutputScriptType.PayToAddress, shownOutput.ScriptType);
+		Assert.Empty(shownOutput.AddressN);
+		Assert.Equal(txOut.ScriptPubKey.GetDestinationAddress(Network.Main)!.ToString(), shownOutput.Address);
+
+		var notAnAddress = new TxOut(Money.Satoshis(1_000), new Script(OpcodeType.OP_RETURN));
+		Assert.Throws<InvalidOperationException>(() => TrezorTxOutput.From(notAnAddress, verifiableKeyPath: null, Network.Main));
+	}
+
 	[Fact]
 	public void TxAckInputWrapsInputTwice()
 	{

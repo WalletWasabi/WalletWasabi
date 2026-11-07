@@ -120,7 +120,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 // A hardware-backed wallet is watch-only on the host yet may coinjoin, so ask CanCoinJoin, not IsWatchOnly.
 				 return isSelected && !hasNoBalance && WalletModel.CanCoinJoin;
 			 });
 
@@ -217,8 +216,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public bool SeveralReceivingScriptTypes => WalletModel.SeveralReceivingScriptTypes;
 
-	// When coinjoin funds live in their own account, its addresses are what the taproot slot hands out.
-	public string TaprootReceiveName => WalletModel.HasSeparateCoinJoinAccount ? "Coinjoin Account Address" : "Taproot Address";
+	public string TaprootReceiveName => WalletModel.HasCoinJoinAccount ? "Coinjoin Account Address" : "Taproot Address";
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -328,7 +326,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
-		// A device-signed coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
 		if (WalletModel.CanCoinJoin)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);

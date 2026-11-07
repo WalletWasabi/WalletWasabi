@@ -393,8 +393,7 @@ public class KeyManager
 		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
-	/// <param name="coinJoinAccount">Take the change from the SLIP-25 coinjoin account: the device signs it under an UnlockPath
-	/// session that forbids every other own key path, so its change must return to it and it cannot take a regular transaction's.</param>
+	/// <param name="coinJoinAccount">Take the change from the coinjoin account, for a transaction spending it (see <see cref="Slip25"/>).</param>
 	public HdPubKey GetNextChangeKey(bool coinJoinAccount = false) =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
@@ -546,9 +545,8 @@ public class KeyManager
 			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
 			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 
-			// Only coins of the SLIP-25 account can join rounds, so hand out its addresses by default; segwit receive
-			// stays available for deposits that should not be coinjoined. Change of a regular payment must not land in
-			// the coinjoin account (the device would refuse to sign it), so segwit is the only valid change type.
+			// Only coins of this account can join rounds, so hand out its addresses by default; segwit receive
+			// stays available for deposits that should not be coinjoined.
 			DefaultReceiveScriptType = ScriptPubKeyType.TaprootBIP86;
 			ChangeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
 

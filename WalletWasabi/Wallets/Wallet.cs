@@ -127,7 +127,6 @@ public class Wallet : BackgroundService
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
-	// A device coinjoin authorization is bound to the SLIP-25 taproot account, so only its coins can take part in rounds.
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => KeyManager.HasCoinJoinAccount
 		? Coins.Where(coin => coin.ScriptType is ScriptType.Taproot)
 		: Coins;

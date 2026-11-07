@@ -10,7 +10,6 @@ public class InternalDestinationProvider : IDestinationProvider
 	private readonly KeyManager _keyManager;
 
 	// Read live, so a coinjoin account added to a loaded wallet is used without restarting it.
-	// A device authorization is bound to the SLIP-25 taproot account, so all outputs must stay in it.
 	public ImmutableHashSet<ScriptType> SupportedScriptTypes => _keyManager.HasCoinJoinAccount
 		? [ScriptType.Taproot]
 		: _keyManager.TaprootExtPubKey is not null
@@ -19,7 +18,6 @@ public class InternalDestinationProvider : IDestinationProvider
 
 	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot)
 	{
-		// A device can only sign coinjoin outputs of the SLIP-25 taproot account, so it never uses segwit destinations.
 		bool taprootOnly = _keyManager.HasCoinJoinAccount;
 
 		// Get all locked internal keys we have and assert we have enough.

@@ -5,6 +5,15 @@ namespace WalletWasabi.Blockchain.Keys;
 /// <summary>
 /// SLIP-25: the coinjoin account hierarchy (m/10025') a hardware wallet keeps apart from its payment accounts,
 /// so that only a coinjoin authorization can spend from it. Vendor-neutral; a device that signs coinjoins uses it.
+/// <para>
+/// A coinjoin authorization is bound to this account, so the coins and outputs of a round stay in it: the device counts
+/// any other output as value leaving the account and refuses to sign the round, after the coordinator has its inputs,
+/// which bans them. That rules out coinjoin payments and mixing to another wallet.
+/// </para>
+/// <para>
+/// UnlockPath lets a transaction use the key paths of this account and no other own ones, so a regular transaction
+/// spends either this account or the payment account, never both, and its change returns to the account it spends.
+/// </para>
 /// </summary>
 public static class Slip25
 {

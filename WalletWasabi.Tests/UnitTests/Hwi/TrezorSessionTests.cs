@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -48,6 +49,21 @@ public class TrezorSessionTests
 		using var device = new TrezorDevice(transport);
 
 		await Assert.ThrowsAsync<TrezorException>(() => device.GetMasterFingerprintAsync(CancellationToken.None));
+	}
+
+	/// <summary>The fingerprint comes along with any public key, so it is read from a path the device gives out without unlocking anything.</summary>
+	[Fact]
+	public async Task TheFingerprintIsReadFromTheRegularSegwitPathAsync()
+	{
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(new TrezorMessage(TrezorMessageType.PublicKey, new ProtoWriter().WriteVarIntField(3, 0x01020304).ToBytes()));
+		using var device = new TrezorDevice(transport);
+
+		var fingerprint = await device.GetMasterFingerprintAsync(CancellationToken.None);
+
+		Assert.Equal(new HDFingerprint([1, 2, 3, 4]), fingerprint);
+		var path = Assert.Single(transport.Received).ReadFields()[1].Select(index => (uint)index.VarInt);
+		Assert.Equal(new KeyPath("84'/0'/0'").Indexes, path);
 	}
 
 	/// <summary>A spent authorization or a forgotten session fails every later round, so the key chain says it needs a new authorization.</summary>

@@ -10,8 +10,6 @@ namespace WalletWasabi.Hwi.Trezor;
 /// </summary>
 public class TrezorDevice : IDisposable
 {
-	private const uint HardenedIndex = 0x80000000;
-
 	/// <summary>First firmware version that accepts coinjoin requests from any coordinator (signature verification against the zkSNACKs key was removed).</summary>
 	private static readonly Version MinimumSupportedFirmwareVersion = new(2, 7, 2);
 
@@ -175,9 +173,8 @@ public class TrezorDevice : IDisposable
 		LockedAsync(async () =>
 		{
 			// Any GetPublicKey response carries the master fingerprint, use a fixed path that needs no unlocking.
-			uint[] path = [84 | HardenedIndex, HardenedIndex, HardenedIndex];
 			var response = await CallAsync(
-				TrezorMessages.GetPublicKey(path, "Bitcoin", TrezorInputScriptType.SpendWitness),
+				TrezorMessages.GetPublicKey(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit).Indexes, "Bitcoin", TrezorInputScriptType.SpendWitness),
 				TrezorMessageType.PublicKey,
 				cancellationToken).ConfigureAwait(false);
 
@@ -192,14 +189,9 @@ public class TrezorDevice : IDisposable
 	public Task<ExtPubKey> GetAccountXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken) =>
 		LockedAsync(async () =>
 		{
-			bool isCoinJoinAccount = accountKeyPath.IsSlip25KeyPath();
-			if (isCoinJoinAccount)
-			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
-			}
-
+			await UnlockIfCoinJoinAccountAsync(accountKeyPath, cancellationToken).ConfigureAwait(false);
 			var response = await CallAsync(
-				TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), isCoinJoinAccount ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness),
+				TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), TrezorMessages.ScriptTypeOf(accountKeyPath)),
 				TrezorMessageType.PublicKey,
 				cancellationToken).ConfigureAwait(false);
 
@@ -210,18 +202,9 @@ public class TrezorDevice : IDisposable
 	public Task<string> ShowAddressAsync(KeyPath fullKeyPath, Network network, CancellationToken cancellationToken) =>
 		LockedAsync(async () =>
 		{
-			bool isCoinJoinAccount = fullKeyPath.IsSlip25KeyPath();
-			if (isCoinJoinAccount)
-			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
-			}
-
+			await UnlockIfCoinJoinAccountAsync(fullKeyPath, cancellationToken).ConfigureAwait(false);
 			var response = await CallAsync(
-				TrezorMessages.GetAddress(
-					fullKeyPath.Indexes,
-					GetCoinName(network),
-					isCoinJoinAccount ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness,
-					showDisplay: true),
+				TrezorMessages.GetAddress(fullKeyPath.Indexes, GetCoinName(network), TrezorMessages.ScriptTypeOf(fullKeyPath), showDisplay: true),
 				TrezorMessageType.Address,
 				cancellationToken).ConfigureAwait(false);
 
@@ -296,11 +279,17 @@ public class TrezorDevice : IDisposable
 		{
 			if (unlockCoinJoinAccount)
 			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+				await UnlockCoinJoinAccountAsync(cancellationToken).ConfigureAwait(false);
 			}
 			var signTx = TrezorMessages.SignTx(inputs.Count, outputs.Count, GetCoinName(network), version, lockTime, coinJoinRequest: null);
 			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions, cancellationToken).ConfigureAwait(false);
 		}, cancellationToken);
+
+	private Task UnlockCoinJoinAccountAsync(CancellationToken cancellationToken) =>
+		CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken);
+
+	private Task UnlockIfCoinJoinAccountAsync(KeyPath keyPath, CancellationToken cancellationToken) =>
+		keyPath.IsSlip25KeyPath() ? UnlockCoinJoinAccountAsync(cancellationToken) : Task.CompletedTask;
 
 	private async Task<Dictionary<int, byte[]>> RunSigningFlowAsync(
 		TrezorMessage signTx,

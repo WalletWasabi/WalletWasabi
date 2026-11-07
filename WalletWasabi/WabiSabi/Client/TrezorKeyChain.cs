@@ -100,18 +100,10 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			{
 				var spentOutput = spentOutputs[input.Index];
 				var keyPath = _keyManager.TryGetKeyPath(spentOutput.ScriptPubKey);
-				return new TrezorTxInput
-				{
-					AddressN = keyPath?.Indexes ?? [],
-					PrevHash = input.PrevOut.Hash.ToBytes(lendian: false),
-					PrevIndex = input.PrevOut.N,
-					Sequence = input.TxIn.Sequence.Value,
-					ScriptType = keyPath is null ? TrezorInputScriptType.External : TrezorInputScriptType.SpendTaproot,
-					Amount = (ulong)spentOutput.Value.Satoshi,
-					ScriptPubKey = spentOutput.ScriptPubKey.ToBytes(),
-					OwnershipProof = keyPath is null ? ForeignProof(input.PrevOut) : [],
-					CommitmentData = keyPath is null ? _roundCommitmentData : [],
-				};
+				var trezorInput = TrezorTxInput.From(input.TxIn, spentOutput, keyPath);
+				return keyPath is not null
+					? trezorInput
+					: trezorInput with { OwnershipProof = ForeignProof(input.PrevOut), CommitmentData = _roundCommitmentData };
 			})
 			.ToList();
 
@@ -120,14 +112,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			{
 				// Only SLIP-25 outputs are ours from the device's point of view, everything else is foreign.
 				var keyPath = _keyManager.TryGetKeyPath(output.ScriptPubKey);
-				bool isOurs = keyPath?.IsSlip25KeyPath() is true;
-				return new TrezorTxOutput
-				{
-					AddressN = isOurs ? keyPath!.Indexes : [],
-					Address = isOurs ? "" : output.ScriptPubKey.GetDestinationAddress(network)!.ToString(),
-					Amount = (ulong)output.Value.Satoshi,
-					ScriptType = isOurs ? TrezorOutputScriptType.PayToTaproot : TrezorOutputScriptType.PayToAddress,
-				};
+				return TrezorTxOutput.From(output, keyPath?.IsSlip25KeyPath() is true ? keyPath : null, network);
 			})
 			.ToList();
 

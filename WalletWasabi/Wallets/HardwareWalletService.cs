@@ -100,10 +100,10 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Whether a detected device can act as a coinjoin remote signer, to offer it while importing.</summary>
 	public static bool CanSignCoinJoins(HwiEnumerateEntry device) => device.Model.SupportsCoinJoin();
 
-	private static CancellationTokenSource ConfirmationTimeout(CancellationToken cancellationToken)
+	private static CancellationTokenSource WithTimeout(TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		cts.CancelAfter(AuthorizationTimeout);
+		cts.CancelAfter(timeout);
 		return cts;
 	}
 
@@ -113,10 +113,9 @@ public class HardwareWalletService : IDisposable
 		AssertNoCoinJoinOnDevice();
 		_bridge.StopIfOurs();
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+		using var timeout = WithTimeout(TimeSpan.FromMinutes(3), cancellationToken);
 
-		var detectedHardwareWallets = (await new HwiClient(_network).EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
+		var detectedHardwareWallets = (await new HwiClient(_network).EnumerateAsync(timeout.Token).ConfigureAwait(false)).ToArray();
 
 		cancellationToken.ThrowIfCancellationRequested();
 
@@ -126,15 +125,14 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Runs the device's initial setup, for a device that reports it has no seed yet.</summary>
 	public async Task InitializeAsync(HwiEnumerateEntry device, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
-		using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+		using var timeout = WithTimeout(TimeSpan.FromMinutes(21), cancellationToken);
 
 		// Trezor T doesn't require interactive mode.
 		var interactiveMode = !(device.Model == HardwareWalletModels.Trezor_T || device.Model == HardwareWalletModels.Trezor_T_Simulator);
 
 		try
 		{
-			await new HwiClient(_network).SetupAsync(device.Model, device.Path, interactiveMode, initCts.Token).ConfigureAwait(false);
+			await new HwiClient(_network).SetupAsync(device.Model, device.Path, interactiveMode, timeout.Token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -145,7 +143,7 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Imports an already detected device as a watch-only wallet.</summary>
 	/// <param name="enableCoinjoin">Also read the coinjoin account, so the device can sign coinjoins; the device asks for a confirmation.</param>
 	/// <param name="addressToConfirm">Told each address the device is about to show, so the caller can put it next to the device for the user to compare.</param>
-	public async Task<KeyManager> ImportAsync(HwiEnumerateEntry device, string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	public async Task<KeyManager> ImportAsync(HwiEnumerateEntry device, string walletFilePath, bool enableCoinjoin, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		if (device.Fingerprint is not { } fingerprint)
 		{
@@ -153,26 +151,27 @@ public class HardwareWalletService : IDisposable
 		}
 		AssertNoCoinJoinOnDevice();
 
-		using var genCts = ConfirmationTimeout(cancellationToken);
+		using var timeout = WithTimeout(AuthorizationTimeout, cancellationToken);
+		cancellationToken = timeout.Token;
 
 		if (enableCoinjoin && CanSignCoinJoins(device))
 		{
 			// Every account is read in one bridge session, so HWI and the bridge do not contend for the device.
-			using var bridgeDevice = await AcquireAsync(fingerprint, genCts.Token).ConfigureAwait(false);
-			return await ReadAccountsAsync(bridgeDevice, fingerprint, walletFilePath, enableCoinjoin: true, addressToConfirm, genCts.Token).ConfigureAwait(false);
+			using var bridgeDevice = await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false);
+			return await ReadAccountsAsync(bridgeDevice, fingerprint, walletFilePath, enableCoinjoin: true, addressToConfirm, cancellationToken).ConfigureAwait(false);
 		}
 
-		var segwitExtPubKey = await new HwiClient(_network).GetXpubAsync(device.Model, device.Path, KeyManager.GetAccountKeyPath(_network, ScriptPubKeyType.Segwit), genCts.Token).ConfigureAwait(false);
+		var segwitExtPubKey = await new HwiClient(_network).GetXpubAsync(device.Model, device.Path, KeyManager.GetAccountKeyPath(_network, ScriptPubKeyType.Segwit), cancellationToken).ConfigureAwait(false);
 		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, _network, walletFilePath);
 		keyManager.SetIcon(device.WalletType);
 		return keyManager;
 	}
 
 	/// <summary>Imports the connected device without detecting it over HWI first, which a headless host cannot do.</summary>
-	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		AssertNoCoinJoinOnDevice();
-		using var timeout = ConfirmationTimeout(cancellationToken);
+		using var timeout = WithTimeout(AuthorizationTimeout, cancellationToken);
 		cancellationToken = timeout.Token;
 		using var device = await AcquireAsync(masterFingerprint: null, cancellationToken).ConfigureAwait(false);
 		var fingerprint = await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false);
@@ -180,7 +179,7 @@ public class HardwareWalletService : IDisposable
 	}
 
 	/// <summary>Adds a coinjoin account to an imported watch-only wallet; the device confirms it and shows its first address to check, as an import does.</summary>
-	public async Task EnableCoinJoinAsync(KeyManager keyManager, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	public async Task EnableCoinJoinAsync(KeyManager keyManager, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		if (keyManager.HasCoinJoinAccount)
 		{
@@ -192,12 +191,11 @@ public class HardwareWalletService : IDisposable
 		}
 		AssertNoCoinJoinOnDevice();
 
-		using var timeout = ConfirmationTimeout(cancellationToken);
+		using var timeout = WithTimeout(AuthorizationTimeout, cancellationToken);
 		cancellationToken = timeout.Token;
 		using var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
 		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(_network);
-		var coinJoinExtPubKey = await device.GetAccountXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
-		await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
+		var coinJoinExtPubKey = await ReadConfirmedAccountAsync(device, coinJoinAccountKeyPath, addressToConfirm, cancellationToken).ConfigureAwait(false);
 
 		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
 	}
@@ -211,8 +209,7 @@ public class HardwareWalletService : IDisposable
 	{
 		AssertKeysAreOnADevice(keyManager);
 
-		using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeout.CancelAfter(SigningTimeout(transaction.WalletInputs.Count));
+		using var timeout = WithTimeout(SigningTimeout(transaction.WalletInputs.Count), cancellationToken);
 		cancellationToken = timeout.Token;
 
 		if (keyManager.HasCoinJoinAccount)
@@ -250,26 +247,25 @@ public class HardwareWalletService : IDisposable
 		AssertKeysAreOnADevice(keyManager);
 		var fingerprint = keyManager.MasterFingerprint!.Value;
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+		using var timeout = WithTimeout(TimeSpan.FromSeconds(60), cancellationToken);
 		try
 		{
 			if (keyManager.HasCoinJoinAccount)
 			{
 				// A coinjoin account address needs the UnlockPath that only the bridge can send, and the bridge
 				// holds the device anyway - so both accounts of such a wallet are verified over the bridge.
-				await WithDeviceAsync(keyManager, device => ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token), linkedCts.Token).ConfigureAwait(false);
+				await WithDeviceAsync(keyManager, device => ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, timeout.Token), timeout.Token).ConfigureAwait(false);
 				return;
 			}
 
-			await new HwiClient(_network).DisplayAddressAsync(fingerprint, fullKeyPath, linkedCts.Token).ConfigureAwait(false);
+			await new HwiClient(_network).DisplayAddressAsync(fingerprint, fullKeyPath, timeout.Token).ConfigureAwait(false);
 		}
 		catch (FormatException ex) when (ex.Message.Contains("network") && _network == Network.TestNet)
 		{
 			// This exception happens every time on TestNet because of Wasabi Keypath handling.
 			// The user doesn't need to know about it.
 		}
-		catch (Exception) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+		catch (Exception) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
 		{
 			throw new InvalidOperationException("The device did not answer in time.");
 		}
@@ -389,19 +385,14 @@ public class HardwareWalletService : IDisposable
 	/// Reads the accounts and has the device show the first address of each before the wallet is written: the bridge is
 	/// unauthenticated, so nothing it answers is trusted until the device has shown an address derived from it. A failed check leaves no wallet file.
 	/// </summary>
-	internal async Task<KeyManager> ReadAccountsAsync(TrezorDevice device, HDFingerprint fingerprint, string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	internal async Task<KeyManager> ReadAccountsAsync(TrezorDevice device, HDFingerprint fingerprint, string walletFilePath, bool enableCoinjoin, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
-		var segwitAccountKeyPath = KeyManager.GetAccountKeyPath(_network, ScriptPubKeyType.Segwit);
-		var segwitExtPubKey = await device.GetAccountXpubAsync(segwitAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
-		await ConfirmAccountOnDeviceAsync(device, segwitAccountKeyPath, segwitExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
+		var segwitExtPubKey = await ReadConfirmedAccountAsync(device, KeyManager.GetAccountKeyPath(_network, ScriptPubKeyType.Segwit), addressToConfirm, cancellationToken).ConfigureAwait(false);
 
 		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(_network);
-		ExtPubKey? coinJoinExtPubKey = null;
-		if (enableCoinjoin)
-		{
-			coinJoinExtPubKey = await device.GetAccountXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
-			await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
-		}
+		ExtPubKey? coinJoinExtPubKey = enableCoinjoin
+			? await ReadConfirmedAccountAsync(device, coinJoinAccountKeyPath, addressToConfirm, cancellationToken).ConfigureAwait(false)
+			: null;
 
 		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, _network, walletFilePath);
 		keyManager.SetIcon(WalletType.Trezor);
@@ -413,18 +404,20 @@ public class HardwareWalletService : IDisposable
 		return keyManager;
 	}
 
-	/// <summary>Has the device show the first receive address of an account, derived from the xpub just read the way the wallet derives it.</summary>
-	private Task ConfirmAccountOnDeviceAsync(TrezorDevice device, KeyPath accountKeyPath, ExtPubKey accountExtPubKey, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	/// <summary>Reads an account's xpub and has the device show its first receive address, derived from that xpub the way the wallet derives it.</summary>
+	private async Task<ExtPubKey> ReadConfirmedAccountAsync(TrezorDevice device, KeyPath accountKeyPath, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
+		var accountExtPubKey = await device.GetAccountXpubAsync(accountKeyPath, _network, cancellationToken).ConfigureAwait(false);
 		var fullKeyPath = accountKeyPath.Derive(0).Derive(0);
 		var expectedAddress = accountExtPubKey.Derive(0).Derive(0).PubKey.GetAddress(fullKeyPath.GetScriptTypeFromKeyPath(), _network);
-		return ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm, cancellationToken);
+		await ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm, cancellationToken).ConfigureAwait(false);
+		return accountExtPubKey;
 	}
 
 	/// <summary>Shows the address on the device and checks it against the wallet's. The user comparing the two screens is what proves the keys; this only catches a transport that showed nothing.</summary>
-	private async Task ConfirmAddressOnDeviceAsync(TrezorDevice device, KeyPath fullKeyPath, BitcoinAddress expectedAddress, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	private async Task ConfirmAddressOnDeviceAsync(TrezorDevice device, KeyPath fullKeyPath, BitcoinAddress expectedAddress, Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
-		addressToConfirm?.Report(expectedAddress);
+		addressToConfirm?.Invoke(expectedAddress);
 		var shownAddress = await device.ShowAddressAsync(fullKeyPath, _network, cancellationToken).ConfigureAwait(false);
 		if (shownAddress != expectedAddress.ToString())
 		{
@@ -440,45 +433,21 @@ public class HardwareWalletService : IDisposable
 		var inputs = psbt.Inputs
 			.Select((input, index) =>
 			{
-				var keyPath = keyManager.TryGetKeyPath(input.WitnessUtxo?.ScriptPubKey ?? throw new InvalidOperationException("Cannot sign an input without its previous output."))
-					?? throw new InvalidOperationException("Cannot sign an input that does not belong to this wallet.");
-
-				bool isCoinJoinAccount = keyPath.IsSlip25KeyPath();
-				spendsCoinJoinAccount |= isCoinJoinAccount;
-
-				return new TrezorTxInput
-				{
-					AddressN = keyPath.Indexes,
-					PrevHash = input.PrevOut.Hash.ToBytes(lendian: false),
-					PrevIndex = input.PrevOut.N,
-					Sequence = globalTransaction.Inputs[index].Sequence.Value,
-					ScriptType = isCoinJoinAccount ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness,
-					Amount = (ulong)input.WitnessUtxo!.Value.Satoshi,
-				};
+				var spentOutput = input.WitnessUtxo ?? throw new InvalidOperationException("Cannot sign an input without its previous output.");
+				var keyPath = keyManager.TryGetKeyPath(spentOutput.ScriptPubKey) ?? throw new InvalidOperationException("Cannot sign an input that does not belong to this wallet.");
+				spendsCoinJoinAccount |= keyPath.IsSlip25KeyPath();
+				return TrezorTxInput.From(globalTransaction.Inputs[index], spentOutput, keyPath);
 			})
 			.ToList();
 
 		// An own output is streamed as a verifiable key path only when its account matches the unlock state of
 		// the transaction: the device rejects a coinjoin account output path without the unlock, and a regular
 		// one with it. A transfer between the two accounts is therefore shown as a plain address to confirm.
-		var outputs = psbt.Outputs
+		var outputs = globalTransaction.Outputs
 			.Select(output =>
 			{
 				var keyPath = keyManager.TryGetKeyPath(output.ScriptPubKey);
-				bool isCoinJoinAccount = keyPath?.IsSlip25KeyPath() is true;
-				bool verifiableByPath = keyPath is not null && isCoinJoinAccount == spendsCoinJoinAccount;
-				return new TrezorTxOutput
-				{
-					AddressN = verifiableByPath ? keyPath!.Indexes : [],
-					Address = verifiableByPath ? "" : output.ScriptPubKey.GetDestinationAddress(_network)?.ToString()
-						?? throw new InvalidOperationException("Cannot show an output that is not an address on the device."),
-					Amount = (ulong)output.Value.Satoshi,
-					ScriptType = !verifiableByPath
-						? TrezorOutputScriptType.PayToAddress
-						: isCoinJoinAccount
-							? TrezorOutputScriptType.PayToTaproot
-							: TrezorOutputScriptType.PayToWitness,
-				};
+				return TrezorTxOutput.From(output, keyPath?.IsSlip25KeyPath() == spendsCoinJoinAccount ? keyPath : null, _network);
 			})
 			.ToList();
 

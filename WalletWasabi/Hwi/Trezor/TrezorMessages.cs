@@ -132,6 +132,18 @@ public record TrezorTxInput
 	public byte[] OwnershipProof { get; init; } = [];
 	public byte[] CommitmentData { get; init; } = [];
 
+	/// <summary>The input spending an output: ours under its key path, foreign without one.</summary>
+	public static TrezorTxInput From(TxIn input, TxOut spentOutput, KeyPath? keyPath) => new()
+	{
+		AddressN = keyPath?.Indexes ?? [],
+		PrevHash = input.PrevOut.Hash.ToBytes(lendian: false),
+		PrevIndex = input.PrevOut.N,
+		Sequence = input.Sequence.Value,
+		ScriptType = keyPath is null ? TrezorInputScriptType.External : TrezorMessages.ScriptTypeOf(keyPath),
+		Amount = (ulong)spentOutput.Value.Satoshi,
+		ScriptPubKey = spentOutput.ScriptPubKey.ToBytes(),
+	};
+
 	public TrezorMessage ToTxAckInput()
 	{
 		var input = new ProtoWriter()
@@ -150,9 +162,7 @@ public record TrezorTxInput
 			input.WriteBytesField(19, ScriptPubKey);
 		}
 
-		// TxAckInput { tx = 1 { input = 2 } }, wire-alias of TxAck.
-		var wrapper = new ProtoWriter().WriteMessageField(2, input);
-		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, wrapper).ToBytes());
+		return TrezorMessages.TxAck(2, input); // tx.inputs
 	}
 }
 
@@ -163,6 +173,19 @@ public record TrezorTxOutput
 	public string Address { get; init; } = "";
 	public required ulong Amount { get; init; }
 	public required TrezorOutputScriptType ScriptType { get; init; }
+
+	/// <summary>An output the device verifies as ours by its key path, or shows as a plain address when it has none.</summary>
+	public static TrezorTxOutput From(TxOut output, KeyPath? verifiableKeyPath, Network network) => new()
+	{
+		AddressN = verifiableKeyPath?.Indexes ?? [],
+		Address = verifiableKeyPath is not null
+			? ""
+			: output.ScriptPubKey.GetDestinationAddress(network)?.ToString() ?? throw new InvalidOperationException("Cannot show an output that is not an address on the device."),
+		Amount = (ulong)output.Value.Satoshi,
+		ScriptType = verifiableKeyPath is null
+			? TrezorOutputScriptType.PayToAddress
+			: verifiableKeyPath.IsSlip25KeyPath() ? TrezorOutputScriptType.PayToTaproot : TrezorOutputScriptType.PayToWitness,
+	};
 
 	public TrezorMessage ToTxAckOutput()
 	{
@@ -178,9 +201,7 @@ public record TrezorTxOutput
 		output.WriteVarIntField(3, Amount);
 		output.WriteVarIntField(4, (ulong)ScriptType);
 
-		// TxAckOutput { tx = 1 { output = 5 } }, wire-alias of TxAck.
-		var wrapper = new ProtoWriter().WriteMessageField(5, output);
-		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, wrapper).ToBytes());
+		return TrezorMessages.TxAck(5, output); // tx.outputs
 	}
 }
 
@@ -193,40 +214,41 @@ public static class TrezorMessages
 	public static TrezorMessage GetFeatures() =>
 		TrezorMessage.Empty(TrezorMessageType.GetFeatures);
 
+	/// <summary>The input script type of an account's key path.</summary>
+	public static TrezorInputScriptType ScriptTypeOf(KeyPath keyPath) =>
+		keyPath.IsSlip25KeyPath() ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness;
+
+	/// <summary>TxAck { tx = 1 }. TxAckInput, TxAckOutput and the previous transaction acks are wire-aliases of it.</summary>
+	public static TrezorMessage TxAck(ProtoWriter tx) =>
+		new(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
+
+	/// <summary>TxAck { tx = 1 { field = inner } }.</summary>
+	public static TrezorMessage TxAck(int field, ProtoWriter inner) =>
+		TxAck(new ProtoWriter().WriteMessageField(field, inner));
+
 	// The device requests the referenced previous transaction piece by piece to verify the spent amounts
 	// of non-taproot inputs. TransactionType field numbers: version=1, inputs=2, bin_outputs=3, lock_time=4,
-	// inputs_cnt=6, outputs_cnt=7. All acks are wire-aliases of TxAck { tx = 1 }.
-	public static TrezorMessage TxAckPrevMeta(uint version, uint lockTime, int inputsCount, int outputsCount)
-	{
-		var tx = new ProtoWriter()
+	// inputs_cnt=6, outputs_cnt=7.
+	public static TrezorMessage TxAckPrevMeta(uint version, uint lockTime, int inputsCount, int outputsCount) =>
+		TxAck(new ProtoWriter()
 			.WriteVarIntField(1, version)
 			.WriteVarIntField(4, lockTime)
 			.WriteVarIntField(6, (ulong)inputsCount)
-			.WriteVarIntField(7, (ulong)outputsCount);
-		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
-	}
+			.WriteVarIntField(7, (ulong)outputsCount));
 
-	public static TrezorMessage TxAckPrevInput(byte[] prevHash, uint prevIndex, byte[] scriptSig, uint sequence)
-	{
-		// PrevInput: prev_hash=2, prev_index=3, script_sig=4, sequence=5 (empty script_sig for segwit spends).
-		var input = new ProtoWriter()
+	// PrevInput: prev_hash=2, prev_index=3, script_sig=4, sequence=5 (empty script_sig for segwit spends).
+	public static TrezorMessage TxAckPrevInput(byte[] prevHash, uint prevIndex, byte[] scriptSig, uint sequence) =>
+		TxAck(2, new ProtoWriter()
 			.WriteBytesField(2, prevHash)
 			.WriteVarIntField(3, prevIndex)
 			.WriteBytesField(4, scriptSig)
-			.WriteVarIntField(5, sequence);
-		var tx = new ProtoWriter().WriteMessageField(2, input);
-		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
-	}
+			.WriteVarIntField(5, sequence));
 
-	public static TrezorMessage TxAckPrevOutput(ulong amount, byte[] scriptPubKey)
-	{
-		// PrevOutput (bin_outputs): amount=1, script_pubkey=2.
-		var output = new ProtoWriter()
+	// PrevOutput (bin_outputs): amount=1, script_pubkey=2.
+	public static TrezorMessage TxAckPrevOutput(ulong amount, byte[] scriptPubKey) =>
+		TxAck(3, new ProtoWriter()
 			.WriteVarIntField(1, amount)
-			.WriteBytesField(2, scriptPubKey);
-		var tx = new ProtoWriter().WriteMessageField(3, output);
-		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
-	}
+			.WriteBytesField(2, scriptPubKey));
 
 	public static TrezorMessage ButtonAck() =>
 		TrezorMessage.Empty(TrezorMessageType.ButtonAck);

@@ -120,8 +120,7 @@ public partial class HealthMonitor : ReactiveObject
 			.BindTo(this, x => x.IsP2pConnected)
 			.DisposeWith(Disposables);
 
-		// Which transport currently reaches the device (hidden until a device is used at all). The service
-		// picks between the bridge and direct USB; this only tells the user which one is in use.
+		// Stays hidden until a device is used at all.
 		Observable.FromEventPattern<HardwareWalletTransport>(
 				h => services.HardwareWallets.TransportStatusChanged += h,
 				h => services.HardwareWallets.TransportStatusChanged -= h)

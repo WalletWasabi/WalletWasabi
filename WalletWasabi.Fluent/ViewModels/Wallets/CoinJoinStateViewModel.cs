@@ -95,7 +95,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (wallet.HasSeparateCoinJoinAccount)
+		if (wallet.HasCoinJoinAccount)
 		{
 			// Starting coinjoin requires a confirmation on the device, so it never starts automatically.
 			initialState = State.StoppedOrPaused;
@@ -402,7 +402,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
-					CoinjoinError.NoCoinsEligibleToMix when _wallet.HasSeparateCoinJoinAccount => CoinJoinAccountEmptyMessage,
+					CoinjoinError.NoCoinsEligibleToMix when _wallet.HasCoinJoinAccount => CoinJoinAccountEmptyMessage,
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,

@@ -111,8 +111,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("enumeratedevices", initializable: false)]
 	public async Task<JsonRpcResultList> EnumerateDevicesAsync()
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-		var devices = await Global.HardwareWallets.DetectAsync(cts.Token).ConfigureAwait(false);
+		var devices = await Global.HardwareWallets.DetectAsync(CancellationToken.None).ConfigureAwait(false);
 
 		return
 		[
@@ -136,7 +135,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
 
 		var verifiedAddresses = new List<string>();
-		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, new AddressCollector(verifiedAddresses), CancellationToken.None).ConfigureAwait(false);
+		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, address => verifiedAddresses.Add(address.ToString()), CancellationToken.None).ConfigureAwait(false);
 		Global.WalletManager.AddWallet(keyManager);
 
 		return new JsonRpcResult
@@ -155,7 +154,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		var verifiedAddresses = new List<string>();
-		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, new AddressCollector(verifiedAddresses), CancellationToken.None).ConfigureAwait(false);
+		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, address => verifiedAddresses.Add(address.ToString()), CancellationToken.None).ConfigureAwait(false);
 
 		return new JsonRpcResult
 		{
@@ -212,9 +211,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var hdPubKey = activeWallet.KeyManager.GetKeys(key => key.ContainsScript(scriptPubKey)).FirstOrDefault()
 			?? throw new InvalidOperationException($"Address '{address}' does not belong to wallet '{activeWallet.WalletName}'.");
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await Global.HardwareWallets
-			.DisplayAddressAsync(activeWallet.KeyManager, hdPubKey.FullKeyPath, hdPubKey.GetAddress(Global.Network), cts.Token)
+			.DisplayAddressAsync(activeWallet.KeyManager, hdPubKey.FullKeyPath, hdPubKey.GetAddress(Global.Network), CancellationToken.None)
 			.ConfigureAwait(false);
 
 		return new JsonRpcResult
@@ -249,12 +247,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		return [.. accounts];
-	}
-
-	/// <summary>Collects the addresses the device was asked to show, synchronously: a <see cref="Progress{T}"/> reports after the result would already be built.</summary>
-	private sealed class AddressCollector(List<string> addresses) : IProgress<BitcoinAddress>
-	{
-		public void Report(BitcoinAddress address) => addresses.Add(address.ToString());
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]
@@ -435,8 +427,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		if (activeWallet.KeyManager.HasCoinJoinAccount)
 		{
-			// The device approves how much value may leave the wallet in a round, never where it goes, so it
-			// cannot show this payment's destination and refuses to sign a round containing it.
 			throw new InvalidOperationException("Payments in coinjoin are not possible when a device signs the rounds.");
 		}
 
@@ -550,10 +540,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 			throw new InvalidOperationException($"Wallet '{activeWallet.WalletName}' cannot sign transactions.");
 		}
 
-		// Long enough for a person to read and confirm every output on the device.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 		var signedPsbt = await Global.HardwareWallets
-			.SignTransactionAsync(activeWallet.KeyManager, result.Psbt, result.Transaction, cts.Token)
+			.SignTransactionAsync(activeWallet.KeyManager, result.Psbt, result.Transaction, CancellationToken.None)
 			.ConfigureAwait(false);
 
 		return signedPsbt.ExtractSmartTransaction(result.Transaction);

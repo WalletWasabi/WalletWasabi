@@ -92,11 +92,6 @@ public class App : Application
 		return new WalletRepository(services, amountProvider);
 	}
 
-	private static HardwareWalletInterface CreateHardwareWalletInterface(IServices services)
-	{
-		return new HardwareWalletInterface(services);
-	}
-
 	private static FileSystemModel CreateFileSystem()
 	{
 		return new FileSystemModel();
@@ -139,7 +134,6 @@ public class App : Application
 			new UiClipboard(),
 			CreateWalletRepository(services, amountProvider),
 			new CoinjoinModel(services),
-			CreateHardwareWalletInterface(services),
 			CreateFileSystem(),
 			CreateConfig(services),
 			applicationSettings,
