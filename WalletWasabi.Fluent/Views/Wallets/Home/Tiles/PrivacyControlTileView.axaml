@@ -7,7 +7,7 @@
              x:CompileBindings="True" x:DataType="vms:PrivacyControlTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.PrivacyControlTileView">
 
-  <TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding HasPrivateBalance}">
+  <TileControl Title="PRIVACY PROGRESS" IsBottomContentVisible="{Binding IsPrivateBalanceDisplayed^}">
 
     <DockPanel>
       <Button Command="{Binding ShowDetailsCommand}" Classes="plain" DockPanel.Dock="Bottom">
@@ -43,7 +43,7 @@
                 Height="36" Width="36">
           <ThemeImage Source="{StaticResource privacy_indicator_good}" Opacity="0.6" />
         </Button>
-        <PrivacyContentControl Classes="h2 bold" VerticalAlignment="Center">
+        <PrivacyContentControl Classes="h2 bold" VerticalAlignment="Center" MinPrivacyChars="5">
           <TextBlock HorizontalAlignment="Center"
                      TextAlignment="Center"
                      Text="{Binding PercentText}" Classes="h2 bold" />
@@ -59,7 +59,7 @@
             Text="PRIVATE" Classes="bold" Margin="4 2" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </Border>
         <CopyableItem ContentToCopy="{Binding BalancePrivate.Btc}">
-          <PrivacyContentControl VerticalAlignment="Center">
+          <PrivacyContentControl VerticalAlignment="Center" MinPrivacyChars="13">
             <AmountControl Amount="{Binding BalancePrivate}"/>
           </PrivacyContentControl>
         </CopyableItem>

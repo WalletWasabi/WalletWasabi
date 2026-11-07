@@ -36,7 +36,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isDonateButtonVisible;
 
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isDisplayedAsEmpty;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasMusicBoxBeenDisplayed;
 	[AutoNotify] private bool _isMusicBoxFlyoutDisplayed;
@@ -78,15 +78,14 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Subscribe();
 
 		walletModel.HasBalance
-			.Select(x => !x)
-			.BindTo(this, x => x.IsWalletBalanceZero);
+			.CombineLatest(UiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode), (hasBalance, privacyMode) => !hasBalance && !privacyMode)
+			.BindTo(this, x => x.IsDisplayedAsEmpty);
 
 		walletModel.IsCoinjoinRunning
 			.BindTo(this, x => x.IsCoinJoining);
 
-		 // Keep the send button visible while the discreet mode is on. Otherwise its absence reveals an empty wallet.
-		 this.WhenAnyValue(x => x.IsWalletBalanceZero, x => x.UiContext.ApplicationSettings.PrivacyMode)
-		 	.Subscribe(_ => IsSendButtonVisible = (!IsWalletBalanceZero || UiContext.ApplicationSettings.PrivacyMode) && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+		this.WhenAnyValue(x => x.IsDisplayedAsEmpty)
+			.Subscribe(_ => IsSendButtonVisible = !IsDisplayedAsEmpty && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
 		 this.WhenAnyValue(x => x.IsSendButtonVisible)
 			 .Subscribe(_ => IsDonateButtonVisible = IsSendButtonVisible && WalletModel.Network == Network.Main);
@@ -97,11 +96,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 IsMusicBoxVisible = this.WhenAnyValue(
 			 x => x.HasMusicBoxBeenDisplayed,
 			 x => x.IsSelected,
-			 x => x.IsWalletBalanceZero,
+			 x => x.IsDisplayedAsEmpty,
 			 x => x.AreAllCoinsPrivate,
 			 x => x.IsPointerOver,
 			 x => x.IsMusicBoxFlyoutDisplayed,
-			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
+			 (hasBeenDisplayed, isSelected, isDisplayedAsEmpty, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
 			 {
 				 if (!hasBeenDisplayed)
 				 {
@@ -120,7 +119,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return isSelected && !hasNoBalance && !WalletModel.IsWatchOnlyWallet;
+				 return isSelected && !isDisplayedAsEmpty && !WalletModel.IsWatchOnlyWallet;
 			 });
 
 
