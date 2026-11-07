@@ -49,7 +49,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string DeviceNotFoundMessage = "Connect and unlock your device, then press Play";
 	private const string DeviceTransportNotFoundMessage = "Cannot reach the device, start its bridge software";
 	private const string CoinJoinAccountEmptyMessage = "Deposit to a coinjoin account address";
-	private const string DeviceAuthorizationFailedMessage = "The device did not authorize, press Play to retry";
+	private const string DeviceAuthorizationFailedMessage = "Press Play to authorize coinjoin on your device";
 
 	private readonly IWalletModel _wallet;
 	private readonly Wallet _walletInstance;
