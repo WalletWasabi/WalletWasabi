@@ -19,7 +19,6 @@ using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.Logging.LoggerTools;
@@ -34,14 +33,12 @@ public partial class Arena : PeriodicRunner
 		Prison prison,
 		RoundParametersFactory roundParametersFactory,
 		FeeRateProvider feeRateProvider,
-		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(2))
 	{
 		_config = config;
 		_rpc = rpc;
 		_prison = prison;
-		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParametersFactory = roundParametersFactory;
 		_feeRateProvider = feeRateProvider;
 	}
@@ -53,7 +50,6 @@ public partial class Arena : PeriodicRunner
 	private readonly WabiSabiConfig _config;
 	private readonly IRPCClient _rpc;
 	private readonly Prison _prison;
-	private readonly CoinJoinScriptStore? _coinJoinScriptStore;
 	private readonly RoundParametersFactory _roundParametersFactory;
 	private readonly FeeRateProvider _feeRateProvider;
 
@@ -315,22 +311,6 @@ public partial class Arena : PeriodicRunner
 					{
 						_config.MakeNextCoordinatorScriptDirty();
 					}
-
-					foreach (var address in coinjoin.Outputs
-						.Select(x => x.ScriptPubKey)
-						.Where(script => _coinJoinScriptStore?.Contains(script) is true))
-					{
-						if (address == round.CoordinatorScript)
-						{
-							Logger.LogError(FormatLog($"Coordinator script pub key reuse detected: {round.CoordinatorScript.ToHex()}", round));
-						}
-						else
-						{
-							Logger.LogError(FormatLog($"Output script pub key reuse detected: {address.ToHex()}", round));
-						}
-					}
-
-					_coinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
