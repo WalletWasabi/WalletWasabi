@@ -42,7 +42,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _bitcoinRpcUri;
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
-	[AutoNotify] private string _exchangeRateProvider;
+	[AutoNotify] private string? _exchangeRateProvider;
 	[AutoNotify] private string _fiatCurrency;
 	[AutoNotify] private string _feeRateEstimationProvider;
 	[AutoNotify] private string _externalTransactionBroadcaster;
@@ -329,7 +329,7 @@ public partial class ApplicationSettings : ReactiveObject
 			AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
 				absoluteMinInputCount :
 				Constants.DefaultAbsoluteMinInputCount,
-			ExchangeRateProvider = ExchangeRateProvider,
+			ExchangeRateProvider = ExchangeRateProvider ?? "none",
 			FeeRateEstimationProvider = FeeRateEstimationProvider,
 			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
 		};

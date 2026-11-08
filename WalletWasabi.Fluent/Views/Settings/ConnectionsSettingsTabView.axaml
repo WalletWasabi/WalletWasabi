@@ -20,7 +20,7 @@
     <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
       <TextBlock Text="Exchange Rate Provider" />
       <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
-                SelectedItem="{Binding Settings.ExchangeRateProvider, Converter={x:Static conv:IgnoreEmptySelectionConverter.Instance}}" />
+                SelectedItem="{Binding Settings.ExchangeRateProvider}" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="The client will try to fetch fee rate estimations from this provider. If unavailable, it will fallback to any other.">
