@@ -25,7 +25,7 @@
 
           <!-- VerticalContentAlignment=Stretch keeps the (empty) privacy replacement as tall as the bar,
                so that hovering over the hidden bar still reveals it. -->
-          <PrivacyContentControl PrivacyReplacementMode="None" VerticalContentAlignment="Stretch">
+          <PrivacyContentControl PrivacyReplacementMode="None" VerticalContentAlignment="Stretch" IsVisible="{Binding HasBalance^}">
             <Panel>
               <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
               <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"

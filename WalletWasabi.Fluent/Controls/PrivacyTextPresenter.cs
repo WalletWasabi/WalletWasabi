@@ -57,7 +57,7 @@ public class PrivacyTextPresenter : UserControl
 	private GlyphRun? CreateGlyphRun(double width)
 	{
 		var advance = PrivacyCharAdvance();
-		var count = Math.Clamp(width > 0 && width < advance ? 1 : (int)(width / advance), MinPrivacyChars, MaxPrivacyChars);
+		var count = Math.Min(Math.Max(width > 0 && width < advance ? 1 : (int)(width / advance), MinPrivacyChars), MaxPrivacyChars);
 		if (count == 0)
 		{
 			return null;

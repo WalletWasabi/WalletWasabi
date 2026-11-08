@@ -41,6 +41,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		TotalAmount = coinList.Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 		PrivateAmount = coinList.Filter(x => x.IsPrivate, suppressEmptyChangeSets: false).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
 		SemiPrivateAndPrivateAmount = coinList.Filter(x => x.IsPrivate || x.IsSemiPrivate, suppressEmptyChangeSets: false).Sum(set => set.Amount.ToDecimal(MoneyUnit.Satoshi));
+		HasBalance = TotalAmount.Select(total => total > 0);
 
 		var isPrivacyMode = uiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode);
 		IsPrivacyProgressDisplayed = SemiPrivateAndPrivateAmount.CombineLatest(TotalAmount, resultSelector: IsProgressVisible)
@@ -62,6 +63,8 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	public IObservable<decimal> PrivateAmount { get; }
 
 	public IObservable<decimal> TotalAmount { get; }
+
+	public IObservable<bool> HasBalance { get; }
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
