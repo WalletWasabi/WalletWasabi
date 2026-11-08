@@ -16,7 +16,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
@@ -195,7 +194,7 @@ public partial class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var (differenceBtc, differenceFiat) = GetDifference(parameters.TransactionInfo, newTransaction, exchangeRate);
-				var differenceText = GetDifferenceText(differenceBtc);
+				var differenceText = GetBtcDifferenceText(differenceBtc);
 				var differenceAmountText = GetDifferenceAmountText(differenceBtc, differenceFiat);
 				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceText, differenceAmountText, allPrivateCoin, isChangeless);
 				yield return fullPrivacySuggestion;
@@ -219,7 +218,7 @@ public partial class PrivacySuggestionsModel
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
 				var (btcDifference, fiatDifference) = GetDifference(parameters.TransactionInfo, newTransaction, exchangeRate);
-				var differenceText = GetDifferenceText(btcDifference);
+				var differenceText = GetBtcDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
 				yield return new BetterPrivacySuggestion(newTransaction, differenceText, differenceAmountText, coins, isChangeless);
 			}
@@ -386,7 +385,7 @@ public partial class PrivacySuggestionsModel
 			if (transaction is not null)
 			{
 				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, exchangeRate);
-				var differenceText = GetDifferenceText(btcDifference);
+				var differenceText = GetBtcDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
 				var isMore = btcDifference > 0;
 				var isLess = btcDifference < 0;
@@ -452,7 +451,7 @@ public partial class PrivacySuggestionsModel
 		return (btcDifference, fiatDifference);
 	}
 
-	private string GetDifferenceText(decimal btcDifference)
+	private string GetBtcDifferenceText(decimal btcDifference)
 	{
 		return btcDifference switch
 		{
