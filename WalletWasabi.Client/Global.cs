@@ -490,14 +490,14 @@ public class Global
 			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};
 
-		var exchangeFeeRateUpdater = Spawn(ExchangeRateUpdater.ServiceName,
+		var exchangeRateUpdater = Spawn(ExchangeRateUpdater.ServiceName,
 				Service("Exchange Rate Updater",
 					Periodically(
 						TimeSpan.FromMinutes(20),
 						[],
 						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
-		exchangeFeeRateUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))
+		exchangeRateUpdater.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => exchangeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))
 			.DisposeUsing(_disposables);
 	}
 

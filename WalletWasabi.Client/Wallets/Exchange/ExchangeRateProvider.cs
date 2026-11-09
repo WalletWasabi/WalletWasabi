@@ -112,7 +112,7 @@ public static class ExchangeRateProviders
 		using var response = await httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode($"Error requesting exchange rate to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-		Logger.LogDebug(json);
+
 		return Result<ExchangeRate[], Exception>
 			.Catch(() => extractor(json))
 			.Match(
