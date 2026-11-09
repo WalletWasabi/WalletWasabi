@@ -64,7 +64,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
 		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
 		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
-		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRates.ForCurrency("USD")?.Rate ?? 0m);
+		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRates.ForCurrency("USD")?.Rate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");
@@ -83,7 +83,7 @@ public class Scheme
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
 
-	private void RegisterNativeFunction(string name, Func<object> fn)
+	private void RegisterNativeFunction(string name, Func<object?> fn)
 	{
 		_env.Define(name, new Primitive(name, _ => ConvertNativeToScheme(fn(), 0), 0));
 	}
@@ -117,7 +117,7 @@ public class Scheme
 		}, 2));
 	}
 
-	private Value ConvertNativeToScheme(object obj, int depth)
+	private Value ConvertNativeToScheme(object? obj, int depth)
 	{
 		if (depth++ >= 5)
 		{
