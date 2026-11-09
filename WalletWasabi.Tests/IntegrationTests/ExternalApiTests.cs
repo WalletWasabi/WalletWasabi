@@ -1,9 +1,10 @@
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Client.Wallets.Exchange;
+using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -25,9 +26,10 @@ public class ExternalApiTests
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
 		await AssertExchangeRateProviderAsync(ExchangeRateProviders.GeminiAsync, TestContext.Current.CancellationToken);
 
-	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, ExchangeRateProvider> providerFactory, CancellationToken cancellationToken)
+	private async Task AssertExchangeRateProviderAsync(Func<ExchangeRateHttpFetcher, ExchangeRateProvider> providerFactory, CancellationToken cancellationToken)
 	{
-		var provider = providerFactory(new HttpClientFactory());
+		var httpFetcher = ExchangeRateProviders.FetcherFactory(new HttpClientFactory());
+		var provider = providerFactory(httpFetcher);
 		var exchangeRates = await provider(cancellationToken).ConfigureAwait(false);
 		Assert.All(exchangeRates, x => Assert.True(x.Rate > 0));
 	}
@@ -40,7 +42,7 @@ public class ExternalApiTests
 	public async Task MempoolSpaceRateProviderTestsAsync() =>
 		await AssertFeeProviderAsync(FeeRateProviders.MempoolSpaceAsync, TestContext.Current.CancellationToken);
 
-	private async Task AssertFeeProviderAsync(Func<HttpClientFactory, FeeRateProvider> providerFactory, CancellationToken cancellationToken)
+	private async Task AssertFeeProviderAsync(Func<IHttpClientFactory, FeeRateProvider> providerFactory, CancellationToken cancellationToken)
 	{
 		var provider = providerFactory(new HttpClientFactory());
 		var estimations = await provider(cancellationToken).ConfigureAwait(false);

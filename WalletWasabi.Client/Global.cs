@@ -475,10 +475,11 @@ public class Global
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
-		var mempoolSpaceProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
-		var blockchainInfoProvider = ExchangeRateProviders.BlockchainInfoAsync(ExternalSourcesHttpClientFactory);
-		var coinGeckoProvider = ExchangeRateProviders.CoinGeckoAsync(ExternalSourcesHttpClientFactory);
-		var geminiProvider = ExchangeRateProviders.GeminiAsync(ExternalSourcesHttpClientFactory);
+		var fetcherFactory = ExchangeRateProviders.FetcherFactory(ExternalSourcesHttpClientFactory);
+		var mempoolSpaceProvider = ExchangeRateProviders.MempoolSpaceAsync(fetcherFactory);
+		var blockchainInfoProvider = ExchangeRateProviders.BlockchainInfoAsync(fetcherFactory);
+		var coinGeckoProvider = ExchangeRateProviders.CoinGeckoAsync(fetcherFactory);
+		var geminiProvider = ExchangeRateProviders.GeminiAsync(fetcherFactory);
 
 		ExchangeRateProvider exchangeRateProvider = Config.ExchangeRateProvider.ToLower() switch
 		{
@@ -497,7 +498,7 @@ public class Global
 						[],
 						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeRateUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => exchangeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))
+		EventBus.Subscribe<Tick>(_ => exchangeRateUpdater.Post(UpdateMessage.Instance))
 			.DisposeUsing(_disposables);
 	}
 

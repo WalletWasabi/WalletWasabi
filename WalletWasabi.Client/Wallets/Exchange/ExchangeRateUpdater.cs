@@ -5,10 +5,14 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Client.Wallets.Exchange;
 
+public record UpdateMessage
+{
+	public static UpdateMessage Instance { get; } = new();
+}
+
 public static class ExchangeRateUpdater
 {
 	public static readonly string ServiceName = "ExchangeRateUpdater";
-	public record UpdateMessage;
 
 	public static MessageHandler<UpdateMessage, ExchangeRate[]> CreateExchangeRateUpdater(
 		ExchangeRateProvider provider, EventBus eventBus) =>
