@@ -189,11 +189,9 @@ public class Scheme
 
 	private object SubscribeEvent(Global global, string eventName, Closure func)
 	{
-		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false);
-		if (eventType is null)
-		{
+		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false) ??
 			throw new ArgumentException($"event {eventName} does not exist");
-		}
+
 		global.EventBus.Subscribe(eventType, arg => Interpreter.Apply(func, [ConvertNativeToScheme(arg, 0)]));
 		return Unspecified.Instance;
 	}
