@@ -58,26 +58,24 @@ public static class ExchangeRateProviders
 		new("Gemini", GeminiCurrencies)
 	];
 
-	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
-
 	public static string[] ProviderNamesFor(string currency) =>
 		[.. Providers.Where(x => x.Currencies.Contains(currency)).Select(x => x.Name), "None"];
 
 	public static ExchangeRateProvider BlockchainInfoAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetExchangeRatesAsync("BlockchainInfo", "https://blockchain.info/ticker", BlockchainInfoHandler(),
-			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+			httpClientFactory, cancellationToken);
 
 	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetExchangeRatesAsync("MempoolSpace", "https://mempool.space/api/v1/prices", MempoolSpaceHandler(),
-			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+			httpClientFactory, cancellationToken);
 
 	public static ExchangeRateProvider CoinGeckoAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetExchangeRatesAsync("CoinGecko", $"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies={string.Join(',', Currencies).ToLowerInvariant()}", CoinGeckoHandler(),
-			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+			httpClientFactory, cancellationToken);
 
 	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetExchangeRatesAsync("Gemini", "https://api.gemini.com/v1/pricefeed", GeminiHandler(),
-			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+			httpClientFactory, cancellationToken);
 
 	public static ExchangeRateProvider NoneAsync() =>
 		_ => Task.FromResult<ExchangeRate[]>([]);
@@ -101,14 +99,19 @@ public static class ExchangeRateProviders
 			throw new InvalidOperationException("All exchange rate providers failed to give us an exchange rate.");
 		};
 
-	private static async Task<ExchangeRate[]> GetExchangeRatesAsync(string providerName, string apiUrl, ExchangeRatesExtractor extractor, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
+	private static async Task<ExchangeRate[]> GetExchangeRatesAsync(
+		string providerName,
+		string apiUrl,
+		ExchangeRatesExtractor extractor,
+		IHttpClientFactory httpClientFactory,
+		CancellationToken cancellationToken)
 	{
 		var url = new Uri(apiUrl);
+		var userAgentPicker = UserAgent.GenerateUserAgentPicker();
 
 		var httpClient = httpClientFactory.CreateClient($"{providerName}-exchange-rate-provider");
 		httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
-		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
-
+		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgentPicker());
 		using var response = await httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode($"Error requesting exchange rate to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
