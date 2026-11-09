@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -22,15 +23,28 @@ public static class ExchangeRateProviders
 {
 	public static readonly ImmutableArray<string> Currencies =
 	[
-		"USD",
+		"AUD",
+		"CAD",
+		"CHF",
+		"CZK",
 		"EUR",
 		"GBP",
 		"JPY",
-		"CHF",
-		"CAD",
-		"AUD",
-		"CZK"
+		"USD",
 	];
+
+	public static readonly ImmutableDictionary<string, string> CurrencyNames =
+		new Dictionary<string, string>
+		{
+			["AUD"] = "Australian dollar",
+			["CAD"] = "Canadian dollar",
+			["CHF"] = "Swiss franc",
+			["CZK"] = "Czech koruna",
+			["EUR"] = "Euro",
+			["GBP"] = "British pound",
+			["JPY"] = "Japanese yen",
+			["USD"] = "United States dollar",
+		}.ToImmutableDictionary();
 
 	private static readonly ImmutableArray<string> BlockchainInfoCurrencies = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD"];
 	private static readonly ImmutableArray<string> MempoolSpaceCurrencies = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD"];
