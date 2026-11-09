@@ -158,12 +158,12 @@
                                   KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
                                   IsReadOnly="{Binding IsFixedAmount}"
                                   AmountBtc="{Binding AmountBtc}"
-                                  ConversionRate="{Binding ExchangeRate}"
+                                  ConversionRate="{Binding ExchangeRate.Rate}"
                                   CurrencyCode="BTC"
-                                  ConversionCurrencyCode="USD"
+                                  ConversionCurrencyCode="{Binding ExchangeRate.Ticker}"
                                   IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                                   BalanceBtc="{Binding Balance^.Btc}"
-                                  BalanceFiat="{Binding Balance^.Fiat^}"
+                                  BalanceFiat="{Binding Balance^.Fiat^.Value}"
                                   ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
@@ -264,9 +264,9 @@
                     <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding Value.InsertMaxCommand}"
                             Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
                     <DualCurrencyEntryBox AmountBtc="{Binding Value.AmountBtc}"
-                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
+                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate.Rate}"
                                           CurrencyCode="BTC"
-                                          ConversionCurrencyCode="USD"
+                                          ConversionCurrencyCode="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate.Ticker}"
                                           IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
                                           ValidatePasteBalance="False" />
                   </DockPanel>

@@ -22,19 +22,21 @@ $ ./wcli.sh getstatus
   "filtersCount": 5001,
   "filtersLeft": 0,
   "network": "Main",
-  "exchangeRate": 29610.18,
+  "exchangeRates": {
+    "usd": 73943.0,
+    "eur": 66211.0,
+    "gbp": 55408.0,
+    "cad": 104334.0,
+    "chf": 60630.0,
+    "aud": 107401.0,
+    "jpy": 11680515.0
+  },
   "peers": [
     {
       "isConnected": true,
-      "lastSeen": "2023-05-09T18:30:32.4543747+00:00",
+      "lastSeen": 1794210150,
       "endpoint": "[::ffff:148.251.1.20]:18343",
-      "userAgent": "/Satoshi:0.20.1/"
-    },
-    {
-      "isConnected": true,
-      "lastSeen": "2023-05-09T18:29:25.634355+00:00",
-      "endpoint": "[::ffff:44.238.21.47]:18333",
-      "userAgent": "/btcwire:0.5.0/btcd:0.23.2/"
+      "userAgent": "/Satoshi:31.1.0/"
     }
   ]
 }
