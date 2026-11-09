@@ -22,7 +22,6 @@ $ ./wcli.sh getstatus
   "filtersCount": 5001,
   "filtersLeft": 0,
   "network": "Main",
-  "exchangeRate": 73943.0,
   "exchangeRates": {
     "usd": 73943.0,
     "eur": 66211.0,
