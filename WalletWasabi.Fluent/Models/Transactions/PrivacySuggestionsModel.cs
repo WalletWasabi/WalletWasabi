@@ -463,11 +463,13 @@ public partial class PrivacySuggestionsModel
 
 	private string GetDifferenceAmountText(decimal btcDifference, FiatAmount fiatDifference)
 	{
+		var btcDifferenceStr = Math.Abs(btcDifference).FormattedBtcFixedFractional();
 		var absFiatDifference = fiatDifference.Abs();
-		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC" +
-			(absFiatDifference.Value > 0
-				? $" {absFiatDifference.ToFiatAproxBetweenParens()}"
-				: "");
+		var approxFiatValueStr = absFiatDifference.Value > 0
+			? $" {absFiatDifference.ToFiatAproxBetweenParens()}"
+			: "";
+
+		return $"{btcDifferenceStr} BTC{approxFiatValueStr}";
 	}
 
 	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);
