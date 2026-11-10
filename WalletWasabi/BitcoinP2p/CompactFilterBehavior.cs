@@ -359,7 +359,7 @@ public class CompactFilterBehavior(
 		}
 
 		_assignment = new Assignment(IsHeaderRequest: false, filterAssignment, DateTime.UtcNow);
-		Logger.LogDebug($"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
+		Logger.LogDebug($"Assigned compact filter range {filterAssignment} to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
 

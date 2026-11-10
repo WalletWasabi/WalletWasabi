@@ -316,16 +316,14 @@ public class FilterSynchronizationState
 			// Find the next range to assign (respecting max lookahead limit)
 			if (!_filterTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
 			{
-				Logger.LogTrace(
-					$"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
+				Logger.LogTrace($"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
 				return false;
 			}
 
 			// Nothing to fetch if we're caught up with filter headers
 			if (nextRangeStart > filterHeadersTip.Height)
 			{
-				Logger.LogTrace(
-					$"caught up (next range start {nextRangeStart} > filter headers tip {filterHeadersTip.Height})");
+				Logger.LogTrace($"caught up (next range start {nextRangeStart} > filter headers tip {filterHeadersTip.Height})");
 				return false;
 			}
 
@@ -338,8 +336,7 @@ public class FilterSynchronizationState
 			// Track this assignment so other nodes don't get the same page
 			_filterTracker.AddActiveAssignment(nextRangeStart, stopHeight);
 
-			Logger.LogDebug(
-				$"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
+			Logger.LogDebug($"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
 
 			assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
 			return true;
