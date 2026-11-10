@@ -5,8 +5,6 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// </summary>
 public static class BlockHeaderChainFile
 {
-	private const int HeaderSize = 80;
-
 	public static byte[] Serialize(ConcurrentChain chain)
 	{
 		var tip = chain.Tip!;
@@ -20,19 +18,19 @@ public static class BlockHeaderChainFile
 	/// </summary>
 	public static bool TryLoad(byte[] bytes, Network network, BlockHeaderCheckpoint checkpoint, ConcurrentChain chain)
 	{
-		if (bytes.Length < 4 + HeaderSize
-			|| (bytes.Length - 4) % HeaderSize != 0
+		if (bytes.Length < 4 + BlockHeader.Size
+			|| (bytes.Length - 4) % BlockHeader.Size != 0
 			|| BitConverter.ToUInt32(bytes, 0) != checkpoint.Height
-			|| !bytes.AsSpan(4, HeaderSize).SequenceEqual(checkpoint.Header.ToBytes()))
+			|| !bytes.AsSpan(4, BlockHeader.Size).SequenceEqual(checkpoint.Header.ToBytes()))
 		{
 			return false;
 		}
 
 		var tip = checkpoint.ToChainedBlock();
-		for (var offset = 4 + HeaderSize; offset < bytes.Length; offset += HeaderSize)
+		for (var offset = 4 + BlockHeader.Size; offset < bytes.Length; offset += BlockHeader.Size)
 		{
 			var header = network.Consensus.ConsensusFactory.CreateBlockHeader();
-			header.ReadWrite(bytes.AsSpan(offset, HeaderSize).ToArray(), network);
+			header.ReadWrite(bytes.AsSpan(offset, BlockHeader.Size).ToArray(), network);
 			if (header.HashPrevBlock != tip.HashBlock)
 			{
 				break;
