@@ -1,12 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.Extensions;
 using WalletWasabi.Rpc.JsonConverters;
 
 namespace WalletWasabi.Rpc;

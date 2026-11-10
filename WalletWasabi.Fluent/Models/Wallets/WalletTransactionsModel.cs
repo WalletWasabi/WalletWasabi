@@ -51,7 +51,12 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
+		var coinjoinCostsAdded = services.EventBus.AsObservable<CoinjoinCostsAdded>()
+			.Where(x => x.WalletName == wallet.WalletName)
+			.ToSignal()
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived).Merge(coinjoinCostsAdded)
 			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)
 			.DisposeWith(_disposable);
 

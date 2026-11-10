@@ -19,6 +19,11 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // spends an input of each failed attempt that can still confirm, so that it cannot be made twice.
 public class PaymentBatch(CoinsRegistry coins)
 {
+	public static readonly Money MinimumPaymentAmount = Money.Satoshis(10_000);
+
+	// Arbitrary number.
+	public const int MaxPaymentsPerCoinjoin = 4;
+
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
@@ -27,6 +32,11 @@ public class PaymentBatch(CoinsRegistry coins)
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
+		if (amount < MinimumPaymentAmount)
+		{
+			throw new ArgumentException($"Coinjoin payments must be at least {MinimumPaymentAmount} BTC.");
+		}
+
 		var payment = new Payment(destination, amount);
 		lock (_syncObj)
 		{
@@ -80,8 +90,8 @@ public class PaymentBatch(CoinsRegistry coins)
 		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
 		// Once we know how much money we have registered in the coinjoin, lets see how many payments
-		// we can do we that. Maximum 4 payments in a single coinjoin (arbitrary number)
-		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, 4);
+		// we can do we that.
+		var allCombinationOfPendingPayments = allowedPayments.CombinationsWithoutRepetition(1, MaxPaymentsPerCoinjoin);
 		var bestPaymentSet = allCombinationOfPendingPayments
 			.Select(pendingPaymentSet => new PaymentSet(pendingPaymentSet, roundParameters.MiningFeeRate))
 			.Where(paymentSet => paymentSet.TotalAmount <= availableAmount)
@@ -149,8 +159,19 @@ public class PaymentBatch(CoinsRegistry coins)
 
 	public bool AreThereUncertainPayments => SignedPayments.Any();
 
-	private bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
-		payment.SignedAttempts.Where(CanStillConfirm).All(attempt => attempt.Inputs.Any(inputs.Contains));
+	public ImmutableArray<Payment> GetPendingPayments()
+	{
+		lock (_syncObj)
+		{
+			return [.. PendingPayments];
+		}
+	}
+
+	public ImmutableArray<ImmutableArray<OutPoint>> GetFailedAttemptInputSets(Payment payment) =>
+		[.. payment.SignedAttempts.Where(CanStillConfirm).Select(attempt => attempt.Inputs)];
+
+	public bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
+		GetFailedAttemptInputSets(payment).All(attemptInputs => attemptInputs.Any(inputs.Contains));
 
 	private bool CanStillConfirm(SignedUnknownPayment attempt) =>
 		!attempt.Inputs.Any(input =>

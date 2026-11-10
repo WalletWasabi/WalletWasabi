@@ -70,6 +70,6 @@ public class TorControlReplyReaderTest
 		Pipe pipe = new();
 		await pipe.Writer.WriteAsciiAndFlushAsync(data, timeoutCts.Token);
 		await pipe.Writer.CompleteAsync();
-		return await TorControlReplyReader.ReadReplyAsync(pipe.Reader, timeoutCts.Token);
+		return await TorControlReplyReader.ReadReplyAsync(pipe.Reader, timeoutCts.Token).ConfigureAwait(false);
 	}
 }

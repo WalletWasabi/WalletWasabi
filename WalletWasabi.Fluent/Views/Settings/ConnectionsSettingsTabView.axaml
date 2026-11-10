@@ -11,6 +11,23 @@
              x:DataType="settings:ConnectionsSettingsTabViewModel">
   <StackPanel Classes="settingsLayout">
 
+    <DockPanel ToolTip.Tip="Amounts are shown in this currency. Only the exchange rate providers quoting it can be selected.">
+      <TextBlock Text="Fiat Currency" />
+      <ComboBox ItemsSource="{Binding FiatCurrencies}"
+                SelectedItem="{Binding Settings.FiatCurrency}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <TextBlock Text="{Binding Converter={x:Static conv:CurrencyCodeToDisplayNameConverter.Instance}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+        <ComboBox.SelectionBoxItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <TextBlock Text="{Binding}" />
+          </DataTemplate>
+        </ComboBox.SelectionBoxItemTemplate>
+      </ComboBox>
+    </DockPanel>
+
     <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
       <TextBlock Text="Exchange Rate Provider" />
       <ComboBox ItemsSource="{Binding ExchangeRateProviders}"

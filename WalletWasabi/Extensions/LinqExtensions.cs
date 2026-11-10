@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
 

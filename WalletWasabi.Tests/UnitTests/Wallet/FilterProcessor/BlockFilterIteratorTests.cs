@@ -1,7 +1,7 @@
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets.FilterProcessor;
@@ -31,7 +31,7 @@ public class BlockFilterIteratorTests
 		FilterModel filter4 = CreateFilterModel(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006506);
 
 		var fetchCallCount = 0;
-		var filterStore = new TestableFilterStore
+		var filterManager = new TestableFilterManager
 		{
 			OnFetchBatchAsync = (fromHeight, count, _) =>
 			{
@@ -45,7 +45,7 @@ public class BlockFilterIteratorTests
 			}
 		};
 
-		BlockFilterIterator filterIterator = new(filterStore, maxNumberFiltersInMemory: 3);
+		BlockFilterIterator filterIterator = new(filterManager, maxNumberFiltersInMemory: 3);
 
 		// Iterator needs to do a database lookup.
 		{

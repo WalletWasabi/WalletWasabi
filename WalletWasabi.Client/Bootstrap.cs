@@ -10,6 +10,7 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using NScheme;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Helpers;
 using WalletWasabi.Rpc.JsonConverters;
 using WalletWasabi.Wallets;
@@ -63,7 +64,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
 		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
 		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
-		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
+		RegisterNativeFunction("exchange-rate-usd", () => global.Status.ExchangeRates.ForCurrency("USD")?.Rate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");
@@ -82,7 +83,7 @@ public class Scheme
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
 
-	private void RegisterNativeFunction(string name, Func<object> fn)
+	private void RegisterNativeFunction(string name, Func<object?> fn)
 	{
 		_env.Define(name, new Primitive(name, _ => ConvertNativeToScheme(fn(), 0), 0));
 	}
@@ -116,7 +117,7 @@ public class Scheme
 		}, 2));
 	}
 
-	private Value ConvertNativeToScheme(object obj, int depth)
+	private Value ConvertNativeToScheme(object? obj, int depth)
 	{
 		if (depth++ >= 5)
 		{
@@ -188,11 +189,9 @@ public class Scheme
 
 	private object SubscribeEvent(Global global, string eventName, Closure func)
 	{
-		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false);
-		if (eventType is null)
-		{
+		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false) ??
 			throw new ArgumentException($"event {eventName} does not exist");
-		}
+
 		global.EventBus.Subscribe(eventType, arg => Interpreter.Apply(func, [ConvertNativeToScheme(arg, 0)]));
 		return Unspecified.Instance;
 	}

@@ -164,6 +164,12 @@ public static class BitcoinFactory
 		}
 	}
 
+	public static BitcoinAddress CreateSegwitAddress()
+	{
+		using Key key = new();
+		return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
+	}
+
 	/// <summary>
 	/// Creates and configures an fake RPC client used to simulate the
 	/// interaction with our bitcoin full node RPC server.

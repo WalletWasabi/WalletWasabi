@@ -177,7 +177,7 @@ public class CoordinatorOutputTests
 	}
 
 	private static Money[] EveryDenominationUpTo(long value) =>
-		DenominationBuilder.CreateDenominationAmounts(DefaultMinRegistrableAmount, Money.Satoshis(value)).ToArray();
+		DenominationBuilder.CreateDenominations(DefaultMinRegistrableAmount, Money.Satoshis(value)).ToArray();
 
 	private static long[] GetCoordinatorOutputValues(ConstructionState coinjoin, Script[] coordinatorScripts)
 	{

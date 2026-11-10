@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
@@ -10,8 +9,6 @@ namespace WalletWasabi.Fluent.Helpers;
 public static partial class TextHelpers
 {
 	public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
-
-	public static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 
 	private static string ConcatNumberAndUnit(int n, string unit) => n > 0 ? $"{n} {unit}{AddSIfPlural(n)}" : "";
 

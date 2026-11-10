@@ -2,9 +2,6 @@ using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
-/// <summary>
-/// Pull requests to this file must be up to date with this simulation to ensure correctness: https://github.com/nopara73/Sake
-/// </summary>
 public class AmountDecomposer
 {
 	/// <param name="feeRate">Bitcoin network fee rate the coinjoin is targeting.</param>
@@ -23,7 +20,10 @@ public class AmountDecomposer
 		_random = random;
 
 		// Create many standard denominations.
-		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount, FeeRate, AllowedOutputTypes, random);
+		Denominations = DenominationBuilder.CreateDenominations(MinAllowedOutputAmount, MaxAllowedOutputAmount)
+			.Select(denomination => Output.FromDenomination(denomination, AllowedOutputTypes.RandomElement(random), FeeRate))
+			.OrderByDescending(x => x.EffectiveAmount)
+			.ToArray();
 
 		ChangeScriptType = AllowedOutputTypes.RandomElement(random);
 	}
@@ -34,12 +34,12 @@ public class AmountDecomposer
 	public Money MinAllowedOutputAmount { get; }
 	public Money MaxAllowedOutputAmount { get; }
 
-	public IOrderedEnumerable<Output> Denominations { get; }
+	public IReadOnlyList<Output> Denominations { get; }
 	public ScriptType ChangeScriptType { get; }
 	public Money ChangeFee => FeeRate.GetFee(ChangeScriptType.EstimateOutputVsize());
 	private readonly RandomnessProvider _random;
 
-	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
+	private IReadOnlyList<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
 		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
@@ -70,6 +70,8 @@ public class AmountDecomposer
 		return denoms;
 	}
 
+	/// <param name="myInputSum">Effective sum of my inputs being decomposed, i.e. the input amount minus the fee to spend it.</param>
+	/// <param name="allInputCoinEffectiveValues">Effective values of all coins registered as inputs in the round, including mine.</param>
 	public IEnumerable<Output> Decompose(Money myInputSum, IEnumerable<Money> allInputCoinEffectiveValues, bool isPerformingAPayment = false)
 	{
 		var denoms = GetFilteredDenominations(allInputCoinEffectiveValues);

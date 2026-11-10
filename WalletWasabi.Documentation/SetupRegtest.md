@@ -2,7 +2,7 @@
 
 ## What is RegTest?
 
-RegTest is a local network in which users can generate blocks and coins for testing. Running Indexer and Coordinator in RegTest allows you to emulate network events and observe how the Wasabi react on that. You don't need to download the blockchain.
+RegTest is a local network in which users can generate blocks and coins for testing. Running Wasabi in RegTest allows you to emulate network events and observe how Wasabi reacts. You don't need to download the blockchain.
 
 ## Bitcoin Core Setup
 
@@ -74,29 +74,6 @@ You can force rebuilding the txindex with the `-reindex` command line argument. 
 # Wasabi Setup
 
 Here you will have to build from source, follow [these instructions here](https://github.com/WalletWasabi/WalletWasabi#build-from-source-code).
-
-## Indexer Setup
-
-1. Go to `WalletWasabi\WalletWasabi.Backend` folder.
-2. Open the command line and enter:
-`dotnet run`
-3. You will get some errors, but the data directory will be created.
-4. Stop the application if it is still running with CTRL-C.
-5. Go to the Indexer folder:
-    ```
-    Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
-    macOS: "/Users/{your username}/.walletwasabi/backend"
-    Linux: "/home/{your username}/.walletwasabi/backend"
-    ```
-6. Edit these lines in `Config.json`:
-    ```
-      "Network": "RegTest",
-      "BitcoinRpcConnectionString": "rpcuser:rpcpassword",
-    ```
-7. Go to WalletWasabi.Backend folder.
-8. Open the command line and enter:
-`dotnet run`
-9. Wasabi.Backend is now running in RegTest network.
 
 ## Coordinator Setup
 
