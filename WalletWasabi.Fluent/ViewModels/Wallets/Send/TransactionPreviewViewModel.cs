@@ -421,7 +421,6 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 		else if (Transaction is { })
 		{
-			// The fee rate estimations may have changed while a child dialog (fee chart, coin control) covered this screen.
 			UpdateConfirmationTimes();
 		}
 	}
