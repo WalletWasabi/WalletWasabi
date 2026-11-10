@@ -82,7 +82,7 @@ public class CoinJoinClientTests
 			keyChain,
 			outputProvider: null!,
 			roundStateProvider,
-			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0),
+			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0).SelectCoinsForRound,
 			new CoinJoinConfiguration(roundParameters.CoordinationIdentifier, 150m, AbsoluteMinInputCount: 21, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());
@@ -291,7 +291,7 @@ public class CoinJoinClientTests
 			keyChain,
 			outputProvider: null!,
 			roundStateProvider,
-			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0),
+			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0).SelectCoinsForRound,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150m, AbsoluteMinInputCount: 2, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());

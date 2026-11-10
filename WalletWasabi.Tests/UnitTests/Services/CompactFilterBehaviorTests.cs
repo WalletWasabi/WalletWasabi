@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -8,7 +7,10 @@ using WalletWasabi.Services;
 using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Services;
 
-public class CompactFilterBlockHashReproTests
+/// <summary>
+/// Tests for <see cref="CompactFilterBehavior"/>.
+/// </summary>
+public class CompactFilterBehaviorTests
 {
 	[Fact]
 	public void ValidFilterBytesAreAcceptedWithAnAttackerChosenBlockHash()

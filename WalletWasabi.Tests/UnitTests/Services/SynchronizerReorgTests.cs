@@ -73,7 +73,7 @@ public class SynchronizerReorgTests(ITestOutputHelper output)
 		// Store dropped the orphan. Next header request must re-fetch that height, not skip it.
 		fork.FiltersOnOrphan.RemoveTip();
 
-		var assigned = fork.SyncState.TryAssignHeaderRange(Network.RegTest, out var next);
+		var assigned = fork.SyncState.TryAssignHeaderRange(out var next);
 		Proof($"next request start={next?.StartHeight} stop={next?.StopHash.ToString()[..8]}…  want height={fork.Height} winner={fork.Winner.ToString()[..8]}…");
 
 		Assert.True(assigned);

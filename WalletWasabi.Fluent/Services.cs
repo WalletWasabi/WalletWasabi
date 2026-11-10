@@ -11,11 +11,13 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tor;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
@@ -27,7 +29,7 @@ public class Services : IServices
 
 	private readonly Global _global;
 	private readonly TorSettings _torSettings;
-	private readonly FilterStore _filterStore;
+	private readonly FilterManager _filterManager;
 	private readonly FilterHeaderChain _filterHeaders;
 	private readonly AllTransactionStore _transactionStore;
 	private readonly IHttpClientFactory _httpClientFactory;
@@ -40,7 +42,7 @@ public class Services : IServices
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
-		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
+		Guard.NotNull(nameof(global.FilterManager), global.FilterManager);
 		Guard.NotNull(nameof(global.FilterHeaders), global.FilterHeaders);
 		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
 		Guard.NotNull(nameof(global.ExternalSourcesHttpClientFactory), global.ExternalSourcesHttpClientFactory);
@@ -53,7 +55,7 @@ public class Services : IServices
 
 		_global = global;
 		_torSettings = global.TorSettings;
-		_filterStore = global.FilterStore;
+		_filterManager = global.FilterManager;
 		_filterHeaders = global.FilterHeaders;
 		_transactionStore = global.TransactionStore;
 		_httpClientFactory = global.ExternalSourcesHttpClientFactory;
@@ -88,7 +90,7 @@ public class Services : IServices
 	public int GetPeerCount() => _global.GetPeerCount();
 
 	// Filters info
-	public uint? GetMinimumBlockHeight() => _filterStore.GetMinimumBlockHeight();
+	public uint? GetMinimumBlockHeight() => _filterManager.GetMinimumBlockHeight();
 
 	// Transactions info
 	public IEnumerable<LabelsArray> GetTransactionLabels() => _transactionStore.GetLabels();
@@ -112,7 +114,8 @@ public class Services : IServices
 	public TorMode GetUseTor() => Config.UseTor;
 
 	// ExchangeRate info
-	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
+	public ExchangeRate GetExchangeRate() =>
+		_status.ExchangeRates.ForCurrency(UiConfig.FiatCurrency) ?? new ExchangeRate(UiConfig.FiatCurrency, 0m);
 
 	// UI Config
 	public bool GetHideOnClose() => UiConfig.HideOnClose;

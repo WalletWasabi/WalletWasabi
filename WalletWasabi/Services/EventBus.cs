@@ -1,12 +1,13 @@
 using System.Net;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Tor.StatusChecker;
 using NBitcoin.Protocol;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -108,7 +109,6 @@ public class EventBus
 }
 
 
-public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record NetworkTipHeightChanged(uint Height);
 public record ClientTipHeightChanged(uint Height);
@@ -141,3 +141,4 @@ public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
 public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);
+public record CoinjoinCostsAdded(string WalletName, uint256 TransactionId, CoinjoinCosts Costs);

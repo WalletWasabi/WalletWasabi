@@ -19,7 +19,7 @@
       <PreviewItem Label="Unconfirmed balance"
                    CopyableContent="{Binding Model.UnconfirmedBalance.Btc}">
         <PrivacyContentControl>
-          <AmountControl Classes="WithUsd" Amount="{Binding Model.UnconfirmedBalance}" />
+          <AmountControl Classes="WithFiat" Amount="{Binding Model.UnconfirmedBalance}" />
         </PrivacyContentControl>
       </PreviewItem>
       <Separator />

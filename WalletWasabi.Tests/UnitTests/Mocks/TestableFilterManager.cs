@@ -1,0 +1,13 @@
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Storages;
+
+namespace WalletWasabi.Tests.UnitTests.Mocks;
+
+class TestableFilterManager : IFilterManager
+{
+	public required Func<uint, int, CancellationToken, Task<FilterModel[]>> OnFetchBatchAsync { get; init; }
+	public Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken) =>
+		OnFetchBatchAsync.Invoke(fromHeight, batchSize, cancellationToken);
+}

@@ -1,5 +1,3 @@
-using NBitcoin;
-
 namespace WalletWasabi.Helpers;
 
 public static class Constants
@@ -131,6 +129,4 @@ public static class Constants
 		432, // Three Days
 		1008, // Seven Days
 	};
-
-	public static readonly string DefaultFilterType = "legacy";
 }
