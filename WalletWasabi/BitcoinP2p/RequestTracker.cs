@@ -9,19 +9,13 @@ public class RequestTracker<TProcessedResponse>(uint initialHeight = 0) where TP
 	private readonly SortedDictionary<uint, TProcessedResponse> _pendingResponses = [];
 	private readonly SortedDictionary<uint, uint> _activeAssignments = [];
 
-	/// <summary>
-	/// The last height that was processed/emitted.
-	/// </summary>
+	/// <summary>The last height that was processed/emitted.</summary>
 	public uint LastHeight { get; private set; } = initialHeight;
 
-	/// <summary>
-	/// Number of pages currently being fetched.
-	/// </summary>
+	/// <summary>Number of pages currently being fetched.</summary>
 	public int ActiveCount => _activeAssignments.Count;
 
-	/// <summary>
-	/// Number of completed pages awaiting processing.
-	/// </summary>
+	/// <summary>Number of completed pages awaiting processing.</summary>
 	public int PendingCount => _pendingResponses.Count;
 
 	/// <summary>
@@ -81,9 +75,7 @@ public class RequestTracker<TProcessedResponse>(uint initialHeight = 0) where TP
 		return _pendingResponses.Keys.OrderBy(k => k);
 	}
 
-	/// <summary>
-	/// Checks if there are any pending pages.
-	/// </summary>
+	/// <summary>Checks if there are any pending pages.</summary>
 	public bool HasPendingRanges => _pendingResponses.Count > 0;
 
 	/// <summary>
