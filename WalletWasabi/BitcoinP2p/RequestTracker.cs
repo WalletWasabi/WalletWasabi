@@ -4,27 +4,18 @@ using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint initialHeight = 0) where TProcessedResponse : Response
+public class RequestTracker<TProcessedResponse>(uint initialHeight = 0) where TProcessedResponse : Response
 {
-	private readonly record struct ActiveAssignment(uint EndHeight, DateTime AssignedAt);
-
-	private readonly TimeProvider _timeProvider = timeProvider;
 	private readonly SortedDictionary<uint, TProcessedResponse> _pendingResponses = [];
-	private readonly SortedDictionary<uint, ActiveAssignment> _activeAssignments = [];
+	private readonly SortedDictionary<uint, uint> _activeAssignments = [];
 
-	/// <summary>
-	/// The last height that was processed/emitted.
-	/// </summary>
+	/// <summary>The last height that was processed/emitted.</summary>
 	public uint LastHeight { get; private set; } = initialHeight;
 
-	/// <summary>
-	/// Number of pages currently being fetched.
-	/// </summary>
+	/// <summary>Number of pages currently being fetched.</summary>
 	public int ActiveCount => _activeAssignments.Count;
 
-	/// <summary>
-	/// Number of completed pages awaiting processing.
-	/// </summary>
+	/// <summary>Number of completed pages awaiting processing.</summary>
 	public int PendingCount => _pendingResponses.Count;
 
 	/// <summary>
@@ -32,7 +23,7 @@ public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint 
 	/// </summary>
 	public void AddActiveAssignment(uint startHeight, uint endHeight)
 	{
-		_activeAssignments.Add(startHeight, new ActiveAssignment(endHeight, _timeProvider.GetUtcNow().UtcDateTime));
+		_activeAssignments.Add(startHeight, endHeight);
 	}
 
 	/// <summary>
@@ -79,14 +70,10 @@ public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint 
 	/// <summary>
 	/// Gets all pending range heights (for logging).
 	/// </summary>
-	public IEnumerable<uint> GetPendingHeights()
-	{
-		return _pendingResponses.Keys.OrderBy(k => k);
-	}
+	public IReadOnlyList<uint> GetPendingHeights() =>
+		_pendingResponses.Keys.OrderBy(k => k).ToArray();
 
-	/// <summary>
-	/// Checks if there are any pending pages.
-	/// </summary>
+	/// <summary>Checks if there are any pending pages.</summary>
 	public bool HasPendingRanges => _pendingResponses.Count > 0;
 
 	/// <summary>
@@ -108,9 +95,9 @@ public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint 
 		// Skip over any ranges that are already assigned, pending, or in the additional skip set
 		while (true)
 		{
-			if (_activeAssignments.TryGetValue(nextStart, out var active))
+			if (_activeAssignments.TryGetValue(nextStart, out var activeEndHeight))
 			{
-				nextStart = active.EndHeight + 1;
+				nextStart = activeEndHeight + 1;
 				rangeCount++;
 			}
 			else if (_pendingResponses.TryGetValue(nextStart, out var pending))
@@ -137,21 +124,6 @@ public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint 
 
 		startHeight = nextStart;
 		return true;
-	}
-
-	/// <summary>
-	/// Finds the oldest active assignment that is older than the specified timeout.
-	/// Returns null if no stale assignments found.
-	/// </summary>
-	public uint? GetOldestStaleAssignment(TimeSpan timeout)
-	{
-		var cutoffTime = _timeProvider.GetUtcNow().UtcDateTime - timeout;
-
-		return _activeAssignments
-			.Where(kvp => kvp.Value.AssignedAt < cutoffTime)
-			.OrderBy(kvp => kvp.Value.AssignedAt)
-			.Select(kvp => (uint?) kvp.Key)
-			.FirstOrDefault();
 	}
 
 	/// <summary>

@@ -48,7 +48,7 @@
                      Label="Amount" HorizontalContentAlignment="Stretch"
                      CopyableContent="{Binding Amount.Btc}">
         <StackPanel Orientation="Horizontal">
-          <AmountControl Classes="WithUsd" Amount="{Binding Amount}" />
+          <AmountControl Classes="WithFiat" Amount="{Binding Amount}" />
           <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource NeutralDiffConverter}}" IsVisible="{Binding !!AmountDiff}" VerticalAlignment="Bottom" Text="{Binding AmountDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
         </StackPanel>
 
@@ -96,7 +96,7 @@
           <DataTemplate x:DataType="send:RecipientSummaryViewModel">
             <StackPanel Margin="0,4" Spacing="2">
               <DockPanel>
-                <AmountControl DockPanel.Dock="Right" Classes="WithUsd" Amount="{Binding Amount}" Margin="10,0,0,0" />
+                <AmountControl DockPanel.Dock="Right" Classes="WithFiat" Amount="{Binding Amount}" Margin="10,0,0,0" />
                 <TextBlock Classes="monoSpaced" Text="{Binding AddressText}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding AddressText}" />
               </DockPanel>
               <LabelsItemsPresenter ItemsSource="{Binding Recipient}"
@@ -149,7 +149,7 @@
                        Label="Fee"
                        CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
           <StackPanel Orientation="Horizontal">
-            <AmountControl Classes="WithUsd" Amount="{Binding Fee}" />
+            <AmountControl Classes="WithFiat" Amount="{Binding Fee}" />
             <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
           </StackPanel>
 

@@ -1,12 +1,9 @@
 using System.Globalization;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -92,9 +89,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (maxCoinJoinMiningFeeRateDecimal < 1)
+		if (maxCoinJoinMiningFeeRateDecimal < Constants.MinRelayFeeRate.SatoshiPerByte)
 		{
-			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
+			errors.Add(ErrorSeverity.Error, $"Mining fee rate must be at least {Constants.MinRelayFeeRate.SatoshiPerByte} sat/vB");
 			return;
 		}
 
