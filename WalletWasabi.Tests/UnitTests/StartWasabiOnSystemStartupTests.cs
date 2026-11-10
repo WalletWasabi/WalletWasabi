@@ -3,10 +3,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using WalletWasabi.Fluent.Configuration;
 
 namespace WalletWasabi.Tests.UnitTests;
 

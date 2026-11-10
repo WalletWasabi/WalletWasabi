@@ -6,6 +6,9 @@ namespace WalletWasabi.Services.NodesManagement;
 
 public sealed record PeerInfo
 {
+	/// <seealso cref="ComputeScore"/>
+	public const double MaxScore = 55;
+
 	[SetsRequiredMembers]
 	public PeerInfo(EndPoint endpoint, string userAgent, uint protocolVersion, NodeServices services, int startHeight, TimeSpan connectionTime, DateTimeOffset discoveredAt, DateTimeOffset lastSeen)
 	{
@@ -28,13 +31,10 @@ public sealed record PeerInfo
 	public required TimeSpan ConnectionTime { get; init; }
 	public required DateTimeOffset DiscoveredAt { get; init; }
 	public DateTimeOffset LastSeen { get; init; }
-	public int SuccessfulProbes { get; init; } = 1;
-	public int FailedProbes { get; init; }
 
 	public bool SupportsCompactFilters => Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS);
 	public bool SupportsFullBlocks => Services.HasFlag(NodeServices.Network);
 	public bool SupportsWitness => Services.HasFlag(NodeServices.NODE_WITNESS);
-	public bool SupportsBlocksLimited => Services.HasFlag(NodeServices.NODE_NETWORK_LIMITED);
 
 	public double Score { get; init; }
 

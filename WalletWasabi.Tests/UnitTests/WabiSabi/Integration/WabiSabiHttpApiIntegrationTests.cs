@@ -243,20 +243,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
 		if (finishedTask == coinjoinResultTask)
 		{
-			try
+			var coinjoinResult = await coinjoinResultTask;
+			if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
 			{
-				var coinjoinResult = await coinjoinResultTask;
-				if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
-				{
-					var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
-					var common = outputScriptCandidates.Intersect(scripts);
-					Assert.Empty(common);
-					throw new Exception("Coinjoin should have never finished successfully.");
-				}
-			}
-			catch (InvalidOperationException e) when(e.Message.StartsWith("No valid output denominations found"))
-			{
-				// ignore. There is a rare case for this
+				var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
+				var common = outputScriptCandidates.Intersect(scripts);
+				Assert.Empty(common);
+				throw new Exception("Coinjoin should have never finished successfully.");
 			}
 		}
 		else
@@ -354,16 +347,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var participant2CoinjoinTask = coinJoinClient2.StartCoinJoinAsync(() => participant2Coins, cts.Token);
 		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
 
-		try
-		{
-			await Task.WhenAll(participant1CoinjoinTask, participant2CoinjoinTask, participant3CoinjoinTask);
-		}
-		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found.")
-		                                         || e.Message.Contains("Not enough coins registered to participate in the coinjoin."))
-		{
-			// See CoinJoinWithBlameRoundTestAsync.
-			return;
-		}
+		await Task.WhenAll(participant1CoinjoinTask, participant2CoinjoinTask, participant3CoinjoinTask);
 
 		Assert.IsType<SuccessfulCoinJoinResult>(await participant1CoinjoinTask);
 		var participant2Result = Assert.IsType<SuccessfulCoinJoinResult>(await participant2CoinjoinTask);
@@ -480,18 +464,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, UnrestrictedRound.Instance, roundState, cts.Token);
 		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
 
-		try
-		{
-			await Task.WhenAll(new Task[] { participant2CoinjoinTaskBad, participant1CoinjoinTask, participant3CoinjoinTask });
-		}
-		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found.")
-		                                         || e.Message.Contains("Not enough coins registered to participate in the coinjoin."))
-		{
-			// This happens because the `GetFilteredDenominations` removes all coins sometimes,
-			// or the smallest available denomination exceeds a participant's input sum in the blame round.
-			// With fewer participants after blame, denomination selection becomes more constrained.
-			return;
-		}
+		await Task.WhenAll(new Task[] { participant2CoinjoinTaskBad, participant1CoinjoinTask, participant3CoinjoinTask });
 
 		var participant1Result = await participant1CoinjoinTask;
 		var participant2ResultBad = await participant2CoinjoinTaskBad;

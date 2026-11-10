@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels;

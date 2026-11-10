@@ -16,15 +16,15 @@
       </ControlTemplate>
     </Setter>
 
-    <!-- Same as default but with USD value if available -->
-    <Style Selector="^.WithUsd">
+    <!-- Same as default but with fiat value if available -->
+    <Style Selector="^.WithFiat">
       <Setter Property="Template">
         <ControlTemplate>
           <TextBlock FontFamily="{StaticResource AmountsFont}" DataContext="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}}" TextWrapping="Wrap"
                      IsVisible="{Binding Path=Amount, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
             <TextBlock.Inlines>
               <Run FontWeight="Regular" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcIrrelevantOnly}}" Foreground="#A0B8B8B8"/><Run FontWeight="Bold" Text="{Binding Path=Btc, Converter={x:Static converters:MoneyConverters.ToBtcRelevantOnly}}" />
-              <Run FontWeight="Bold" Text="{Binding Path=Usd^, Converter={x:Static converters:MoneyConverters.ToUsdApproxBetweenParens}}" />
+              <Run FontWeight="Bold" Text="{Binding Path=Fiat^, Converter={x:Static converters:MoneyConverters.ToFiatApproxBetweenParens}}" />
             </TextBlock.Inlines>
           </TextBlock>
         </ControlTemplate>
