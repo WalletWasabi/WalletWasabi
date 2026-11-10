@@ -358,14 +358,14 @@ public class CompactFilterBehavior(
 
 	private void TrySyncFiltersNoLock(Node node)
 	{
-		if (!synchronizationState.TryAssignFilterRange(out var filterAssignment))
+		if (!synchronizationState.TryAssignFilterRange(out var filterAssignment, out var activeCount, out var pendingCount))
 		{
 			return;
 		}
 
 		_assignment = new Assignment(IsHeaderRequest: false, filterAssignment, DateTime.UtcNow);
 		_lastFilterProgressAt = _assignment.AssignedAt;
-		Logger.LogDebug($"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
+		Logger.LogDebug($"Assigned compact filter range {filterAssignment} (active: {activeCount}, pending: {pendingCount}) to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
 

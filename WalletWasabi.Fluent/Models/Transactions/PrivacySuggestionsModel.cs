@@ -12,11 +12,12 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
@@ -180,7 +181,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _services.GetUsdExchangeRate();
+		var exchangeRate = _services.GetExchangeRate();
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -192,8 +193,8 @@ public partial class PrivacySuggestionsModel
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var (differenceBtc, differenceFiat) = GetDifference(parameters.TransactionInfo, newTransaction, usdExchangeRate);
-				var differenceText = GetDifferenceText(differenceBtc);
+				var (differenceBtc, differenceFiat) = GetDifference(parameters.TransactionInfo, newTransaction, exchangeRate);
+				var differenceText = GetBtcDifferenceText(differenceBtc);
 				var differenceAmountText = GetDifferenceAmountText(differenceBtc, differenceFiat);
 				fullPrivacySuggestion = new FullPrivacySuggestion(newTransaction, amountDifference, differenceText, differenceAmountText, allPrivateCoin, isChangeless);
 				yield return fullPrivacySuggestion;
@@ -216,8 +217,8 @@ public partial class PrivacySuggestionsModel
 
 			if (amountDifferencePercentage <= MaximumDifferenceTolerance && (canModifyTransactionAmount || amountDifference == 0m))
 			{
-				var (btcDifference, fiatDifference) = GetDifference(parameters.TransactionInfo, newTransaction, usdExchangeRate);
-				var differenceText = GetDifferenceText(btcDifference);
+				var (btcDifference, fiatDifference) = GetDifference(parameters.TransactionInfo, newTransaction, exchangeRate);
+				var differenceText = GetBtcDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
 				yield return new BetterPrivacySuggestion(newTransaction, differenceText, differenceAmountText, coins, isChangeless);
 			}
@@ -290,7 +291,7 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _services.GetUsdExchangeRate();
+		var exchangeRate = _services.GetExchangeRate();
 
 		// Only allow to create 2 more inputs with BnB.
 		int maxInputCount = transaction.SpentCoins.Count() + 2;
@@ -310,7 +311,7 @@ public partial class PrivacySuggestionsModel
 			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
 		}
 
-		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
+		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, exchangeRate, linkedCts.Token).ConfigureAwait(false);
 
 		await foreach (var suggestion in suggestions)
 		{
@@ -352,7 +353,7 @@ public partial class PrivacySuggestionsModel
 		TransactionInfo transactionInfo,
 		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
-		decimal usdExchangeRate,
+		ExchangeRate exchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selectionsTask =
@@ -383,13 +384,13 @@ public partial class PrivacySuggestionsModel
 
 			if (transaction is not null)
 			{
-				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, usdExchangeRate);
-				var differenceText = GetDifferenceText(btcDifference);
+				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, exchangeRate);
+				var differenceText = GetBtcDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
 				var isMore = btcDifference > 0;
 				var isLess = btcDifference < 0;
 
-				yield return new ChangeAvoidanceSuggestion(transaction, fiatDifference, differenceText, differenceAmountText, isMore, isLess);
+				yield return new ChangeAvoidanceSuggestion(transaction, fiatDifference.Value, differenceText, differenceAmountText, isMore, isLess);
 			}
 		}
 	}
@@ -437,20 +438,20 @@ public partial class PrivacySuggestionsModel
 		return true;
 	}
 
-	private (decimal BtcDifference, decimal FiatDifference) GetDifference(TransactionInfo transactionInfo, BuildTransactionResult transaction, decimal usdExchangeRate)
+	private (decimal BtcDifference, FiatAmount FiatDifference) GetDifference(TransactionInfo transactionInfo, BuildTransactionResult transaction, ExchangeRate exchangeRate)
 	{
 		var originalAmount = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 		var totalAmount = transaction.CalculateDestinationAmount(transactionInfo.Destination);
 		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
 		var btcDifference = total - originalAmount;
-		var fiatTotal = total * usdExchangeRate;
-		var fiatOriginal = originalAmount * usdExchangeRate;
-		var fiatDifference = fiatTotal - fiatOriginal;
+		var fiatTotal = total * exchangeRate.Rate;
+		var fiatOriginal = originalAmount * exchangeRate.Rate;
+		var fiatDifference = new FiatAmount(fiatTotal - fiatOriginal, exchangeRate.Ticker);
 
 		return (btcDifference, fiatDifference);
 	}
 
-	private string GetDifferenceText(decimal btcDifference)
+	private string GetBtcDifferenceText(decimal btcDifference)
 	{
 		return btcDifference switch
 		{
@@ -460,13 +461,15 @@ public partial class PrivacySuggestionsModel
 		};
 	}
 
-	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
+	private string GetDifferenceAmountText(decimal btcDifference, FiatAmount fiatDifference)
 	{
-		var absFiatDifference = Math.Abs(fiatDifference);
-		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC" +
-			(absFiatDifference > 0
-				? $" {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}"
-				: "");
+		var btcDifferenceStr = Math.Abs(btcDifference).FormattedBtcFixedFractional();
+		var absFiatDifference = fiatDifference.Abs();
+		var approxFiatValueStr = absFiatDifference.Value > 0
+			? $" {absFiatDifference.ToFiatAproxBetweenParens()}"
+			: "";
+
+		return $"{btcDifferenceStr} BTC{approxFiatValueStr}";
 	}
 
 	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);

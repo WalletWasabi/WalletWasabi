@@ -11,11 +11,13 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Storages;
 using WalletWasabi.Tor;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent;
@@ -112,7 +114,8 @@ public class Services : IServices
 	public TorMode GetUseTor() => Config.UseTor;
 
 	// ExchangeRate info
-	public decimal GetUsdExchangeRate() => _status.UsdExchangeRate;
+	public ExchangeRate GetExchangeRate() =>
+		_status.ExchangeRates.ForCurrency(UiConfig.FiatCurrency) ?? new ExchangeRate(UiConfig.FiatCurrency, 0m);
 
 	// UI Config
 	public bool GetHideOnClose() => UiConfig.HideOnClose;

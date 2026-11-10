@@ -109,7 +109,6 @@ public class EventBus
 }
 
 
-public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record NetworkTipHeightChanged(uint Height);
 public record ClientTipHeightChanged(uint Height);

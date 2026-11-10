@@ -22,6 +22,7 @@ using WalletWasabi.Services;
 using ReactiveUI.Avalonia;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Configuration;
 
 namespace WalletWasabi.Fluent.Desktop;
 

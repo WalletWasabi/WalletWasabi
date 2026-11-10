@@ -102,7 +102,7 @@ public class CompactFilterBehaviorTests
 		eventBus.Publish(new Tick(requestedAt + TimeSpan.FromSeconds(70)));
 		await WaitForDisconnectAsync(node);
 		Assert.NotEqual(NodeState.HandShaked, node.State);
-		Assert.True(synchronizationState.TryAssignFilterRange(out var releasedRange));
+		Assert.True(synchronizationState.TryAssignFilterRange(out var releasedRange, out _, out _));
 		Assert.Equal(1u, releasedRange.StartHeight);
 	}
 
