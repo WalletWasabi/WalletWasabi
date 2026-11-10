@@ -103,7 +103,7 @@ public class CoordinatorOutputTests
 		var config = new WabiSabiConfig { CoordinatorScriptType = ScriptPubKeyType.TaprootBIP86 };
 		var json = JsonEncoder.ToReadableString(config, Encode.WabiSabiConfig);
 
-		var loaded = JsonDecoder.FromString(json, Decode.WabiSabiConfig(config.FilePath))!;
+		var loaded = JsonDecoder.FromString(json, Decode.WabiSabiConfig("WabiSabiConfig.json"))!;
 		Assert.Equal(ScriptPubKeyType.TaprootBIP86, loaded.CoordinatorScriptType);
 	}
 
@@ -114,7 +114,7 @@ public class CoordinatorOutputTests
 		var json = Encode.WabiSabiConfig(config).AsObject();
 		Assert.True(json.Remove("CoordinatorScriptType"));
 
-		var loaded = JsonDecoder.FromString(json.ToJsonString(), Decode.WabiSabiConfig(config.FilePath))!;
+		var loaded = JsonDecoder.FromString(json.ToJsonString(), Decode.WabiSabiConfig("WabiSabiConfig.json"))!;
 		Assert.Equal(ScriptPubKeyType.Segwit, loaded.CoordinatorScriptType);
 	}
 

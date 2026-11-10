@@ -22,7 +22,7 @@
         </Viewbox>
         <StackPanel Spacing="10" HorizontalAlignment="Center">
           <TextBlock Text="Speeding up this transaction will cost you" />
-          <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center"  Amount="{Binding Fee}" />
+          <AmountControl Classes="WithFiat h5" HorizontalAlignment="Center"  Amount="{Binding Fee}" />
         </StackPanel>
       </DockPanel>
 
@@ -38,7 +38,7 @@
         <StackPanel Spacing="10" HorizontalAlignment="Center">
           <StackPanel Spacing="10">
             <TextBlock Text="Speeding up this transaction will deduct from the recipient's amount" />
-            <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
+            <AmountControl Classes="WithFiat h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
           </StackPanel>
         </StackPanel>
       </DockPanel>

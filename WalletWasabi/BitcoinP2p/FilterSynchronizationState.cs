@@ -9,8 +9,6 @@ namespace WalletWasabi.BitcoinP2p;
 
 public class FilterSynchronizationState
 {
-	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
-	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
 	private const int HeadersPerRequest = 2_000;
 	private const int FiltersPerRequest = 500;
 	private const int MaxLookaheadRanges = 25;
@@ -19,7 +17,6 @@ public class FilterSynchronizationState
 	private readonly ConcurrentChain _blockHeaderChain;
 	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly EventBus? _eventBus;
-	private readonly TimeProvider _timeProvider;
 
 	private readonly RequestTracker<HeaderResponse> _headerTracker;
 	private readonly RequestTracker<FilterResponse> _filterTracker;
@@ -29,33 +26,24 @@ public class FilterSynchronizationState
 	private readonly SortedDictionary<uint, UnvalidatedHeaderResponse> _bufferedHeaderResponses = [];
 
 	public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
-		EventBus? eventBus = null, TimeProvider? timeProvider = null)
+		EventBus? eventBus = null)
 	{
 		_blockHeaderChain = blockHeaderChain;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		_timeProvider = timeProvider ?? TimeProvider.System;
 
 		var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
-		_headerTracker = new RequestTracker<HeaderResponse>(_timeProvider, initialHeaderHeight);
+		_headerTracker = new RequestTracker<HeaderResponse>(initialHeaderHeight);
 		_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
-		_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
+		_filterTracker = new RequestTracker<FilterResponse>(tipHeight);
 	}
 
-	internal bool TryAssignHeaderRange(Network network, [NotNullWhen(true)] out RangeRequest? assignment)
+	internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
 	{
 		assignment = null;
 		lock (_lock)
 		{
 			RewindTrackersToFilterHeaderTipNoLock();
-
-			// Check for and release any stale header assignments
-			if (_headerTracker.GetOldestStaleAssignment(HeaderAssignmentTimeout) is { } staleHeaderHeight)
-			{
-				_headerTracker.RemoveActiveAssignment(staleHeaderHeight);
-				Logger.LogWarning(
-					$"Auto-released stale filter header assignment at height {staleHeaderHeight}");
-			}
 
 			var chainTip = _blockHeaderChain.Tip;
 
@@ -63,8 +51,7 @@ public class FilterSynchronizationState
 			// Also skip ranges that are already buffered awaiting validation
 			if (!_headerTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, _bufferedHeaderResponses, out var nextRangeStart))
 			{
-				Logger.LogTrace(
-					$"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
+				Logger.LogTrace($"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
 				return false;
 			}
 
@@ -310,19 +297,16 @@ public class FilterSynchronizationState
 		return filterResponse.Filters;
 	}
 
-	internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment)
+	internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment, out int? activeCount, out int? pendingCount)
 	{
 		assignment = null;
+
 		lock (_lock)
 		{
-			RewindTrackersToFilterHeaderTipNoLock();
+			activeCount = _filterTracker.ActiveCount;
+			pendingCount = _filterTracker.PendingCount;
 
-			// Check for and release any stale filter assignments
-			if (_filterTracker.GetOldestStaleAssignment(FilterAssignmentTimeout) is { } staleFilterHeight)
-			{
-				_filterTracker.RemoveActiveAssignment(staleFilterHeight);
-				Logger.LogWarning($"Auto-released stale filter assignment at height {staleFilterHeight}");
-			}
+			RewindTrackersToFilterHeaderTipNoLock();
 
 			// Check if filter headers are synced ahead
 			var filterHeadersTip = _filterHeaderChain.Tip;
@@ -335,16 +319,14 @@ public class FilterSynchronizationState
 			// Find the next range to assign (respecting max lookahead limit)
 			if (!_filterTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
 			{
-				Logger.LogTrace(
-					$"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
+				Logger.LogTrace($"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
 				return false;
 			}
 
 			// Nothing to fetch if we're caught up with filter headers
 			if (nextRangeStart > filterHeadersTip.Height)
 			{
-				Logger.LogTrace(
-					$"caught up (next range start {nextRangeStart} > filter headers tip {filterHeadersTip.Height})");
+				Logger.LogTrace($"caught up (next range start {nextRangeStart} > filter headers tip {filterHeadersTip.Height})");
 				return false;
 			}
 
@@ -357,10 +339,10 @@ public class FilterSynchronizationState
 			// Track this assignment so other nodes don't get the same page
 			_filterTracker.AddActiveAssignment(nextRangeStart, stopHeight);
 
-			Logger.LogDebug(
-				$"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
-
 			assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
+			activeCount = _filterTracker.ActiveCount;
+			pendingCount = _filterTracker.PendingCount;
+
 			return true;
 		}
 	}
@@ -500,13 +482,11 @@ public class FilterSynchronizationState
 				if (_filterTracker.HasPendingRanges)
 				{
 					var pendingHeights = string.Join(", ", _filterTracker.GetPendingHeights());
-					Logger.LogTrace(
-						$"Next expected filter range {nextExpectedStart} not available yet. Pending ranges at heights: {pendingHeights}");
+					Logger.LogTrace($"Next expected filter range {nextExpectedStart} not available yet. Pending ranges at heights: {pendingHeights}");
 				}
 				else
 				{
-					Logger.LogTrace(
-						$"Next expected filter range {nextExpectedStart} not available yet. No pending ranges.");
+					Logger.LogTrace($"Next expected filter range {nextExpectedStart} not available yet. No pending ranges.");
 				}
 
 				return;
@@ -518,8 +498,7 @@ public class FilterSynchronizationState
 			lastQueuedHeight = pendingRange.EndHeight;
 			_filterTracker.SetLastHeight(lastQueuedHeight);
 
-			Logger.LogDebug(
-				$"Filter range {pendingRange.StartHeight} queued for consumption ({pendingRange.Filters.Length} filters)");
+			Logger.LogDebug($"Filter range {pendingRange.StartHeight} queued for consumption ({pendingRange.Filters.Length} filters)");
 		}
 	}
 

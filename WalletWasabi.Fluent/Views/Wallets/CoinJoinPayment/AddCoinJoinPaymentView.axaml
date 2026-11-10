@@ -95,9 +95,9 @@
         <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
         <DualCurrencyEntryBox x:Name="amountTb"
                               AmountBtc="{Binding AmountBtc}"
-                              ConversionRate="{Binding ExchangeRate}"
+                              ConversionRate="{Binding ExchangeRate.Rate}"
                               CurrencyCode="BTC"
-                              ConversionCurrencyCode="USD"
+                              ConversionCurrencyCode="{Binding ExchangeRate.Ticker}"
                               IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
                               ValidatePasteBalance="False" />
       </DockPanel>

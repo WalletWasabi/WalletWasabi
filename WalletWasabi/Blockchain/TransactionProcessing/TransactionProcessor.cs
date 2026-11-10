@@ -91,6 +91,14 @@ public class TransactionProcessor(
 
 		uint256 txId = tx.GetHash();
 
+		// Unconfirmed transactions come from untrusted peers, so never let one spend our coins without our signatures.
+		// Context: https://github.com/spesmilo/electrum/security/advisories/GHSA-6jp4-8v48-cc5v
+		var myInputs = Coins.GetMyInputs(tx);
+		if (!tx.Confirmed && !AreSignaturesValid(tx.Transaction, myInputs))
+		{
+			return result;
+		}
+
 		// If we already have the transaction, then let's work on that.
 		if (mempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
 		{
@@ -186,8 +194,6 @@ public class TransactionProcessor(
 			}
 		}
 
-		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
-
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
@@ -282,6 +288,22 @@ public class TransactionProcessor(
 				ownKey.SetAnonymitySet(representative.AnonymitySet);
 			}
 		}
+	}
+
+	private static bool AreSignaturesValid(Transaction tx, IReadOnlyList<SmartCoin> myInputs)
+	{
+		var myCoins = myInputs.DistinctBy(x => x.Outpoint).ToDictionary(x => x.Outpoint, x => x.Coin);
+		var allInputsAreMine = tx.Inputs.All(x => myCoins.ContainsKey(x.PrevOut));
+		var precomputedData = allInputsAreMine
+			? tx.PrecomputeTransactionData(tx.Inputs.Select(x => myCoins[x.PrevOut].TxOut).ToArray())
+			: tx.PrecomputeTransactionData();
+
+		// Taproot signatures commit to every spent output, so we can only verify them when all the inputs are ours.
+		// We never RBF a transaction with foreign inputs, so skipping those cannot trick us into signing a payment.
+		return tx.Inputs.AsIndexedInputs().All(input =>
+			!myCoins.TryGetValue(input.PrevOut, out var coin)
+			|| (!allInputsAreMine && coin.ScriptPubKey.IsScriptType(ScriptType.Taproot))
+			|| input.VerifyScript(coin, ScriptVerify.Standard, precomputedData, out _));
 	}
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>

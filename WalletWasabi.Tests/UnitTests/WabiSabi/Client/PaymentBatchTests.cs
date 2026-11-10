@@ -28,7 +28,7 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
 		// Add a payment
@@ -64,7 +64,7 @@ public class PaymentBatchTests
 	public void UncertainPaymentsAreResolvedWhenMatchingTransactionArrives()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
 		// Create the signed transaction first (so we know the txId)
@@ -100,7 +100,7 @@ public class PaymentBatchTests
 	public void UncertainPaymentsNotResolvedWhenTransactionIdDoesNotMatch()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
 		// Create the signed transaction and store its txId
@@ -133,7 +133,7 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 3);
 		var inputs = GetInputs(tx);
@@ -163,7 +163,7 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx1 = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
 		var tx2 = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
@@ -194,7 +194,7 @@ public class PaymentBatchTests
 		var coins = new CoinsRegistry();
 		var paymentBatch = new PaymentBatch(coins);
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var ourCoin = CreateOurCoin(coins);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 1);
@@ -207,7 +207,7 @@ public class PaymentBatchTests
 
 		var spenderTx = Transaction.Create(Network.Main);
 		spenderTx.Inputs.Add(ourCoin.Outpoint);
-		spenderTx.Outputs.Add(new TxOut(Money.Coins(0.5m), GetNewSegwitAddress().ScriptPubKey));
+		spenderTx.Outputs.Add(new TxOut(Money.Coins(0.5m), BitcoinFactory.CreateSegwitAddress().ScriptPubKey));
 		var spender = new SmartTransaction(spenderTx, Height.Mempool);
 		coins.Spend(ourCoin, spender);
 
@@ -231,7 +231,7 @@ public class PaymentBatchTests
 		var coins = new CoinsRegistry();
 		var paymentBatch = new PaymentBatch(coins);
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var ourCoin = CreateOurCoin(coins);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 1);
@@ -255,8 +255,8 @@ public class PaymentBatchTests
 	public void OnlyInProgressPaymentsAreMovedBackToPending()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var signedDestination = GetNewSegwitAddress();
-		var inProgressDestination = GetNewSegwitAddress();
+		var signedDestination = BitcoinFactory.CreateSegwitAddress();
+		var inProgressDestination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(signedDestination.ScriptPubKey, amount, inputCount: 2);
 
@@ -283,7 +283,7 @@ public class PaymentBatchTests
 	public void PendingPaymentIsFinishedWhenFailedAttemptIsSeen()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
 
@@ -303,7 +303,7 @@ public class PaymentBatchTests
 	public void SignedPaymentsOfBroadcastTransactionAreFinished()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
 
@@ -327,8 +327,8 @@ public class PaymentBatchTests
 	public void AllPaymentsFromSameCoinjoinResolvedTogether()
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
-		var destination1 = GetNewSegwitAddress();
-		var destination2 = GetNewSegwitAddress();
+		var destination1 = BitcoinFactory.CreateSegwitAddress();
+		var destination2 = BitcoinFactory.CreateSegwitAddress();
 		var amount1 = Money.Coins(0.1m);
 		var amount2 = Money.Coins(0.2m);
 
@@ -366,8 +366,8 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var uncertainDestination = GetNewSegwitAddress();
-		var pendingDestination = GetNewSegwitAddress();
+		var uncertainDestination = BitcoinFactory.CreateSegwitAddress();
+		var pendingDestination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
 		// Add first payment and move to uncertain
@@ -404,7 +404,7 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var destination = GetNewSegwitAddress();
+		var destination = BitcoinFactory.CreateSegwitAddress();
 		var amount = Money.Coins(0.006m); // The exact amount from the bug report
 
 		// Step 1: Queue the payment
@@ -440,16 +440,10 @@ public class PaymentBatchTests
 	{
 		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 
-		Assert.Throws<ArgumentException>(() => paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(9_999)));
-		paymentBatch.AddPayment(GetNewSegwitAddress(), Money.Satoshis(10_000));
+		Assert.Throws<ArgumentException>(() => paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Satoshis(9_999)));
+		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), Money.Satoshis(10_000));
 
 		Assert.Equal(Money.Satoshis(10_000), Assert.Single(paymentBatch.GetPayments()).Amount);
-	}
-
-	private static BitcoinAddress GetNewSegwitAddress()
-	{
-		using Key key = new();
-		return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
 	}
 
 	private static Transaction CreateTransactionWithOutput(Script scriptPubKey, Money amount, int inputCount = 0)

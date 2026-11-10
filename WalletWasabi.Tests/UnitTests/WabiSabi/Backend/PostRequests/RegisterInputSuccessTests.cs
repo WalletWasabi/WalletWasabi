@@ -50,8 +50,11 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessCustomCoordinatorIdentifierAsync()
 	{
-		WabiSabiConfig cfg = new();
-		cfg.CoordinatorIdentifier = "test";
+		var cfg = new WabiSabiConfig()
+		{
+			CoordinatorIdentifier = "test",
+		};
+
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();

@@ -1,5 +1,3 @@
-using NBitcoin;
-
 namespace WalletWasabi.Helpers;
 
 public static class Constants

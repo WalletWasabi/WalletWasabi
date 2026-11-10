@@ -12,9 +12,9 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.IntegrationTests.Infrastructure;
 using Xunit;
+using WalletWasabi.Storages;
 
 namespace WalletWasabi.IntegrationTests.BitcoinCore.Tests;
 
@@ -40,8 +40,8 @@ public class P2pBasedTests
 			using var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			using var filterStore = new FilterStore(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
-			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
+			using var filterManager = new FilterManager(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
+			await filterManager.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 			var mempoolService = coreNode.MempoolService;
 
