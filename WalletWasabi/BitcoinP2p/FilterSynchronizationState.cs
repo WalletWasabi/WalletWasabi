@@ -51,8 +51,7 @@ public class FilterSynchronizationState
 			// Also skip ranges that are already buffered awaiting validation
 			if (!_headerTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, _bufferedHeaderResponses, out var nextRangeStart))
 			{
-				Logger.LogTrace(
-					$"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
+				Logger.LogTrace($"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
 				return false;
 			}
 
@@ -298,11 +297,15 @@ public class FilterSynchronizationState
 		return filterResponse.Filters;
 	}
 
-	internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment)
+	internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment, out int? activeCount, out int? pendingCount)
 	{
 		assignment = null;
+
 		lock (_lock)
 		{
+			activeCount = _filterTracker.ActiveCount;
+			pendingCount = _filterTracker.PendingCount;
+
 			RewindTrackersToFilterHeaderTipNoLock();
 
 			// Check if filter headers are synced ahead
@@ -336,9 +339,10 @@ public class FilterSynchronizationState
 			// Track this assignment so other nodes don't get the same page
 			_filterTracker.AddActiveAssignment(nextRangeStart, stopHeight);
 
-			Logger.LogDebug($"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
-
 			assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
+			activeCount = _filterTracker.ActiveCount;
+			pendingCount = _filterTracker.PendingCount;
+
 			return true;
 		}
 	}
@@ -478,13 +482,11 @@ public class FilterSynchronizationState
 				if (_filterTracker.HasPendingRanges)
 				{
 					var pendingHeights = string.Join(", ", _filterTracker.GetPendingHeights());
-					Logger.LogTrace(
-						$"Next expected filter range {nextExpectedStart} not available yet. Pending ranges at heights: {pendingHeights}");
+					Logger.LogTrace($"Next expected filter range {nextExpectedStart} not available yet. Pending ranges at heights: {pendingHeights}");
 				}
 				else
 				{
-					Logger.LogTrace(
-						$"Next expected filter range {nextExpectedStart} not available yet. No pending ranges.");
+					Logger.LogTrace($"Next expected filter range {nextExpectedStart} not available yet. No pending ranges.");
 				}
 
 				return;
@@ -496,8 +498,7 @@ public class FilterSynchronizationState
 			lastQueuedHeight = pendingRange.EndHeight;
 			_filterTracker.SetLastHeight(lastQueuedHeight);
 
-			Logger.LogDebug(
-				$"Filter range {pendingRange.StartHeight} queued for consumption ({pendingRange.Filters.Length} filters)");
+			Logger.LogDebug($"Filter range {pendingRange.StartHeight} queued for consumption ({pendingRange.Filters.Length} filters)");
 		}
 	}
 

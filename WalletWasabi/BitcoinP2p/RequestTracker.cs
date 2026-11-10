@@ -70,10 +70,8 @@ public class RequestTracker<TProcessedResponse>(uint initialHeight = 0) where TP
 	/// <summary>
 	/// Gets all pending range heights (for logging).
 	/// </summary>
-	public IReadOnlyList<uint> GetPendingHeights()
-	{
-		return _pendingResponses.Keys.OrderBy(k => k).ToArray();
-	}
+	public IReadOnlyList<uint> GetPendingHeights() =>
+		_pendingResponses.Keys.OrderBy(k => k).ToArray();
 
 	/// <summary>Checks if there are any pending pages.</summary>
 	public bool HasPendingRanges => _pendingResponses.Count > 0;

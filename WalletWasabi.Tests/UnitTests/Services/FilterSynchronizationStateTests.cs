@@ -21,25 +21,33 @@ public class FilterSynchronizationStateTests
 	{
 		var state = CreateState(blockHeaders: 1000, filterHeaders: 1000);
 
-		Assert.True(state.TryAssignFilterRange(out var first));
+		Assert.True(state.TryAssignFilterRange(out var first, out var activeCount, out var pendingCount));
 		Assert.Equal(1u, first.StartHeight);
 		Assert.Equal(500u, first.StopHeight);
+		Assert.Equal(1, activeCount);
+		Assert.Equal(0, pendingCount);
 
-		Assert.True(state.TryAssignFilterRange(out var second));
+		Assert.True(state.TryAssignFilterRange(out var second, out activeCount, out pendingCount));
 		Assert.Equal(501u, second.StartHeight);
 		Assert.Equal(1000u, second.StopHeight);
+		Assert.Equal(2, activeCount);
+		Assert.Equal(0, pendingCount);
 
 		// No more ranges available. There are only 1000 filters to fetch.
-		Assert.False(state.TryAssignFilterRange(out _));
+		Assert.False(state.TryAssignFilterRange(out _, out activeCount, out pendingCount));
+		Assert.Equal(2, activeCount);
+		Assert.Equal(0, pendingCount);
 
 		// Node associated with the first range disconnected. The range should be available for reassignment.
 		state.OnFilterNodeDisconnected(first);
 
 		// The first range can get re-assigned.
-		Assert.True(state.TryAssignFilterRange(out var reassigned));
+		Assert.True(state.TryAssignFilterRange(out var reassigned, out activeCount, out pendingCount));
 		Assert.Equal(first, reassigned);
 		Assert.Equal(1u, reassigned.StartHeight);
 		Assert.Equal(500u, reassigned.StopHeight);
+		Assert.Equal(2, activeCount);
+		Assert.Equal(0, pendingCount);
 	}
 
 	/// <summary>
