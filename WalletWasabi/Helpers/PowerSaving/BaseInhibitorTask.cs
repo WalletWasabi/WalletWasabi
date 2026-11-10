@@ -166,6 +166,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			FileName = command,
 			Arguments = arguments,
+			RedirectStandardInput = true,
 			RedirectStandardOutput = true,
 			UseShellExecute = false,
 			CreateNoWindow = true,

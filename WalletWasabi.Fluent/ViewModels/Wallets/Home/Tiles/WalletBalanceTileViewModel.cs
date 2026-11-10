@@ -12,7 +12,7 @@ public class WalletBalanceTileViewModel : ActivatableViewModel
 		IsFiatDisplayed = amounts.CombineLatest(
 			uiContext.AmountProvider.WhenAnyValue(x => x.ExchangeRate),
 			uiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode),
-			(amount, exchangeRate, privacyMode) => exchangeRate != 0 && (amount.HasBalance || privacyMode));
+			(amount, exchangeRate, privacyMode) => exchangeRate.Rate != 0 && (amount.HasBalance || privacyMode));
 	}
 
 	public IObservable<Amount> Amounts { get; }

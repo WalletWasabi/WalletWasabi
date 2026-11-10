@@ -1,5 +1,6 @@
 using System.Reactive.Linq;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -14,7 +15,7 @@ public class Amount
 	public Amount(Money money)
 	{
 		Btc = money;
-		Fiat = Observable.Return(0m);
+		Fiat = Observable.Empty<FiatAmount>();
 	}
 
 	public Amount(Money money, AmountProvider exchangeRateProvider)
@@ -22,12 +23,12 @@ public class Amount
 		Btc = money;
 		Fiat = exchangeRateProvider.BtcToFiatExchangeRate
 			.StartWith(exchangeRateProvider.ExchangeRate)
-			.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
+			.Select(x => Btc.BtcToFiat(x));
 	}
 
 	public Money Btc { get; }
 
-	public IObservable<decimal> Fiat { get; }
+	public IObservable<FiatAmount> Fiat { get; }
 
 	public bool HasBalance => Btc != Money.Zero;
 
