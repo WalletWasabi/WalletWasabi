@@ -21,6 +21,7 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Client.Rpc;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
@@ -43,7 +44,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Services.Workers;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
@@ -479,28 +479,30 @@ public class Global
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
-		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
-		var blockchainInfoExchangeProvider = ExchangeRateProviders.BlockchainInfoAsync(ExternalSourcesHttpClientFactory);
-		var coinGeckoExchangeProvider = ExchangeRateProviders.CoinGeckoAsync(ExternalSourcesHttpClientFactory);
-		var geminiExchangeProvider = ExchangeRateProviders.GeminiAsync(ExternalSourcesHttpClientFactory);
+		var fetcherFactory = ExchangeRateProviders.FetcherFactory(ExternalSourcesHttpClientFactory);
+		var mempoolSpaceProvider = ExchangeRateProviders.MempoolSpaceAsync(fetcherFactory);
+		var blockchainInfoProvider = ExchangeRateProviders.BlockchainInfoAsync(fetcherFactory);
+		var coinGeckoProvider = ExchangeRateProviders.CoinGeckoAsync(fetcherFactory);
+		var geminiProvider = ExchangeRateProviders.GeminiAsync(fetcherFactory);
+
 		ExchangeRateProvider exchangeRateProvider = Config.ExchangeRateProvider.ToLower() switch
 		{
-			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider ]),
-			"blockchaininfo" => ExchangeRateProviders.Composed([blockchainInfoExchangeProvider, mempoolSpaceExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider]),
-			"coingecko" => ExchangeRateProviders.Composed([coinGeckoExchangeProvider, mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, geminiExchangeProvider]),
-			"gemini" => ExchangeRateProviders.Composed([geminiExchangeProvider, blockchainInfoExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, ]),
+			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceProvider, blockchainInfoProvider, coinGeckoProvider, geminiProvider ]),
+			"blockchaininfo" => ExchangeRateProviders.Composed([blockchainInfoProvider, mempoolSpaceProvider, coinGeckoProvider, geminiProvider]),
+			"coingecko" => ExchangeRateProviders.Composed([coinGeckoProvider, mempoolSpaceProvider, blockchainInfoProvider, geminiProvider]),
+			"gemini" => ExchangeRateProviders.Composed([geminiProvider, mempoolSpaceProvider, blockchainInfoProvider, coinGeckoProvider, ]),
 			"" or "none" => ExchangeRateProviders.NoneAsync(),
 			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};
 
-		var exchangeFeeRateUpdater = Spawn(ExchangeRateUpdater.ServiceName,
+		var exchangeRateUpdater = Spawn(ExchangeRateUpdater.ServiceName,
 				Service("Exchange Rate Updater",
 					Periodically(
 						TimeSpan.FromMinutes(20),
-						0m,
+						[],
 						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
-		exchangeFeeRateUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))
+		exchangeRateUpdater.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => exchangeRateUpdater.Post(UpdateMessage.Instance))
 			.DisposeUsing(_disposables);
 	}
 

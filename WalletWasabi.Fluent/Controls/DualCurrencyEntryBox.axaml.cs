@@ -77,8 +77,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<Money> BalanceBtcProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, Money>(nameof(BalanceBtc));
 
-	public static readonly StyledProperty<decimal> BalanceUsdProperty =
-		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(BalanceUsd));
+	public static readonly StyledProperty<decimal> BalanceFiatProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, decimal>(nameof(BalanceFiat));
 
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
@@ -217,10 +217,10 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set => SetValue(BalanceBtcProperty, value);
 	}
 
-	public decimal BalanceUsd
+	public decimal BalanceFiat
 	{
-		get => GetValue(BalanceUsdProperty);
-		set => SetValue(BalanceUsdProperty, value);
+		get => GetValue(BalanceFiatProperty);
+		set => SetValue(BalanceFiatProperty, value);
 	}
 
 	public bool ValidatePasteBalance

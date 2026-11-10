@@ -1,4 +1,3 @@
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -18,16 +17,12 @@ public record UtxoSelectionParameters(
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
-		var smallestEffectiveDenom = DenominationBuilder.CreateDenominations(
+		var smallestDenomination = DenominationBuilder.CreateDenominations(
 				roundParameters.CalculateMinReasonableOutputAmount(scriptTypesSupportedByWallet),
-				roundParameters.AllowedOutputAmounts.Max,
-				roundParameters.MiningFeeRate,
-				[maxVsizeInputOutputPairScriptType],
-				RandomnessProviders.Secure) // Random generator is not used and then the algorithm is deterministic
-			.Min(x => x.EffectiveCost);
-		var smallestReasonableEffectiveDenomination =
-			smallestEffectiveDenom
+				roundParameters.AllowedOutputAmounts.Max)
+			.Min()
 			?? throw new InvalidOperationException("Something's wrong with the denomination creation or with the parameters it got.");
+		var smallestReasonableEffectiveDenomination = Output.FromDenomination(smallestDenomination, maxVsizeInputOutputPairScriptType, roundParameters.MiningFeeRate).EffectiveCost;
 
 		return new(
 			roundParameters.AllowedInputAmounts,
