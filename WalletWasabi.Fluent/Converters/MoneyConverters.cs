@@ -2,19 +2,20 @@ using Avalonia.Data.Converters;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
 	public static readonly IValueConverter ToFiatAmountFormattedWithoutSpaces =
-		new FuncValueConverter<decimal, string>(n => n.ToFiatAmountFormatted().Replace(" ", ""));
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.Value.ToFiatAmountFormatted().Replace(" ", ""));
 
 	public static readonly IValueConverter ToFiatApprox =
-		new FuncValueConverter<decimal, string>(n => n.ToFiatAprox());
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.ToFiatAprox());
 
 	public static readonly IValueConverter ToFiatApproxBetweenParens =
-		new FuncValueConverter<decimal, string>(n => n.ToFiatAproxBetweenParens());
+		new FuncValueConverter<FiatAmount?, string?>(n => n?.ToFiatAproxBetweenParens());
 
 	private const string BtcAscii = "\u20bf ";
 

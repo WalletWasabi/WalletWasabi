@@ -436,23 +436,23 @@
   },
   {
     "pname": "Microsoft.Testing.Extensions.Telemetry",
-    "version": "2.4.0",
-    "hash": "sha256-GCniT1Js66ieGSMHWfq5KEkMl9Avst+TcO9HXtPVvpw="
+    "version": "2.5.1",
+    "hash": "sha256-oUfepzPeFMcOISetmTpWPKNSytXI6TCrpyf+TATzjZQ="
   },
   {
     "pname": "Microsoft.Testing.Extensions.TrxReport.Abstractions",
-    "version": "2.4.0",
-    "hash": "sha256-ubdU7kXwdM430eNfwplaxNfhIUxwI3GtO4XgFwfO7r8="
+    "version": "2.5.1",
+    "hash": "sha256-RSOwqSdDpTOZzb1UpG3XtEH7gC5RSzIxO3eNsMHQdLs="
   },
   {
     "pname": "Microsoft.Testing.Platform",
-    "version": "2.4.0",
-    "hash": "sha256-Um9VdHBy6PrIbz7k6MXqnQjgc2F1X9Z3PbPu7VKqabQ="
+    "version": "2.5.1",
+    "hash": "sha256-fTUJLHC4ZZkxSt8Fv0pwYdoD/AjI5JPwKdpr1Npu82k="
   },
   {
     "pname": "Microsoft.Testing.Platform.MSBuild",
-    "version": "2.4.0",
-    "hash": "sha256-KVcVAwAPoe4N6ypiYT0sV7wj5UdChoE7Lxbsf+eH3Ak="
+    "version": "2.5.1",
+    "hash": "sha256-M1E2gk5/m8i8d/ZwDd9TaiZPKyejB8MhQ737rBKpj2k="
   },
   {
     "pname": "Microsoft.Win32.Registry",
@@ -466,8 +466,8 @@
   },
   {
     "pname": "NBitcoin",
-    "version": "10.0.17",
-    "hash": "sha256-aUmn6R+diAhVFAA/cmuBIxI++tYPrsX7q4lEei6ikoI="
+    "version": "10.0.20",
+    "hash": "sha256-uB0R7Tl7AZXp11lMrehACFnux3OBcF6GjnnHevv+4es="
   },
   {
     "pname": "NBitcoin.Secp256k1",
@@ -761,47 +761,47 @@
   },
   {
     "pname": "xunit.analyzers",
-    "version": "2.1.0",
-    "hash": "sha256-UBvDBZzYmgjfXsZ5iSPcG7DBVBdaNQlZfu2/337Jtrw="
+    "version": "2.2.0",
+    "hash": "sha256-ZtPDtkLh8c6qcCwOHYkB2Rgmi/F3aQvCcKNNaAsj0iU="
   },
   {
     "pname": "xunit.v3",
-    "version": "4.0.1",
-    "hash": "sha256-bOMTk2G64+Z+uWci/hDmAn63pCe2zdZEPJGt6tvSpdc="
+    "version": "4.0.2",
+    "hash": "sha256-WxZncHabPSqnFkt8ECAOQJTB6VmgkU7mRheoHgtwVB4="
   },
   {
     "pname": "xunit.v3.assert",
-    "version": "4.0.1",
-    "hash": "sha256-e85OajGwI/eUgs6Ed50lAFwG07ygHOxeqkqMUddQD4A="
+    "version": "4.0.2",
+    "hash": "sha256-+C5zX4/TZGSpecqVS9Z6wjG8Z4jGj3LmDAyP0UQvFkg="
   },
   {
     "pname": "xunit.v3.common",
-    "version": "4.0.1",
-    "hash": "sha256-ZujCfNImLJyq+o+w/1Tl/QFIWsryv+W8o+EN2SvX+b8="
+    "version": "4.0.2",
+    "hash": "sha256-FnlhYa5z5PyukvwlXMz+p+QlPTaod2cRzSN7uW+NIXk="
   },
   {
     "pname": "xunit.v3.core.mtp-v2",
-    "version": "4.0.1",
-    "hash": "sha256-IMnURdr5EsZLAmPB/+JUuOF+8VQ1K7Nt8JXAkCABh7Y="
+    "version": "4.0.2",
+    "hash": "sha256-eE7QxlVYgGNtw9z4SydVm80n8VAkLH7/eealDRmRPXI="
   },
   {
     "pname": "xunit.v3.extensibility.core",
-    "version": "4.0.1",
-    "hash": "sha256-IRnMQ4ygOWgNwLqr6qKQaV94usi0vWWPA6zcptOr8x8="
+    "version": "4.0.2",
+    "hash": "sha256-1IsWQHkATKBQfha64nVt6SOfgDmZrHI5V9N31J4xm3s="
   },
   {
     "pname": "xunit.v3.mtp-v2",
-    "version": "4.0.1",
-    "hash": "sha256-ZX3Br7NfyODQ7gsF5Xq14iONON2Qi3XQKgL6fKttmL8="
+    "version": "4.0.2",
+    "hash": "sha256-6NN4hUd15HhxFOuaQRtV8qPkAgeS18YzET4m2UOMv6U="
   },
   {
     "pname": "xunit.v3.runner.common",
-    "version": "4.0.1",
-    "hash": "sha256-RiR4ALkbuX983K0m8obGZ1iPT9v7s+M5bVT+ZrT6Uac="
+    "version": "4.0.2",
+    "hash": "sha256-1OTUcxT0p7j1aQrjyzsuNomUQ/CXFzxAdkqXvQctgOM="
   },
   {
     "pname": "xunit.v3.runner.inproc.console",
-    "version": "4.0.1",
-    "hash": "sha256-3M6RyL+JzhPQdrqjcWBYZrY7NimsZj2jSCbBE+iO7qQ="
+    "version": "4.0.2",
+    "hash": "sha256-JACQ2Q1SKdl4IYVCX4iTB+3Kv+aDxYnR54Vv1jDAds0="
   }
 ]

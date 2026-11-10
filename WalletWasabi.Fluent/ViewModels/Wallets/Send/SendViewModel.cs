@@ -23,6 +23,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.Client.Wallets.Exchange;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
@@ -53,7 +54,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
-	[AutoNotify] private decimal _exchangeRate;
+	[AutoNotify] private ExchangeRate _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify] private bool _displaySilentPaymentInfo;
@@ -565,7 +566,7 @@ public partial class SendViewModel : RoutableViewModel
 		ExchangeRate = UiContext.Services.GetExchangeRate();
 
 		UiContext.Services.EventBus
-			.Subscribe<ExchangeRateChanged>(er => ExchangeRate = er.ExchangeRate)
+			.Subscribe<ExchangeRatesChanged>(_ => ExchangeRate = UiContext.Services.GetExchangeRate())
 			.DisposeWith(disposables);
 
 		if (!inHistory)

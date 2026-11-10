@@ -23,6 +23,7 @@ public class UiConfig : ConfigBase
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
+	private string _fiatCurrency;
 
 	public UiConfig(
 		string filePath,
@@ -40,7 +41,8 @@ public class UiConfig : ConfigBase
 		int feeTarget,
 		bool sendAmountConversionReversed,
 		double? windowWidth,
-		double? windowHeight) : base(filePath)
+		double? windowHeight,
+		string fiatCurrency) : base(filePath)
 	{
 		_privacyMode = privacyMode;
 		_isCustomChangeAddress = isCustomChangeAddress;
@@ -57,6 +59,7 @@ public class UiConfig : ConfigBase
 		_sendAmountConversionReversed = sendAmountConversionReversed;
 		_windowWidth = windowWidth;
 		_windowHeight = windowHeight;
+		_fiatCurrency = fiatCurrency;
 
 		this.WhenAnyValue(
 				x => x.Autocopy,
@@ -76,7 +79,10 @@ public class UiConfig : ConfigBase
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
-		this.WhenAnyValue(x => x.SendAmountConversionReversed)
+		this.WhenAnyValue(
+				x => x.SendAmountConversionReversed,
+				x => x.FiatCurrency,
+				(_, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
@@ -106,7 +112,8 @@ public class UiConfig : ConfigBase
 			feeTarget: 2,
 			sendAmountConversionReversed: false,
 			windowWidth: null,
-			windowHeight: null)
+			windowHeight: null,
+			fiatCurrency: UiConstants.DefaultFiatCurrency)
 	{
 	}
 
@@ -198,6 +205,12 @@ public class UiConfig : ConfigBase
 	{
 		get => _windowHeight;
 		internal set => RaiseAndSetIfChanged(ref _windowHeight, value);
+	}
+
+	public string FiatCurrency
+	{
+		get => _fiatCurrency;
+		set => RaiseAndSetIfChanged(ref _fiatCurrency, value);
 	}
 
 	public static UiConfig LoadFile(string filePath)
