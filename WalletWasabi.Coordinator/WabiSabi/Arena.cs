@@ -541,7 +541,7 @@ public partial class Arena : PeriodicRunner
 	private static Money TrimToDenomination(Round round, Money coordinatorOutputValue, Money minEconomicalOutput)
 	{
 		var denomination = DenominationBuilder
-			.CreateDenominationAmounts(round.Parameters.AllowedOutputAmounts.Min, coordinatorOutputValue)
+			.CreateDenominations(round.Parameters.AllowedOutputAmounts.Min, coordinatorOutputValue)
 			.OrderByDescending(x => x.Satoshi)
 			.FirstOrDefault();
 

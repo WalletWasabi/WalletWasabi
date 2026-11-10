@@ -21,7 +21,7 @@
       </Viewbox>
       <StackPanel Spacing="10" HorizontalAlignment="Center">
         <TextBlock HorizontalAlignment="Center" Text="Cancelling this transaction will cost you" />
-        <AmountControl Classes="WithUsd h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
+        <AmountControl Classes="WithFiat h5" HorizontalAlignment="Center" Amount="{Binding Fee}" />
       </StackPanel>
     </DockPanel>
   </ContentArea>
