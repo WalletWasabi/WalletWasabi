@@ -2,15 +2,6 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "Microsoft.AspNetCore.WebUtilities": {
-        "type": "Direct",
-        "requested": "[10.0.15, )",
-        "resolved": "10.0.15",
-        "contentHash": "lDIvpCk/2sQqf7WRF0C2gW1oOnLsCMey4c11LkUVHJNnqhm3gGlKRdAXPhAKDNbrzK3e5izfWvRwzWtKkG2GCw==",
-        "dependencies": {
-          "Microsoft.Net.Http.Headers": "10.0.15"
-        }
-      },
       "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
         "type": "Direct",
         "requested": "[4.14.0, )",
@@ -237,14 +228,6 @@
         "type": "Transitive",
         "resolved": "10.0.15",
         "contentHash": "NjzLiZ1/bYx8VwLqHxNnCfDTQQbCY7P1dwT7JM5FiANiaSfI6UKHi0/sla+jyRbOIbPAMJkhWQ/9pH3tMf+IrQ=="
-      },
-      "Microsoft.Net.Http.Headers": {
-        "type": "Transitive",
-        "resolved": "10.0.15",
-        "contentHash": "g3xR6vyq+3mmiZxsET77UAWC3fZo49Zan5/cqmN2XoryMOWIC4AwINwYowJao/3cx5D/L6lQSWXbHQmprvW/wg==",
-        "dependencies": {
-          "Microsoft.Extensions.Primitives": "10.0.15"
-        }
       },
       "NBitcoin.Secp256k1": {
         "type": "Transitive",
