@@ -170,9 +170,7 @@ public class CoinJoinClient
 
 			if (myCoins.IsEmpty)
 			{
-				string roundSkippedMessage = $"None of the wallet's {coinCandidates.Length} coins ({Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC) is suitable for the round.";
-				Logger.LogInfo(FormatLog(roundSkippedMessage, currentRoundState));
-				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, roundSkippedMessage);
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"None of the wallet's {coinCandidates.Length} coins ({Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC) is suitable for the round.");
 			}
 
 			break;
