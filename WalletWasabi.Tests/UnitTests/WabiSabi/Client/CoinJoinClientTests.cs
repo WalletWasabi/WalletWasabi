@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
@@ -285,13 +287,13 @@ public class CoinJoinClientTests
 			[Guid.NewGuid(), roundState, arenaClient, coin, emptyCredentials, emptyCredentials]);
 	}
 
-	private static CoinJoinClient CreateCoinJoinClient(IKeyChain keyChain, IWabiSabiApiRequestHandler requestHandler, RoundStateProvider roundStateProvider) =>
+	private static CoinJoinClient CreateCoinJoinClient(IKeyChain keyChain, IWabiSabiApiRequestHandler requestHandler, RoundStateProvider roundStateProvider, CoinSelector? coinSelector = null, OutputProvider? outputProvider = null) =>
 		new(
 			_ => requestHandler,
 			keyChain,
-			outputProvider: null!,
+			outputProvider!,
 			roundStateProvider,
-			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0).SelectCoinsForRound,
+			coinSelector ?? new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0).SelectCoinsForRound,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150m, AbsoluteMinInputCount: 2, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());
