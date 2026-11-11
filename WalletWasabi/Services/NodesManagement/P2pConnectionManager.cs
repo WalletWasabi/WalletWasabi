@@ -780,6 +780,11 @@ public class P2pConnectionManager : IDisposable
 			return null;
 		}
 
+		if (endpoint is IPEndPoint ipEndPoint && IPAddress.IsLoopback(ipEndPoint.Address))
+		{
+			return null;
+		}
+
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		var crawlerConnectionTimeout = endpoint is DnsEndPoint dnsEndPoint && IsOnionHost(dnsEndPoint.Host)
 			? CrawlerConnectionTimeout * 2
