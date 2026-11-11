@@ -7,30 +7,24 @@ namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
 
 public class BlockHeaderCheckpointsTests
 {
-	[Fact]
-	public void EveryMainNetFilterCheckpointHasABaseInItsDifficultyPeriod()
+	public static TheoryData<Network> Networks => [Network.Main, Network.TestNet, Network.RegTest, Bitcoin.Instance.Signet];
+
+	[Theory]
+	[MemberData(nameof(Networks))]
+	public void EveryFilterCheckpointHasABaseInItsDifficultyPeriod(Network network)
 	{
-		foreach (var checkpoint in FilterCheckpoints.GetCheckpointsByNetwork(Network.Main))
+		foreach (var checkpoint in FilterCheckpoints.GetCheckpointsByNetwork(network))
 		{
 			var checkpointHeight = checkpoint.Header.Height.Height;
-			var (height, header) = BlockHeaderCheckpoints.GetBase(Network.Main, checkpointHeight);
+			var (height, header) = BlockHeaderCheckpoints.GetBase(network, checkpointHeight);
 
 			Assert.Equal(0u, height % 2016);
-			Assert.InRange(height, checkpointHeight - 2015, checkpointHeight);
+			Assert.InRange(height, checkpointHeight - checkpointHeight % 2016, checkpointHeight);
 			Assert.True(header.CheckProofOfWork());
 			if (height == checkpointHeight)
 			{
 				Assert.Equal(checkpoint.Header.BlockHash, header.GetHash());
 			}
 		}
-	}
-
-	[Fact]
-	public void OtherNetworksStartAtGenesis()
-	{
-		var (height, header) = BlockHeaderCheckpoints.GetBase(Network.RegTest, 1000);
-
-		Assert.Equal(0u, height);
-		Assert.Equal(Network.RegTest.GenesisHash, header.GetHash());
 	}
 }
