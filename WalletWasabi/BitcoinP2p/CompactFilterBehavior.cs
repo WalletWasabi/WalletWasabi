@@ -15,25 +15,26 @@ public class CompactFilterBehavior(
 {
 	private static readonly TimeSpan TickSyncInterval = TimeSpan.FromSeconds(2);
 	private static readonly TimeSpan HeaderAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(25);
-	private static readonly TimeSpan FilterAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(30);
+	private static readonly TimeSpan FilterProgressTimeoutForClearnet = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan HeaderAssignmentTimeoutForTor = TimeSpan.FromSeconds(45);
-	private static readonly TimeSpan FilterAssignmentTimeoutForTor = TimeSpan.FromSeconds(70);
-	private static readonly TimeSpan FilterRangeMaxDuration = TimeSpan.FromMinutes(10);
+	private static readonly TimeSpan FilterProgressTimeoutForTor = TimeSpan.FromSeconds(70);
+	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromMinutes(10);
 
 	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
-	private TimeSpan _filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
+	private TimeSpan _filterProgressTimeout = FilterProgressTimeoutForTor;
 
-	/// <param name="IsHeaderRequest"><c>true</c> to download headers, <c>false</c> to download filters</param>
-	private record Assignment(bool IsHeaderRequest, RangeRequest RangeRequest, DateTime AssignedAt);
+	/// <param name="IsHeaderRequest"><c>true</c> to download headers, <c>false</c> to download filters.</param>
+	private record Assignment(bool IsHeaderRequest, RangeRequest RangeRequest, DateTime AssignedAt)
+	{
+		/// <summary>When the last header/filter of the assigned range arrived.</summary>
+		public DateTime LastProgressAt { get; set; } = AssignedAt;
+	}
 
 	private readonly Lock _lock = new();
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
 
 	/// <summary>Assignment of the node to download headers/filters from the node, or <c>null</c> if there is none at the moment.</summary>
 	private Assignment? _assignment;
-
-	/// <summary>When the last filter of the assigned range arrived, or when the range was assigned if none has yet.</summary>
-	private DateTime _lastFilterProgressAt;
 
 	private volatile bool _invalidReceived;
 
@@ -44,7 +45,7 @@ public class CompactFilterBehavior(
 		if (AttachedNode.Behaviors.Find<SocksSettingsBehavior>() is null)
 		{
 			_headerAssignmentTimeout = HeaderAssignmentTimeoutForClearnet;
-			_filterAssignmentTimeout = FilterAssignmentTimeoutForClearnet;
+			_filterProgressTimeout = FilterProgressTimeoutForClearnet;
 		}
 	}
 
@@ -89,7 +90,6 @@ public class CompactFilterBehavior(
 
 			lastTickSync = tick.DateTime;
 
-			// Check for stale assignments - disconnect if timed out
 			if (CheckAndHandleStaleAssignment(node, nowUtc))
 			{
 				return;
@@ -111,17 +111,25 @@ public class CompactFilterBehavior(
 
 		lock (_lock)
 		{
-			if (_assignment is { IsHeaderRequest: true, RangeRequest: var assignedHeaderRange } &&
-				message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeaders)
+			if (_assignment is null)
 			{
-				HandleFilterHeaderMessageNoLock(node, cfHeaders, assignedHeaderRange);
 				return;
 			}
 
-			if (_assignment is { IsHeaderRequest: false, RangeRequest: var assignedFilterRange } &&
-				message.Message.Payload is CompactFilterPayload { FilterType: FilterType.Basic } filterPayload)
+			if (_assignment.IsHeaderRequest)
 			{
-				HandleFilterMessageNoLock(node, filterPayload, assignedFilterRange);
+				if (message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeadersPayload)
+				{
+					HandleFilterHeaderMessageNoLock(node, cfHeadersPayload, _assignment.RangeRequest);
+					return;
+				}
+			}
+			else
+			{
+				if (message.Message.Payload is CompactFilterPayload { FilterType: FilterType.Basic } filterPayload)
+				{
+					HandleFilterMessageNoLock(node, filterPayload, _assignment);
+				}
 			}
 		}
 	}
@@ -135,7 +143,7 @@ public class CompactFilterBehavior(
 
 		if (batchCount == 0)
 		{
-			Logger.LogDebug("Received empty cfheaders batch");
+			Logger.LogDebug("Received an empty compact filter headers batch.");
 			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
@@ -192,7 +200,7 @@ public class CompactFilterBehavior(
 		}
 	}
 
-	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
+	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, Assignment assignment)
 	{
 		const int MaxFilterBytes = 1_000_000;
 
@@ -214,21 +222,20 @@ public class CompactFilterBehavior(
 		}
 
 		_collectedFilters.Add(filterPayload);
-		_lastFilterProgressAt = DateTime.UtcNow;
+		assignment.LastProgressAt = DateTime.UtcNow;
 
 		// Check if we've received all filters for this range
-		if (filterPayload.BlockHash != assignment.StopHash && _collectedFilters.Count < assignment.Count)
+		if (filterPayload.BlockHash != assignment.RangeRequest.StopHash && _collectedFilters.Count < assignment.RangeRequest.Count)
 		{
 			return;
 		}
 
-		Logger.LogDebug($"Range {assignment} complete ({_collectedFilters.Count}/{assignment.Count} filters)");
-
+		Logger.LogDebug($"Assignment {assignment} is complete ({_collectedFilters.Count}/{assignment.RangeRequest.Count} filters)");
 		var filters = _collectedFilters.ToArray();
 		_collectedFilters.Clear();
 
 		// Validate all filters
-		var validatedFilters = ValidateFilters(assignment.StartHeight, filters, node.Network);
+		var validatedFilters = ValidateFilters(assignment.RangeRequest.StartHeight, filters, node.Network);
 
 		if (validatedFilters is null)
 		{
@@ -241,7 +248,7 @@ public class CompactFilterBehavior(
 		Logger.LogInfo($"Successfully validated range {assignment}");
 
 		// Report success
-		synchronizationState.OnFilterRangeCompleted(assignment.StartHeight, validatedFilters);
+		synchronizationState.OnFilterRangeCompleted(assignment.RangeRequest.StartHeight, validatedFilters);
 		_assignment = null;
 
 		// Immediately try to fetch the next range
@@ -364,7 +371,6 @@ public class CompactFilterBehavior(
 		}
 
 		_assignment = new Assignment(IsHeaderRequest: false, filterAssignment, DateTime.UtcNow);
-		_lastFilterProgressAt = _assignment.AssignedAt;
 		Logger.LogDebug($"Assigned compact filter range {filterAssignment} (active: {activeCount}, pending: {pendingCount}) to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
@@ -424,6 +430,9 @@ public class CompactFilterBehavior(
 		_collectedFilters.Clear();
 	}
 
+	/// <summary>
+	/// Check if the current header/filter assignment has timed out or stalled, and if so, handle it by disconnecting the node.
+	/// </summary>
 	private bool CheckAndHandleStaleAssignment(Node node, DateTime nowUtc)
 	{
 		lock (_lock)
@@ -433,23 +442,37 @@ public class CompactFilterBehavior(
 				return false;
 			}
 
-			var runningFor = nowUtc - _assignment.AssignedAt;
+			var assignmentDuration = nowUtc - _assignment.AssignedAt;
+
+			// For header assignments, we only check if the timeout elapsed or not.
 			if (_assignment.IsHeaderRequest)
 			{
-				if (runningFor > _headerAssignmentTimeout)
+				if (assignmentDuration > _headerAssignmentTimeout)
 				{
-					HandleInvalidNoLock(node, $"Header assignment at {_assignment.RangeRequest.StartHeight} timed out after {runningFor.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+					HandleInvalidNoLock(node, $"Header assignment {_assignment.RangeRequest} timed out after {assignmentDuration.TotalSeconds:F1}s.");
+					return true;
+				}
+			}
+			else
+			{
+				// For filter assignments, we check for the progress timeout and the overall assignment timeout.
+				var sinceLastProgress = nowUtc - _assignment.LastProgressAt;
+				if (sinceLastProgress > _filterProgressTimeout)
+				{
+					var progress = $"({_collectedFilters.Count}/{_assignment.RangeRequest.Count})";
+					var reason = $"Filter range {_assignment.RangeRequest} ({progress}) reached the progress timeout of {_filterProgressTimeout.TotalSeconds:F1}s.";
+					HandleInvalidNoLock(node, reason);
 					return true;
 				}
 
-				return false;
-			}
-
-			var stalledFor = nowUtc - _lastFilterProgressAt;
-			if (stalledFor > _filterAssignmentTimeout || runningFor > FilterRangeMaxDuration)
-			{
-				HandleInvalidNoLock(node, $"Filter range {_assignment.RangeRequest} incomplete after {runningFor.TotalSeconds:F1}s ({_collectedFilters.Count}/{_assignment.RangeRequest.Count} filters received, nothing for {stalledFor.TotalSeconds:F1}s), disconnecting {node.Peer.Endpoint}");
-				return true;
+				if (assignmentDuration > FilterAssignmentTimeout)
+				{
+					var progress = $"({_collectedFilters.Count}/{_assignment.RangeRequest.Count})";
+					var reason = $"Filter range {_assignment.RangeRequest} ({progress}) reached the maximum timeout of {FilterAssignmentTimeout.TotalSeconds:F1}s. " +
+						$"The last update was {sinceLastProgress.TotalSeconds:F1}s ago.";
+					HandleInvalidNoLock(node, reason);
+					return true;
+				}
 			}
 
 			return false;
