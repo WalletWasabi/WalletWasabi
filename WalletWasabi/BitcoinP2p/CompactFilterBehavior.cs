@@ -400,13 +400,10 @@ public class CompactFilterBehavior(
 	private void HandleInvalidNoLock(Node node, string reason)
 	{
 		_invalidReceived = true;
-
 		ReleaseAssignmentsNoLock();
 
 		Logger.LogWarning($"Disconnecting node {node.Peer.Endpoint}: {reason}");
-
-		// Disconnect the node
-		node.DisconnectAsync(reason);
+		node.DisconnectAsync(reason); // Not async method, just async process.
 	}
 
 	private void ReleaseAssignments()
