@@ -128,18 +128,13 @@ public class CompactFilterBehavior(
 		{
 			switch (_assignment)
 			{
-				case HeaderAssignment header
-					when message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeaders:
+				case HeaderAssignment header when message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeaders:
 					HandleFilterHeaderMessageNoLock(node, cfHeaders, header.RangeRequest);
 					break;
 
-				case FilterAssignment filterAssignment
-					when message.Message.Payload is CompactFilterPayload { FilterType: FilterType.Basic } filterPayload:
+				case FilterAssignment filterAssignment when message.Message.Payload is CompactFilterPayload { FilterType: FilterType.Basic } filterPayload:
 					HandleFilterMessageNoLock(node, filterPayload, filterAssignment);
 					break;
-
-				default:
-					throw new NotSupportedException();
 			}
 		}
 	}
@@ -239,21 +234,18 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		Logger.LogDebug($"Filter assignment {assignment} is complete ({assignment.CollectedFilters.Count}/{assignment.RangeRequest.Count})");
-		var filters = assignment.CollectedFilters.ToArray();
-
-		// Validate all filters
-		var validatedFilters = ValidateFilters(assignment.RangeRequest.StartHeight, filters, node.Network);
+		Logger.LogDebug($"Filter assignment {assignment.RangeRequest} is complete ({assignment.GetProgress()})");
+		var validatedFilters = ValidateFilters(assignment.RangeRequest.StartHeight, assignment.CollectedFilters, node.Network);
 
 		if (validatedFilters is null)
 		{
 			// Validation failed - disconnect and release assignment
-			Logger.LogWarning($"Validation failed for range {assignment}");
+			Logger.LogWarning($"Validation failed for range {assignment.RangeRequest}");
 			HandleInvalidNoLock(node, "Invalid compact filters received");
 			return;
 		}
 
-		Logger.LogInfo($"Successfully validated range {assignment}");
+		Logger.LogInfo($"Successfully validated range {assignment.RangeRequest}");
 
 		// Report success
 		synchronizationState.OnFilterRangeCompleted(assignment.RangeRequest.StartHeight, validatedFilters);
@@ -263,15 +255,15 @@ public class CompactFilterBehavior(
 		TrySyncNoLock(node);
 	}
 
-	internal FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
+	internal FilterModel[]? ValidateFilters(uint startHeight, IReadOnlyList<CompactFilterPayload> filters, Network network)
 	{
-		if (filters.Length == 0)
+		if (filters.Count == 0)
 		{
 			Logger.LogWarning("Received empty filter batch");
 			return null;
 		}
 
-		var result = new FilterModel[filters.Length];
+		var result = new FilterModel[filters.Count];
 
 		// For the first filter, we need the previous filter header
 		// This comes from either the shared state (last emitted) or the filter header chain
@@ -281,7 +273,7 @@ public class CompactFilterBehavior(
 			return null;
 		}
 
-		for (var i = 0; i < filters.Length; i++)
+		for (var i = 0; i < filters.Count; i++)
 		{
 			var filterPayload = filters[i];
 			var height = startHeight + (uint) i;
@@ -419,13 +411,15 @@ public class CompactFilterBehavior(
 
 	private void ReleaseAssignmentsNoLock()
 	{
-		if (_assignment is HeaderAssignment headerAssignment)
+		switch (_assignment)
 		{
-			synchronizationState.OnHeaderNodeDisconnected(headerAssignment.RangeRequest);
-		}
-		else if (_assignment is FilterAssignment filterAssignment)
-		{
-			synchronizationState.OnFilterNodeDisconnected(filterAssignment.RangeRequest);
+			case HeaderAssignment assignment:
+				synchronizationState.OnHeaderNodeDisconnected(assignment.RangeRequest);
+				break;
+
+			case FilterAssignment assignment:
+				synchronizationState.OnFilterNodeDisconnected(assignment.RangeRequest);
+				break;
 		}
 
 		_assignment = null;
@@ -457,7 +451,7 @@ public class CompactFilterBehavior(
 					break;
 
 				case FilterAssignment assignment:
-					// For filter assignments, we check for the progress timeout and the overall assignment timeout.
+					// For filter assignments, we check the progress timeout and the overall assignment timeout.
 					var sinceLastProgress = nowUtc - assignment.LastProgressAt;
 					if (sinceLastProgress > _filterProgressTimeout)
 					{
