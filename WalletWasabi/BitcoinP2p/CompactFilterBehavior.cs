@@ -216,7 +216,15 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		var filter = new GolombRiceFilter(filterPayload.FilterBytes);
+		var filterResult = Result<GolombRiceFilter, Exception>.Catch(() => new GolombRiceFilter(filterPayload.FilterBytes));
+		if (!filterResult.IsOk)
+		{
+			Logger.LogWarning($"Malformed Golomb-Rice filter: {filterResult.Error.Message}");
+			HandleInvalidNoLock(node, "Invalid compact filter received");
+			return;
+		}
+
+		var filter = filterResult.Value;
 
 		// Reject degenerate filters: N=0 with data present
 		if (filter.N == 0 && filter.Data.Length > 0)
