@@ -220,11 +220,6 @@
     "hash": "sha256-1Iw9khYsSWE6WhnOu5FE/Zoz7o+oFqprEMsOf0Z8Agk="
   },
   {
-    "pname": "Microsoft.AspNetCore.WebUtilities",
-    "version": "10.0.15",
-    "hash": "sha256-CGgPE+GY9u/oFNlihc0Z7h+wb7aH1dBbBqS0pK9k4ys="
-  },
-  {
     "pname": "Microsoft.Bcl.AsyncInterfaces",
     "version": "6.0.0",
     "hash": "sha256-49+H/iFwp+AfCICvWcqo9us4CzxApPKC37Q5Eqrw+JU="
@@ -423,11 +418,6 @@
     "pname": "Microsoft.Extensions.Primitives",
     "version": "10.0.15",
     "hash": "sha256-W+EzkWgBumLOA93pNnt6iOC+v5n4RLWY/SK09vNg9sU="
-  },
-  {
-    "pname": "Microsoft.Net.Http.Headers",
-    "version": "10.0.15",
-    "hash": "sha256-SjcPgVLL/3ff1UrUGUD1MCwhoMeAyDmXWchV0AcR4QM="
   },
   {
     "pname": "Microsoft.NETCore.Platforms",
