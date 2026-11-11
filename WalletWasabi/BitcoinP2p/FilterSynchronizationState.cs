@@ -98,8 +98,7 @@ public class FilterSynchronizationState
 			_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
 		}
 
-		Logger.LogDebug(
-			$"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
+		Logger.LogDebug($"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
 	}
 
 	internal HeaderValidationResult ValidateFilterHeaders(

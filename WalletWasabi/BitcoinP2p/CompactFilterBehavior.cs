@@ -1,5 +1,6 @@
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using System.Reflection.PortableExecutable;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
@@ -23,7 +24,18 @@ public class CompactFilterBehavior(
 	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
 	private TimeSpan _filterProgressTimeout = FilterProgressTimeoutForTor;
 
-	private abstract record Assignment(RangeRequest RangeRequest, DateTime AssignedAt);
+	private abstract record Assignment(RangeRequest RangeRequest, DateTime AssignedAt)
+	{
+		public long BytesReceived { get; private set; }
+
+		public void CountReceivedBytes(long bytes) => BytesReceived += bytes;
+
+		public string GetSpeed()
+		{
+			var seconds = Math.Max((DateTime.UtcNow - AssignedAt).TotalSeconds, 0.001);
+			return $"{BytesReceived / 1024.0 / seconds:F1} KB/s; {BytesReceived / 1024.0:F1} KB in {seconds:F1}s";
+		}
+	}
 
 	private sealed record HeaderAssignment(RangeRequest RangeRequest, DateTime AssignedAt)
 		: Assignment(RangeRequest, AssignedAt);
@@ -41,6 +53,7 @@ public class CompactFilterBehavior(
 		{
 			CollectedFilters.Add(filter);
 			LastProgressAt = DateTime.UtcNow;
+			CountReceivedBytes(filter.FilterBytes.Length);
 		}
 
 		public string GetProgress() => $"{CollectedFilters.Count}/{RangeRequest.Count}";
@@ -128,8 +141,8 @@ public class CompactFilterBehavior(
 		{
 			switch (_assignment)
 			{
-				case HeaderAssignment header when message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeaders:
-					HandleFilterHeaderMessageNoLock(node, cfHeaders, header.RangeRequest);
+				case HeaderAssignment headerAssignment when message.Message.Payload is CompactFilterHeadersPayload { FilterType: FilterType.Basic } cfHeaders:
+					HandleFilterHeaderMessageNoLock(node, cfHeaders, headerAssignment);
 					break;
 
 				case FilterAssignment filterAssignment when message.Message.Payload is CompactFilterPayload { FilterType: FilterType.Basic } filterPayload:
@@ -139,12 +152,12 @@ public class CompactFilterBehavior(
 		}
 	}
 
-	private void HandleFilterHeaderMessageNoLock(Node node, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
+	private void HandleFilterHeaderMessageNoLock(Node node, CompactFilterHeadersPayload cfHeaders, HeaderAssignment assignment)
 	{
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
 
-		Logger.LogDebug($"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment}");
+		Logger.LogDebug($"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment.RangeRequest}");
 
 		if (batchCount == 0)
 		{
@@ -152,6 +165,8 @@ public class CompactFilterBehavior(
 			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
+
+		assignment.CountReceivedBytes(batchCount * 32L);
 
 		// Resolve the stop block to validate the response
 		var stopBlock = blockHeaderChain.GetBlock(cfHeaders.StopHash);
@@ -169,9 +184,9 @@ public class CompactFilterBehavior(
 		}
 
 		// Verify this matches our assignment
-		if ((uint) startHeight != assignment.StartHeight)
+		if ((uint) startHeight != assignment.RangeRequest.StartHeight)
 		{
-			Logger.LogWarning($"Received headers for wrong range - expected {assignment.StartHeight}, got {startHeight}");
+			Logger.LogWarning($"Received headers for wrong range - expected {assignment.RangeRequest.StartHeight}, got {startHeight}");
 			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
@@ -179,7 +194,7 @@ public class CompactFilterBehavior(
 		// Validate headers using shared state
 		var filterHashArray = filterHashes.ToArray();
 		var validationResult = synchronizationState.ValidateFilterHeaders(
-			assignment,
+			assignment.RangeRequest,
 			filterHashArray,
 			cfHeaders.PreviousFilterHeader,
 			node.Network);
@@ -187,19 +202,19 @@ public class CompactFilterBehavior(
 		switch (validationResult)
 		{
 			case HeaderValidationResult.Success:
-				Logger.LogInfo($"Successfully validated filter header range {assignment}");
+				Logger.LogInfo($"Successfully validated filter header range {assignment.RangeRequest}");
 				_assignment = null;
 				TrySyncNoLock(node);
 				break;
 
 			case HeaderValidationResult.NotReadyYet:
-				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
+				Logger.LogDebug($"Buffering filter header range {assignment.RangeRequest} for later validation");
 				_assignment = null;
 				TrySyncNoLock(node);
 				break;
 
 			case HeaderValidationResult.Invalid invalid:
-				Logger.LogWarning($"Validation failed for filter header range {assignment}: {invalid.Reason}");
+				Logger.LogWarning($"Validation failed for filter header range {assignment.RangeRequest}: {invalid.Reason}");
 				HandleInvalidNoLock(node, "Invalid compact filter headers received");
 				break;
 		}
@@ -253,7 +268,7 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		Logger.LogInfo($"Successfully validated range {assignment.RangeRequest}");
+		Logger.LogInfo($"Successfully validated range {assignment.RangeRequest} ({assignment.GetSpeed()})");
 
 		// Report success
 		synchronizationState.OnFilterRangeCompleted(assignment.RangeRequest.StartHeight, validatedFilters);
@@ -419,10 +434,12 @@ public class CompactFilterBehavior(
 		switch (_assignment)
 		{
 			case HeaderAssignment assignment:
+				Logger.LogDebug($"Releasing header assignment {assignment.RangeRequest} ({assignment.GetSpeed()})");
 				synchronizationState.OnHeaderNodeDisconnected(assignment.RangeRequest);
 				break;
 
 			case FilterAssignment assignment:
+				Logger.LogDebug($"Releasing filter assignment {assignment.RangeRequest} ({assignment.GetSpeed()})");
 				synchronizationState.OnFilterNodeDisconnected(assignment.RangeRequest);
 				break;
 		}
@@ -461,7 +478,7 @@ public class CompactFilterBehavior(
 					if (sinceLastProgress > _filterProgressTimeout)
 					{
 						var timeout = $"{_filterProgressTimeout.TotalSeconds:F1}s";
-						var reason = $"Filter range {assignment.RangeRequest} ({assignment.GetProgress()}) reached the progress timeout of {timeout}.";
+						var reason = $"Filter range {assignment.RangeRequest} ({assignment.GetProgress()}) reached the progress timeout of {timeout}. {assignment.GetSpeed()}.";
 						HandleInvalidNoLock(node, reason);
 						return true;
 					}
@@ -470,7 +487,7 @@ public class CompactFilterBehavior(
 					{
 						var timeout = $"{FilterAssignmentTimeout.TotalSeconds:F1}s";
 						var reason = $"Filter range {assignment.RangeRequest} ({assignment.GetProgress()}) reached the maximum timeout of {timeout}. " +
-							$"The last update was {sinceLastProgress.TotalSeconds:F1}s ago.";
+							$"The last update was {sinceLastProgress.TotalSeconds:F1}s ago. {assignment.GetSpeed()}.";
 						HandleInvalidNoLock(node, reason);
 						return true;
 					}
