@@ -28,10 +28,6 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
-	private static int IsShuttingDownFlag;
-
-	internal static bool IsShuttingDown => Volatile.Read(ref IsShuttingDownFlag) == 1;
-
 	internal static bool IsDbusMenuShutdownException(Exception exception)
 	{
 		if (exception is not NullReferenceException)
@@ -118,7 +114,6 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Interlocked.Exchange(ref IsShuttingDownFlag, 1);
 		if (Application.Current is null)
 		{
 			return;
@@ -249,9 +244,13 @@ public static class WasabiAppExtensions
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
+							// The tray icon's menu exporter is disposed when the dispatcher starts shutting down, whatever requested the shutdown.
+							// A menu update that is still queued at that point (e.g. the Quit item got disabled while its command runs) throws afterwards.
+							var isDispatcherShuttingDown = false;
+							Dispatcher.UIThread.ShutdownStarted += (_, _) => isDispatcherShuttingDown = true;
 							Dispatcher.UIThread.UnhandledException += (_, e) =>
 							{
-								if (Program.IsShuttingDown &&
+								if (isDispatcherShuttingDown &&
 									Program.IsDbusMenuShutdownException(e.Exception))
 								{
 									Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
