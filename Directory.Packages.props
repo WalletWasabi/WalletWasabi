@@ -1,13 +1,12 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <NetPackagesVersion>10.0.14</NetPackagesVersion>
-    <AvaloniaVersion>11.3.22</AvaloniaVersion>
+    <NetPackagesVersion>10.0.15</NetPackagesVersion>
+    <AvaloniaVersion>11.3.23</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
     <PackageVersion Include="Markdown.Avalonia" Version="11.0.3" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(NetPackagesVersion)" />
@@ -49,7 +48,7 @@
     <!-- Testing. -->
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(NetPackagesVersion)" />
-    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
     <!-- Scheme. -->
     <PackageVersion Include="NScheme" Version="0.0.1" />
   </ItemGroup>
