@@ -640,7 +640,7 @@ public class P2pConnectionManager : IDisposable
 	}
 
 	private abstract record CoordinatorMessage;
-	private record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
+	private record HarvestedEndpointsMessage(IReadOnlyList<EndPoint> Endpoints) : CoordinatorMessage;
 	private record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	private record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	private record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
@@ -654,8 +654,7 @@ public class P2pConnectionManager : IDisposable
 		bool SlowedDown,
 		int LastCrawlerIndex);
 
-	private record CrawlerState(
-		TimeSpan DelayBeforeVisitingNode);
+	private record CrawlerState(TimeSpan DelayBeforeVisitingNode);
 
 	private MessageHandler<CoordinatorMessage, CrawlingCoordinationState> CreateDiscovery(
 		MailboxProcessor<CrawlerMessage>[] crawlers) =>
@@ -795,7 +794,7 @@ public class P2pConnectionManager : IDisposable
 
 		if (_torSocks5 is { } torEndpoint)
 		{
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false, streamIsolation:false, networkCredential:null));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false, streamIsolation: false, networkCredential: null));
 		}
 		else if (endpoint.IsTor())
 		{
@@ -847,7 +846,7 @@ public class P2pConnectionManager : IDisposable
 
 	private async Task HarvestAddressesAsync(Node node, CancellationToken cancellationToken)
 	{
-		var tcs = new TaskCompletionSource<EndPoint[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var tcs = new TaskCompletionSource<IReadOnlyList<EndPoint>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		timeoutCts.CancelAfter(CrawlerHarvestTimeout);
@@ -881,13 +880,13 @@ public class P2pConnectionManager : IDisposable
 			var harvested = new List<EndPoint>();
 			foreach (var a in addr.Addresses.OrderByDescending(x => x.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS)))
 			{
-				if (a.Endpoint is { } ep)
+				if (a.Endpoint is { } ep && ep.IsRoutable(allowLocal: false))
 				{
 					harvested.Add(ep);
 				}
 			}
 
-			tcs.TrySetResult(harvested.ToArray());
+			tcs.TrySetResult(harvested);
 		}
 	}
 
