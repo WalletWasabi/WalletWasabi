@@ -7,7 +7,6 @@
   <ItemGroup>
     <!-- AspNetCore. -->
     <PackageVersion Include="Markdown.Avalonia" Version="11.0.3" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(NetPackagesVersion)" />
