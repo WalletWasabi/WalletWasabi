@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class PocketViewModel : CoinListItem
 {
+	private const string SomeCoinsCannotCoinjoinToolTip = "Some coins can't participate in coinjoin";
+
 	public PocketViewModel(UiContext uiContext, Pocket pocket, ICoinListModel availableCoins, bool canSelectCoinjoiningCoins, bool ignorePrivacyMode) : base(uiContext)
 	{
 		var pocketCoins = pocket.Coins.ToList();
@@ -19,7 +21,7 @@ public class PocketViewModel : CoinListItem
 		IgnorePrivacyMode = ignorePrivacyMode;
 		ConfirmationStatus = IsConfirmed ? "All coins are confirmed" : $"{unconfirmedCount} coins are waiting for confirmation";
 		IsBanned = pocketCoins.Any(x => x.IsBanned);
-		BannedUntilUtcToolTip = IsBanned ? "Some coins can't participate in coinjoin" : null;
+		BannedUntilUtcToolTip = IsBanned ? SomeCoinsCannotCoinjoinToolTip : null;
 		Amount = new Amount(pocket.Amount);
 		IsCoinjoining = pocketCoins.Any(x => x.CoinJoinInProgress);
 		AnonymityScore = GetAnonScore(pocketCoins);
@@ -43,6 +45,13 @@ public class PocketViewModel : CoinListItem
 			.AutoRefresh(x => IsCoinjoining)
 			.Select(_ => Children.Any(x => x.IsCoinjoining))
 			.BindTo(this, x => x.IsCoinjoining)
+			.DisposeWith(_disposables);
+
+		Children
+			.AsObservableChangeSet()
+			.AutoRefresh(x => x.CoinJoinIneligibilityToolTip)
+			.Select(_ => Children.Any(x => x.CoinJoinIneligibilityToolTip is not null) ? SomeCoinsCannotCoinjoinToolTip : null)
+			.BindTo(this, x => x.CoinJoinIneligibilityToolTip)
 			.DisposeWith(_disposables);
 
 		ScriptType = null;

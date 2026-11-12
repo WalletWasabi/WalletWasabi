@@ -158,6 +158,12 @@ public class CoinJoinClient
 			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxAmountCredentialValue);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes);
 
+			// Leave on each coin why this round does not accept it, so that the user can be told.
+			foreach (var coin in coinCandidates)
+			{
+				coin.CoinJoinIneligibility = utxoSelectionParameters.GetIneligibility(coin);
+			}
+
 			myCoins = _coinSelector(coinCandidates, utxoSelectionParameters, liquidityClue);
 
 			if (!roundParameters.AllowedInputTypes.Contains(ScriptType.P2WPKH) || !roundParameters.AllowedOutputTypes.Contains(ScriptType.P2WPKH))
