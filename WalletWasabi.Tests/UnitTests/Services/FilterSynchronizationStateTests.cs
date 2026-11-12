@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Linq;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -12,6 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 public class FilterSynchronizationStateTests
 {
 	private static readonly Network Network = Network.RegTest;
+	private static readonly byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
 
 	/// <summary>
 	/// Tests compact filter assignment rules.
@@ -79,27 +81,158 @@ public class FilterSynchronizationStateTests
 		Assert.Equal(2000u, reassigned.StopHeight);
 	}
 
+	/// <summary>
+	/// Block headers, filter headers and compact filters are downloaded one after the other.
+	/// Blocks come once all of them are complete.
+	/// </summary>
+	[Fact]
+	public void ComponentsAreDownloadedInOrder()
+	{
+		var blockHeaderChain = CreateBlockHeaderChain(height: 1000);
+		var filterHeaderChain = CreateFilterHeaderChain(blockHeaderChain, height: 0);
+		var blockHeaderSynchronizationState = new BlockHeaderSynchronizationState();
+		var state = new FilterSynchronizationState(blockHeaderChain, filterHeaderChain, tipHeight: 0, blockHeaderSynchronizationState: blockHeaderSynchronizationState);
+
+		// The peers may have more block headers. Nothing else is requested until they are downloaded.
+		Assert.Equal(SyncStage.BlockHeaders, state.CurrentStage);
+		Assert.False(state.TryAssignHeaderRange(out _));
+		Assert.False(state.TryAssignFilterRange(out _, out _, out _));
+
+		// The block headers are complete. Filter headers are next, the filters wait for them.
+		ReportNoMoreBlockHeaders(blockHeaderSynchronizationState, blockHeaderChain);
+		Assert.Equal(SyncStage.FilterHeaders, state.CurrentStage);
+		Assert.False(state.TryAssignFilterRange(out _, out _, out _));
+		Assert.True(state.TryAssignHeaderRange(out var headerRange));
+		Assert.Equal((1u, 1000u), (headerRange.StartHeight, headerRange.StopHeight));
+		Assert.False(state.TryAssignFilterRange(out _, out _, out _));
+
+		// The filter headers are complete. Filters are next.
+		DeliverFilterHeaders(state, headerRange);
+		Assert.Equal(SyncStage.CompactFilters, state.CurrentStage);
+		Assert.True(state.TryAssignFilterRange(out var firstFilterRange, out _, out _));
+		Assert.True(state.TryAssignFilterRange(out var secondFilterRange, out _, out _));
+		Assert.Equal((1u, 500u), (firstFilterRange.StartHeight, firstFilterRange.StopHeight));
+		Assert.Equal((501u, 1000u), (secondFilterRange.StartHeight, secondFilterRange.StopHeight));
+
+		// The second half of the filters arrives first. The filters are complete when all of them are there.
+		DeliverFilters(state, filterHeaderChain, secondFilterRange);
+		Assert.Equal(SyncStage.CompactFilters, state.CurrentStage);
+		DeliverFilters(state, filterHeaderChain, firstFilterRange);
+		Assert.Equal(SyncStage.Blocks, state.CurrentStage);
+	}
+
+	/// <summary>
+	/// A new block goes through the same order: its filter header, then its filter.
+	/// </summary>
+	[Fact]
+	public void NewBlockIsDownloadedInOrder()
+	{
+		var blockHeaderChain = CreateBlockHeaderChain(height: 1000);
+		var filterHeaderChain = CreateFilterHeaderChain(blockHeaderChain, height: 1000);
+		var blockHeaderSynchronizationState = new BlockHeaderSynchronizationState();
+		var state = new FilterSynchronizationState(blockHeaderChain, filterHeaderChain, tipHeight: 1000, blockHeaderSynchronizationState: blockHeaderSynchronizationState);
+
+		ReportNoMoreBlockHeaders(blockHeaderSynchronizationState, blockHeaderChain);
+		Assert.Equal(SyncStage.Blocks, state.CurrentStage);
+		Assert.False(state.TryAssignHeaderRange(out _));
+		Assert.False(state.TryAssignFilterRange(out _, out _, out _));
+
+		// A node announces a new block.
+		AppendBlockHeader(blockHeaderChain);
+		ReportNoMoreBlockHeaders(blockHeaderSynchronizationState, blockHeaderChain);
+
+		Assert.Equal(SyncStage.FilterHeaders, state.CurrentStage);
+		Assert.False(state.TryAssignFilterRange(out _, out _, out _));
+		Assert.True(state.TryAssignHeaderRange(out var headerRange));
+		Assert.Equal((1001u, 1001u), (headerRange.StartHeight, headerRange.StopHeight));
+
+		DeliverFilterHeaders(state, headerRange);
+		Assert.Equal(SyncStage.CompactFilters, state.CurrentStage);
+		Assert.True(state.TryAssignFilterRange(out var filterRange, out _, out _));
+		Assert.Equal((1001u, 1001u), (filterRange.StartHeight, filterRange.StopHeight));
+
+		DeliverFilters(state, filterHeaderChain, filterRange);
+		Assert.Equal(SyncStage.Blocks, state.CurrentStage);
+	}
+
+	/// <summary>
+	/// Without a <see cref="BlockHeaderSynchronizationState"/>, the block headers that are known are taken as complete.
+	/// </summary>
+	[Fact]
+	public void BlockHeadersAreNotWaitedForWhenTheirStateIsNotTracked()
+	{
+		var state = CreateState(blockHeaders: 1000, filterHeaders: 0);
+
+		Assert.Equal(SyncStage.FilterHeaders, state.CurrentStage);
+		Assert.True(state.TryAssignHeaderRange(out _));
+	}
+
 	private static FilterSynchronizationState CreateState(int blockHeaders, int filterHeaders)
 	{
-		var blockHeaderChain = new ConcurrentChain(Network);
-		var tip = blockHeaderChain.Tip;
-		for (var i = 0; i < blockHeaders; i++)
-		{
-			var header = Network.Consensus.ConsensusFactory.CreateBlockHeader();
-			header.HashPrevBlock = tip.HashBlock;
-			header.Nonce = (uint)(tip.Height + 1);
-			tip = new ChainedBlock(header, header.GetHash(), tip);
-		}
-
-		blockHeaderChain.SetTip(tip);
-
-		var filterHeaderChain = new FilterHeaderChain();
-		filterHeaderChain.AppendTip(FilterCheckpoints.GetWasabiGenesisFilter(Network).Header);
-		for (var height = 1u; height <= filterHeaders; height++)
-		{
-			filterHeaderChain.AppendTip(new SmartHeader(blockHeaderChain.GetBlock((int)height).HashBlock, new uint256(height), height, 0L));
-		}
+		var blockHeaderChain = CreateBlockHeaderChain(blockHeaders);
+		var filterHeaderChain = CreateFilterHeaderChain(blockHeaderChain, filterHeaders);
 
 		return new FilterSynchronizationState(blockHeaderChain, filterHeaderChain, tipHeight: 0);
+	}
+
+	private static ConcurrentChain CreateBlockHeaderChain(int height)
+	{
+		var blockHeaderChain = new ConcurrentChain(Network);
+		for (var i = 0; i < height; i++)
+		{
+			AppendBlockHeader(blockHeaderChain);
+		}
+
+		return blockHeaderChain;
+	}
+
+	private static void AppendBlockHeader(ConcurrentChain blockHeaderChain)
+	{
+		var tip = blockHeaderChain.Tip;
+		var header = Network.Consensus.ConsensusFactory.CreateBlockHeader();
+		header.HashPrevBlock = tip.HashBlock;
+		header.Nonce = (uint)(tip.Height + 1);
+		blockHeaderChain.SetTip(new ChainedBlock(header, header.GetHash(), tip));
+	}
+
+	private static FilterHeaderChain CreateFilterHeaderChain(ConcurrentChain blockHeaderChain, int height)
+	{
+		var filterHeaderChain = new FilterHeaderChain();
+		filterHeaderChain.AppendTip(FilterCheckpoints.GetWasabiGenesisFilter(Network).Header);
+		for (var h = 1u; h <= height; h++)
+		{
+			filterHeaderChain.AppendTip(new SmartHeader(blockHeaderChain.GetBlock((int)h).HashBlock, new uint256(h), h, 0L));
+		}
+
+		return filterHeaderChain;
+	}
+
+	/// <summary>A node that is at the tip of the chain answers that it has no more block headers.</summary>
+	private static void ReportNoMoreBlockHeaders(BlockHeaderSynchronizationState blockHeaderSynchronizationState, ConcurrentChain blockHeaderChain)
+	{
+		var tip = blockHeaderChain.Tip;
+		blockHeaderSynchronizationState.OnHeadersProcessed(isFullMessage: false, hasExtendedChain: false, chainTip: tip, nodeTip: tip);
+		Assert.True(blockHeaderSynchronizationState.IsSynchronized);
+	}
+
+	/// <summary>A node answers the request for the filter headers of the range.</summary>
+	private static void DeliverFilterHeaders(FilterSynchronizationState state, RangeRequest range)
+	{
+		var filterHashes = Enumerable.Range((int)range.StartHeight, (int)range.Count).Select(h => new uint256((ulong)h)).ToArray();
+		Assert.True(state.TryGetPreviousFilterHeader(range.StartHeight, Network, out var previousFilterHeader));
+
+		var result = state.ValidateFilterHeaders(range, filterHashes, previousFilterHeader, Network);
+
+		Assert.IsType<FilterSynchronizationState.HeaderValidationResult.Success>(result);
+	}
+
+	/// <summary>A node answers the request for the filters of the range.</summary>
+	private static void DeliverFilters(FilterSynchronizationState state, FilterHeaderChain filterHeaderChain, RangeRequest range)
+	{
+		var filters = Enumerable.Range((int)range.StartHeight, (int)range.Count)
+			.Select(h => new FilterModel(filterHeaderChain[(uint)h]!, new GolombRiceFilter(DummyFilterData, 20, 1 << 20)))
+			.ToArray();
+
+		state.OnFilterRangeCompleted(range.StartHeight, filters);
 	}
 }

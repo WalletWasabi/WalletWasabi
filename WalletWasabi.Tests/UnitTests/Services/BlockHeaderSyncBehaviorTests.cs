@@ -17,6 +17,9 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 /// Drives <see cref="BlockHeaderSyncBehavior"/> against an in-process node that answers <c>getheaders</c> like Bitcoin Core:
 /// headers after the first locator hash it knows, or from genesis when it knows none.
 /// </summary>
+/// <remarks>The node is given a fixed time to answer, which it can miss while other tests are running.</remarks>
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class BlockHeaderSyncBehaviorTests
 {
 	private static readonly Network Network = Network.RegTest;
@@ -91,6 +94,63 @@ public class BlockHeaderSyncBehaviorTests
 		Assert.Equal(1, requests);
 	}
 
+	[Fact]
+	public async Task BlockHeadersAreSynchronizedWhenThePeerHasNoMoreAsync()
+	{
+		var nodeHeaders = MineChain(count: 4116);
+		var chain = new ConcurrentChain();
+		chain.SetTip(new ChainedBlock(nodeHeaders[2016], 2016));
+		var synchronizationState = new BlockHeaderSynchronizationState();
+
+		using var fakeNode = new FakeNode(nodeHeaders);
+		await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2), synchronizationState);
+
+		Assert.Equal(4116, chain.Tip!.Height);
+		Assert.True(synchronizationState.IsSynchronized); // The second message, of 100 headers, was not full.
+	}
+
+	[Fact]
+	public async Task BlockHeadersAreSynchronizedWhenThePeerHasNothingNewAsync()
+	{
+		var headers = MineChain(count: 2100);
+		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 2100); // Restarted with no new block: already at the peer's tip.
+		var synchronizationState = new BlockHeaderSynchronizationState();
+
+		using var fakeNode = new FakeNode(headers);
+		await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2), synchronizationState);
+
+		Assert.True(synchronizationState.IsSynchronized); // What is downloaded after the block headers waits for this.
+	}
+
+	[Fact]
+	public async Task BlockHeadersAreNotSynchronizedWhileThePeerHasMoreAsync()
+	{
+		var headers = MineChain(count: 6116);
+		var chain = new ConcurrentChain();
+		chain.SetTip(new ChainedBlock(headers[2016], 2016));
+		var synchronizationState = new BlockHeaderSynchronizationState();
+
+		using var fakeNode = new FakeNode(headers, alwaysAnswersFrom: 2017); // Sends 2017-4016, then the same again instead of the rest.
+		await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2), synchronizationState);
+
+		Assert.Equal(4016, chain.Tip!.Height);
+		Assert.False(synchronizationState.IsSynchronized); // Every message was full: the peer has more headers.
+	}
+
+	[Fact]
+	public async Task APeerBehindUsDoesNotTellThatBlockHeadersAreSynchronizedAsync()
+	{
+		var headers = MineChain(count: 6116);
+		var chain = ChainFrom(headers, baseHeight: 2016, tipHeight: 6116);
+		var synchronizationState = new BlockHeaderSynchronizationState();
+
+		using var fakeNode = new FakeNode(headers.Take(2117).ToList()); // The node is at 2116.
+		await fakeNode.SyncAsync(chain, new FilterHeaderChain(), settleTime: TimeSpan.FromSeconds(2), synchronizationState);
+
+		Assert.Equal(6116, chain.Tip!.Height);
+		Assert.False(synchronizationState.IsSynchronized); // Its answer, 2017-2116, ends below the tip of the chain.
+	}
+
 	/// <summary>Mines a regtest header chain; index = height, so <c>[0]</c> is genesis.</summary>
 	private static List<BlockHeader> MineChain(int count, uint salt = 0)
 	{
@@ -148,10 +208,10 @@ public class BlockHeaderSyncBehaviorTests
 			_server.Listen();
 		}
 
-		public async Task<int> SyncAsync(ConcurrentChain chain, FilterHeaderChain filterHeaderChain, TimeSpan settleTime)
+		public async Task<int> SyncAsync(ConcurrentChain chain, FilterHeaderChain filterHeaderChain, TimeSpan settleTime, BlockHeaderSynchronizationState? synchronizationState = null)
 		{
 			using var node = await Node.ConnectAsync(Network, _server.LocalEndpoint);
-			node.Behaviors.Add(new BlockHeaderSyncBehavior(chain, filterHeaderChain, new EventBus()));
+			node.Behaviors.Add(new BlockHeaderSyncBehavior(chain, synchronizationState ?? new BlockHeaderSynchronizationState(), filterHeaderChain, new EventBus()));
 			await node.VersionHandshakeAsync();
 			await Task.Delay(settleTime);
 			node.Disconnect();

@@ -131,6 +131,11 @@ public class Global
 	private readonly IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly ConcurrentChain _blockHeaders;
+	private readonly BlockHeaderSynchronizationState _blockHeaderSynchronizationState = new();
+
+	/// <summary><c>null</c> unless the compact filters are downloaded from the peers.</summary>
+	private volatile FilterSynchronizationState? _filterSynchronizationState;
+
 	private readonly Timer _ticker;
 	private readonly ComposedDisposable _disposables = new();
 	private readonly MempoolService _mempoolService;
@@ -288,9 +293,9 @@ public class Global
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
-		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
+		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint, getSyncStage: GetSyncStage);
 
-		manager.AddBehavior(new BlockHeaderSyncBehavior(_blockHeaders, FilterHeaders, EventBus));
+		manager.AddBehavior(new BlockHeaderSyncBehavior(_blockHeaders, _blockHeaderSynchronizationState, FilterHeaders, EventBus));
 
 		if (!Config.BlockOnlyMode)
 		{
@@ -300,6 +305,11 @@ public class Global
 		manager.DisposeUsing(_disposables);
 		return manager;
 	}
+
+	/// <summary>The component that is being downloaded from the peers at the moment.</summary>
+	private SyncStage GetSyncStage() =>
+		_filterSynchronizationState?.CurrentStage
+		?? (_blockHeaderSynchronizationState.IsSynchronized ? SyncStage.Blocks : SyncStage.BlockHeaders);
 
 	private RpcClientBase? ConfigureBitcoinRpcClient()
 	{
@@ -412,7 +422,8 @@ public class Global
 				_ =>
 				{
 					var tip = FilterManager.GetTip()!.Header;
-					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
+					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus, _blockHeaderSynchronizationState);
+					_filterSynchronizationState = synchronizationState;
 					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);

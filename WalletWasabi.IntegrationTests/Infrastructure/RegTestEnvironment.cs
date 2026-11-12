@@ -193,17 +193,18 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public async Task SyncFiltersP2PAsync(CancellationToken cancellationToken)
 	{
 		var blockHeaderChain = new ConcurrentChain(Network);
+		var blockHeaderSynchronizationState = new BlockHeaderSynchronizationState();
 
 		// Create the filter synchronization state
 		var tip = FilterManager.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
-		var synchronizationState = new FilterSynchronizationState(blockHeaderChain, FilterHeaderChain, tipHeight);
+		var synchronizationState = new FilterSynchronizationState(blockHeaderChain, FilterHeaderChain, tipHeight, blockHeaderSynchronizationState: blockHeaderSynchronizationState);
 
 		// Create a P2P connection to Bitcoin Core - behaviors must be added before handshake
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
 
 		// Add behaviors for syncing block headers and compact filters
-		node.Behaviors.Add(new BlockHeaderSyncBehavior(blockHeaderChain, FilterHeaderChain, EventBus));
+		node.Behaviors.Add(new BlockHeaderSyncBehavior(blockHeaderChain, blockHeaderSynchronizationState, FilterHeaderChain, EventBus));
 		node.Behaviors.Add(new CompactFilterBehavior(synchronizationState, blockHeaderChain, EventBus));
 
 		// Start emitting tick events to drive the sync process
@@ -219,22 +220,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		// Get the target height from Bitcoin Core
 		var targetHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 
-		// Wait for block headers to sync to target height (with timeout)
-		// This fixes a race condition where filter sync would start before block headers were ready
-		var headerSyncTimeout = TimeSpan.FromSeconds(30);
-		var headerSyncDeadline = DateTime.UtcNow + headerSyncTimeout;
-		while (blockHeaderChain.Tip?.Height < targetHeight)
-		{
-			if (DateTime.UtcNow > headerSyncDeadline)
-			{
-				throw new TimeoutException(
-					$"Block headers did not sync to target height {targetHeight} within {headerSyncTimeout.TotalSeconds}s. " +
-					$"Current height: {blockHeaderChain.Tip?.Height ?? 0}");
-			}
-			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-		}
-
-		// Create the P2P filter provider
+		// Create the P2P filter provider. It waits for the block headers to be downloaded.
 		var filterProvider = FilterProviders.CreateBitcoinP2pFilterProvider(
 			FilterHeaderChain,
 			blockHeaderChain,

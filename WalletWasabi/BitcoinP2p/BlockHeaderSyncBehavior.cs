@@ -11,6 +11,7 @@ namespace WalletWasabi.BitcoinP2p;
 /// </summary>
 public class BlockHeaderSyncBehavior(
 	ConcurrentChain blockHeaderChain,
+	BlockHeaderSynchronizationState synchronizationState,
 	FilterHeaderChain filterHeaderChain,
 	EventBus eventBus)
 	: NodeBehavior
@@ -33,7 +34,7 @@ public class BlockHeaderSyncBehavior(
 	}
 
 	public override object Clone() =>
-		new BlockHeaderSyncBehavior(blockHeaderChain, filterHeaderChain, eventBus);
+		new BlockHeaderSyncBehavior(blockHeaderChain, synchronizationState, filterHeaderChain, eventBus);
 
 	private void OnStateChanged(Node node, NodeState oldState)
 	{
@@ -106,9 +107,11 @@ public class BlockHeaderSyncBehavior(
 			cursor = candidate;
 		}
 
+		var hasExtendedChain = false;
 		if (cursor.GetChainWork(cacheResult: true) > blockHeaderChain.Tip.GetChainWork(cacheResult: true))
 		{
 			blockHeaderChain.SetTip(cursor);
+			hasExtendedChain = true;
 			eventBus.Publish(new BlockHeadersTipChanged((uint)cursor.Height));
 		}
 
@@ -121,7 +124,11 @@ public class BlockHeaderSyncBehavior(
 
 		_peerTip = blockHeaderChain.GetBlock(cursor.HashBlock) ?? cursor;
 
-		if (headers.Headers.Count >= MaxHeadersPerMessage && cursor.Height > start.Height)
+		// What is downloaded after the block headers waits for a peer to tell that it has no more of them.
+		var isFullMessage = headers.Headers.Count >= MaxHeadersPerMessage;
+		synchronizationState.OnHeadersProcessed(isFullMessage, hasExtendedChain, blockHeaderChain.Tip, _peerTip);
+
+		if (isFullMessage && cursor.Height > start.Height)
 		{
 			RequestHeaders(node);
 		}

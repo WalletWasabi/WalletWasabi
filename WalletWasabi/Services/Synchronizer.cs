@@ -191,6 +191,13 @@ public static class FilterProviders
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 			}
 
+			// Block headers are downloaded first. Until then it is not known which block is the best one.
+			if (synchronizationState.CurrentStage == SyncStage.BlockHeaders)
+			{
+				Logger.LogTrace("Block headers are not synchronized yet. Retrying in 1 second.");
+				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
 			// Block headers are synchronized from scratch. Filter headers are synchronized from an appropriate checkpoint.
 			if (blockHeadersChain.Height < filterHeadersChain.TipHeight)
 			{

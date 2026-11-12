@@ -3,6 +3,7 @@ using NBitcoin.Protocol.Behaviors;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Crypto.Randomness;
 using static WalletWasabi.Services.Workers;
 
@@ -60,7 +61,7 @@ public delegate ImmutableArray<Node> P2pNodeListProvider();
 
 public class P2pConnectionManager : IDisposable
 {
-	private const int TargetConnections = 12;
+	internal const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
 	private const double RotationScoreMargin = PeerInfo.MaxScore * 0.1;
 	private const int DefaultCrawlerCount = 10;
@@ -79,6 +80,12 @@ public class P2pConnectionManager : IDisposable
 	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(15);
 	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(4);
 
+	/// <summary>
+	/// How long the download of blocks waits for <see cref="TargetConnections"/> peers to be connected,
+	/// counted from the oldest connection.
+	/// </summary>
+	internal static readonly TimeSpan PeerGatheringPeriod = TimeSpan.FromSeconds(30);
+
 	private readonly Network _network;
 	private readonly List<NodeBehavior> _templateBehaviors = [];
 	private readonly EventBus _eventBus;
@@ -86,6 +93,7 @@ public class P2pConnectionManager : IDisposable
 	private readonly TimeSpan _connectionTimeout;
 	private readonly int _crawlerCount;
 	private readonly EndPoint? _torSocks5;
+	private readonly Func<SyncStage> _getSyncStage;
 
 	private readonly ConcurrentDictionary<EndPoint, (Node Node, PeerInfo PeerInfo, DateTimeOffset ConnectedAt)> _connectedNodes = new();
 	private readonly ConcurrentDictionary<EndPoint, DateTimeOffset> _connectionAttempts = new();
@@ -104,13 +112,18 @@ public class P2pConnectionManager : IDisposable
 
 	private bool _isDisposed;
 
+	/// <param name="getSyncStage">
+	/// Tells which component is being downloaded from the peers, to know which of them are free to serve blocks.
+	/// <c>null</c> if blocks are the only component that is downloaded from the peers.
+	/// </param>
 	public P2pConnectionManager(
 		Network network,
 		EventBus eventBus,
 		IDnsResolver dnsResolver,
 		TimeSpan connectionTimeout,
 		int crawlerCount = DefaultCrawlerCount,
-		EndPoint? torSocks5 = null)
+		EndPoint? torSocks5 = null,
+		Func<SyncStage>? getSyncStage = null)
 	{
 		_network = network;
 		_eventBus = eventBus;
@@ -118,6 +131,7 @@ public class P2pConnectionManager : IDisposable
 		_connectionTimeout = connectionTimeout;
 		_crawlerCount = crawlerCount;
 		_torSocks5 = torSocks5;
+		_getSyncStage = getSyncStage ?? (() => SyncStage.Blocks);
 		_stoppingCts.DisposeUsing(_disposables);
 	}
 
@@ -226,7 +240,7 @@ public class P2pConnectionManager : IDisposable
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
+			var nodes = GetNodesToDownloadBlocksFrom(DateTimeOffset.UtcNow);
 
 			if (nodes.Length == 0)
 			{
@@ -256,6 +270,38 @@ public class P2pConnectionManager : IDisposable
 		cancellationToken.ThrowIfCancellationRequested();
 		throw new InvalidOperationException("Failed to retrieve a connected node.");
 	}
+
+	/// <summary>
+	/// Nodes that a block can be requested from at the moment.
+	/// </summary>
+	/// <remarks>Blocks are the last component to download: peers are busy with the other ones until then.</remarks>
+	private Node[] GetNodesToDownloadBlocksFrom(DateTimeOffset now)
+	{
+		var connections = _connectedNodes.Values.Where(x => x.Node.IsConnected).ToArray();
+
+		if (connections.Length == 0 || !HasEnoughPeersForBlocks(connections.Length, now - connections.Min(x => x.ConnectedAt)))
+		{
+			return [];
+		}
+
+		var syncStage = _getSyncStage();
+
+		return connections
+			.Select(x => x.Node)
+			.Where(n => n.CanServeBlocks && syncStage.AllowsBlockDownloadFrom(n.SupportsCompactFilters))
+			.ToArray();
+	}
+
+	/// <summary>
+	/// Tells whether enough peers are connected to request blocks.
+	/// </summary>
+	/// <remarks>
+	/// The blocks that a wallet asks for reveal what belongs to it. Each block is requested from a peer picked at
+	/// random, which protects only when there are many peers to pick from. So connecting to peers comes before
+	/// the blocks, but not for ever: there may not be enough reachable peers.
+	/// </remarks>
+	internal static bool HasEnoughPeersForBlocks(int peerCount, TimeSpan oldestConnectionAge) =>
+		peerCount >= TargetConnections || (peerCount > 0 && oldestConnectionAge >= PeerGatheringPeriod);
 
 	public void DisconnectNode(Node node, MisbehaviorType misbehaviorType)
 	{

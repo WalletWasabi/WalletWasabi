@@ -17,6 +17,7 @@ public class FilterSynchronizationState
 	private readonly ConcurrentChain _blockHeaderChain;
 	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly EventBus? _eventBus;
+	private readonly BlockHeaderSynchronizationState? _blockHeaderSynchronizationState;
 
 	private readonly RequestTracker<HeaderResponse> _headerTracker;
 	private readonly RequestTracker<FilterResponse> _filterTracker;
@@ -25,17 +26,56 @@ public class FilterSynchronizationState
 
 	private readonly SortedDictionary<uint, UnvalidatedHeaderResponse> _bufferedHeaderResponses = [];
 
+	/// <param name="blockHeaderSynchronizationState">
+	/// Tells when the block headers are synchronized, which is when the download of filter headers starts.
+	/// <c>null</c> to not wait for the block headers.
+	/// </param>
 	public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
-		EventBus? eventBus = null)
+		EventBus? eventBus = null, BlockHeaderSynchronizationState? blockHeaderSynchronizationState = null)
 	{
 		_blockHeaderChain = blockHeaderChain;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
+		_blockHeaderSynchronizationState = blockHeaderSynchronizationState;
 
 		var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
 		_headerTracker = new RequestTracker<HeaderResponse>(initialHeaderHeight);
 		_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
 		_filterTracker = new RequestTracker<FilterResponse>(tipHeight);
+	}
+
+	/// <summary>The component that is being downloaded: the first one in the order that is not complete.</summary>
+	public SyncStage CurrentStage
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return GetCurrentStageNoLock();
+			}
+		}
+	}
+
+	private SyncStage GetCurrentStageNoLock()
+	{
+		// The block header chain has no tip until it is given the block that it starts at.
+		if (_blockHeaderSynchronizationState is { IsSynchronized: false } || _blockHeaderChain.Tip is not { } blockHeadersTip)
+		{
+			return SyncStage.BlockHeaders;
+		}
+
+		if (_filterHeaderChain.Tip is not { } filterHeadersTip || (uint)filterHeadersTip.Height < blockHeadersTip.Height)
+		{
+			return SyncStage.FilterHeaders;
+		}
+
+		// The filters are downloaded when the last of them is queued for the consumer.
+		if (_filterTracker.LastHeight < (uint)filterHeadersTip.Height)
+		{
+			return SyncStage.CompactFilters;
+		}
+
+		return SyncStage.Blocks;
 	}
 
 	internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
@@ -44,6 +84,12 @@ public class FilterSynchronizationState
 		lock (_lock)
 		{
 			RewindTrackersToFilterHeaderTipNoLock();
+
+			// Filter headers are downloaded once the block headers are all known.
+			if (GetCurrentStageNoLock() < SyncStage.FilterHeaders)
+			{
+				return false;
+			}
 
 			var chainTip = _blockHeaderChain.Tip;
 
@@ -307,6 +353,12 @@ public class FilterSynchronizationState
 			pendingCount = _filterTracker.PendingCount;
 
 			RewindTrackersToFilterHeaderTipNoLock();
+
+			// Compact filters are downloaded once the filter headers are all known.
+			if (GetCurrentStageNoLock() < SyncStage.CompactFilters)
+			{
+				return false;
+			}
 
 			// Check if filter headers are synced ahead
 			var filterHeadersTip = _filterHeaderChain.Tip;
