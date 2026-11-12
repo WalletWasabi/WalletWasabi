@@ -1,6 +1,5 @@
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using System.Reflection.PortableExecutable;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
