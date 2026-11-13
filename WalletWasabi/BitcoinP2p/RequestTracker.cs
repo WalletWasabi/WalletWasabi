@@ -167,7 +167,7 @@ public record FilterResponse(uint StartHeight, FilterModel[] Filters) : Response
 /// </summary>
 public record UnvalidatedHeaderResponse(
 	RangeRequest Assignment,
-	uint256[] FilterHashes,
+	IReadOnlyList<uint256> FilterHashes,
 	uint256 DeclaredPreviousFilterHeader,
 	Network Network);
 

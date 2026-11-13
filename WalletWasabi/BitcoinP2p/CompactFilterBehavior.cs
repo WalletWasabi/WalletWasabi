@@ -194,7 +194,7 @@ public class CompactFilterBehavior(
 		var filterHashArray = filterHashes.ToArray();
 		var validationResult = synchronizationState.ValidateFilterHeaders(
 			assignment.RangeRequest,
-			filterHashArray,
+			filterHashes,
 			cfHeaders.PreviousFilterHeader,
 			node.Network);
 
