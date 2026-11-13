@@ -256,7 +256,7 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		Logger.LogDebug($"Filter assignment {assignment.RangeRequest} is complete ({assignment.GetProgress()})");
+		Logger.LogDebug($"Filter assignment {assignment.RangeRequest} is complete ({assignment.GetSpeed()})");
 		var validatedFilters = ValidateFilters(assignment.RangeRequest.StartHeight, assignment.CollectedFilters, node.Network);
 
 		if (validatedFilters is null)
@@ -267,9 +267,8 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		Logger.LogInfo($"Successfully validated range {assignment.RangeRequest} ({assignment.GetSpeed()})");
-
 		// Report success
+		Logger.LogInfo($"Successfully validated range {assignment.RangeRequest}");
 		synchronizationState.OnFilterRangeCompleted(assignment.RangeRequest.StartHeight, validatedFilters);
 		_assignment = null;
 
