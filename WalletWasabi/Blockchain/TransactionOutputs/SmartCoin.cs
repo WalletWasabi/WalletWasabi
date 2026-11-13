@@ -92,6 +92,16 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
+	/// <summary>
+	/// Why the coinjoin round that considered the coin last did not accept it.
+	/// <c>null</c> if that round accepted it, or if no round has considered the coin yet.
+	/// </summary>
+	public CoinJoinIneligibility? CoinJoinIneligibility
+	{
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
+	}
+
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
 	public bool IsSpent() => SpenderTransaction is not null;
 

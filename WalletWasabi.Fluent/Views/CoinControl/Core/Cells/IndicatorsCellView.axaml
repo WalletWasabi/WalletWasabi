@@ -32,6 +32,7 @@
         <MultiBinding Converter="{x:Static BoolConverters.And}">
           <Binding Path="!IsBanned"/>
           <Binding Path="!IsExcludedFromCoinJoin"/>
+          <Binding Path="CoinJoinIneligibilityToolTip" Converter="{x:Static ObjectConverters.IsNull}"/>
         </MultiBinding>
       </Panel.IsVisible>
       <PathIcon IsVisible="{Binding IsCoinjoining}"
@@ -55,6 +56,20 @@
       <PathIcon.IsVisible>
         <MultiBinding Converter="{x:Static BoolConverters.And}">
           <Binding Path="IsBanned"/>
+          <Binding Path="!IsExcludedFromCoinJoin"/>
+        </MultiBinding>
+      </PathIcon.IsVisible>
+    </PathIcon>
+
+    <!-- Not accepted by the last coinjoin round -->
+    <PathIcon Data="{StaticResource warning_circle}"
+              Foreground="{DynamicResource WarningMessageForeground}"
+              Height="14"
+              ToolTip.Tip="{Binding CoinJoinIneligibilityToolTip}">
+      <PathIcon.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="CoinJoinIneligibilityToolTip" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+          <Binding Path="!IsBanned"/>
           <Binding Path="!IsExcludedFromCoinJoin"/>
         </MultiBinding>
       </PathIcon.IsVisible>

@@ -18,6 +18,7 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private bool _isCoinJoinInProgress;
 	[AutoNotify] private bool _isBanned;
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
+	[AutoNotify] private string? _coinJoinIneligibilityToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
 	[AutoNotify] private int _anonScore;
 	[AutoNotify] private uint _confirmations;
@@ -42,6 +43,7 @@ public partial class CoinModel : ReactiveObject
 		IsCoinJoinInProgress = coin.CoinJoinInProgress;
 		IsBanned = coin.IsBanned;
 		BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {coin.BannedUntilUtc}";
+		CoinJoinIneligibilityToolTip = GetCoinJoinIneligibilityToolTip(coin.CoinJoinIneligibility);
 
 		var confirmations = coin.GetConfirmations(services.GetServerTipHeight());
 		Confirmations = confirmations;
@@ -87,6 +89,7 @@ public partial class CoinModel : ReactiveObject
 		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).Select(_ => Coin.IsBanned).BindTo(this, x => x.IsBanned).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.CoinJoinIneligibility).Select(GetCoinJoinIneligibilityToolTip).BindTo(this, x => x.CoinJoinIneligibilityToolTip).DisposeWith(disposable);
 
 		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations(_services.GetServerTipHeight())).Subscribe(
 			confirmations =>
@@ -104,4 +107,16 @@ public partial class CoinModel : ReactiveObject
 
 	// TODO: Leaky abstraction. This shouldn't exist.
 	public SmartCoin GetSmartCoin() => Coin;
+
+	/// <returns>What to tell the user about a coin that the last coinjoin round did not accept, or <c>null</c> if there is nothing to tell.</returns>
+	private string? GetCoinJoinIneligibilityToolTip(CoinJoinIneligibility? ineligibility) =>
+		ineligibility switch
+		{
+			null => null,
+			CoinJoinIneligibility.AmountTooLow tooLow => $"Can't participate in coinjoin: the amount is below the coordinator's minimum of {tooLow.MinAllowedAmount.ToFormattedString()} BTC",
+			CoinJoinIneligibility.AmountTooHigh tooHigh => $"Can't participate in coinjoin: the amount is above the coordinator's maximum of {tooHigh.MaxAllowedAmount.ToFormattedString()} BTC",
+			CoinJoinIneligibility.Uneconomical uneconomical => $"Can't participate in coinjoin: at the last round's mining fee rate of {uneconomical.MiningFeeRate.SatoshiPerByte:0.##} sat/vB it costs more to spend than it is worth",
+			CoinJoinIneligibility.ScriptTypeNotAllowed => $"Can't participate in coinjoin: the coordinator doesn't accept {ScriptType.Name} coins",
+			_ => "Can't participate in coinjoin"
+		};
 }
