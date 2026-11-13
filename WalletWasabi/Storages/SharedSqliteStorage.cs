@@ -28,6 +28,35 @@ public class SharedSqliteStorage : IDisposable
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
 	public static SharedSqliteStorage FromFile(string filePath)
 	{
+		IoHelpers.EnsureContainingDirectoryExists(filePath);
+
+		try
+		{
+			var storage = Open(filePath);
+
+			if (storage.GetUserVersion() >= 2)
+			{
+				return storage;
+			}
+
+			storage.Dispose();
+			Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
+		}
+		catch (SqliteException ex) when (ex.SqliteErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"SQLite storage file '{filePath}' is corrupted. Deleting it.");
+			SqliteConnection.ClearAllPools();
+		}
+
+		SqliteStorageHelper.DeleteDatabaseFiles(filePath);
+
+		var newStorage = Open(filePath);
+		newStorage.SetUserVersion(2);
+		return newStorage;
+	}
+
+	private static SharedSqliteStorage Open(string filePath)
+	{
 		SqliteConnectionStringBuilder builder = new();
 		builder.DataSource = filePath;
 		builder.Pooling = true;
@@ -74,6 +103,23 @@ public class SharedSqliteStorage : IDisposable
 		var connection = new SqliteConnection(_connectionString);
 		connection.Open();
 		return connection;
+	}
+
+	public int GetUserVersion()
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = "PRAGMA user_version";
+
+		return Convert.ToInt32(command.ExecuteScalar());
+	}
+
+	public void SetUserVersion(int newUserVersion)
+	{
+		using var connection = CreateConnection();
+		using var command = connection.CreateCommand();
+		command.CommandText = $"PRAGMA user_version = {newUserVersion};";
+		command.ExecuteNonQuery();
 	}
 
 	protected virtual void Dispose(bool disposing)
