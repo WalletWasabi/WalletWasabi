@@ -98,13 +98,12 @@ public class FilterSynchronizationState
 			_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
 		}
 
-		Logger.LogDebug(
-			$"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
+		Logger.LogDebug($"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
 	}
 
 	internal HeaderValidationResult ValidateFilterHeaders(
 		RangeRequest assignment,
-		uint256[] filterHashes,
+		IReadOnlyList<uint256> filterHashes,
 		uint256 declaredPreviousFilterHeader,
 		Network network)
 	{
@@ -126,10 +125,10 @@ public class FilterSynchronizationState
 				return new HeaderValidationResult.Invalid(reason);
 			}
 
-			var result = new SmartHeader[filterHashes.Length];
+			var result = new SmartHeader[filterHashes.Count];
 			var prevFilterHeader = declaredPreviousFilterHeader;
 
-			for (var i = 0; i < filterHashes.Length; i++)
+			for (var i = 0; i < filterHashes.Count; i++)
 			{
 				var height = assignment.StartHeight + (uint)i;
 				var block = _blockHeaderChain.GetBlock((int)height);
@@ -163,13 +162,12 @@ public class FilterSynchronizationState
 	/// Buffers a header response that arrived before we could validate it.
 	/// Removes the assignment from active tracking since we have the data.
 	/// </summary>
-	private void BufferUnvalidatedHeadersNoLock(RangeRequest assignment, uint256[] filterHashes, uint256 declaredPreviousFilterHeader, Network network)
+	private void BufferUnvalidatedHeadersNoLock(RangeRequest assignment, IReadOnlyList<uint256> filterHashes, uint256 declaredPreviousFilterHeader, Network network)
 	{
 		// Remove from active assignments - we have the data, just can't validate yet
 		_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
 
-		_bufferedHeaderResponses[assignment.StartHeight] = new UnvalidatedHeaderResponse(
-			assignment, filterHashes, declaredPreviousFilterHeader, network);
+		_bufferedHeaderResponses[assignment.StartHeight] = new UnvalidatedHeaderResponse(assignment, filterHashes, declaredPreviousFilterHeader, network);
 
 		Logger.LogDebug(
 			$"Buffered filter header range {assignment.StartHeight}-{assignment.StopHeight} for later validation. " +
