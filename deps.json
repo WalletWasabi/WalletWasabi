@@ -371,8 +371,8 @@
   },
   {
     "pname": "Microsoft.Extensions.Logging.Abstractions",
-    "version": "1.0.0",
-    "hash": "sha256-asIXVFsAK7ELd/f+vLwhxYDdazqRTmf+fGJ4WFtcCeo="
+    "version": "10.0.0",
+    "hash": "sha256-BnhgGZc01HwTSxogavq7Ueq4V7iMA3wPnbfRwQ4RhGk="
   },
   {
     "pname": "Microsoft.Extensions.Logging.Abstractions",
@@ -456,8 +456,8 @@
   },
   {
     "pname": "NBitcoin",
-    "version": "10.0.20",
-    "hash": "sha256-uB0R7Tl7AZXp11lMrehACFnux3OBcF6GjnnHevv+4es="
+    "version": "10.0.21",
+    "hash": "sha256-gWOIz+2qhyIhaJv98AN+9gNh3nsv0zBJsIo7KLznjoI="
   },
   {
     "pname": "NBitcoin.Secp256k1",
