@@ -207,14 +207,6 @@ public class Global
 
 	private P2pConnectionManager ConfigureP2pConnectionManager()
 	{
-		if (Network == Bitcoin.Instance.Signet)
-		{
-			if (Network.DNSSeeds is List<DNSSeedData> dnsSeeds)
-			{
-				dnsSeeds.Add(new DNSSeedData("sprovoost.nl", "seed.signet.bitcoin.sprovoost.nl"));
-				dnsSeeds.Add(new DNSSeedData("achownodes.xyz", "seed.signet.achownodes.xyz"));
-			}
-		}
 		if (Network == Network.RegTest)
 		{
 			if (Network.SeedNodes is List<NetworkAddress> addresses)
