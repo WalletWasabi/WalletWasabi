@@ -53,7 +53,7 @@ public record P2pNodeClient(
 	}
 }
 
-public delegate Task<P2pNodeClient> P2pNodeProvider(CancellationToken cancellationToken);
+public delegate Task<P2pNodeClient> P2pNodeProvider(Node[] triedNodes, CancellationToken cancellationToken);
 
 /// <summary>Snapshot of currently connected P2P nodes.</summary>
 public delegate ImmutableArray<Node> P2pNodeListProvider();
@@ -154,7 +154,7 @@ public class P2pConnectionManager : IDisposable
 			"BitcoinP2pNodeDiscoveryServiceCoordinator",
 			Service("Bitcoin Node Discovery Service",
 				EventDriven(
-					new CrawlingCoordinationState(SlowedDown: false, Peers: ImmutableDictionary<EndPoint, PeerInfo>.Empty, LastCrawlerIndex: 0),
+					new CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
 					CreateDiscovery(_crawlers))),
 			cancellationToken: stoppingToken);
 		_discoveryCoordinator.DisposeUsing(_disposables);
@@ -222,11 +222,13 @@ public class P2pConnectionManager : IDisposable
 	}
 
 	/// <inheritdoc cref="P2pNodeProvider"/>
-	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
+	public async Task<P2pNodeClient> GetSingleUseNodeAsync(Node[] triedNodes, CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
+			var nodesServingBlocks = Nodes.Where(n => n.CanServeBlocks).ToArray();
+			var untriedNodes = nodesServingBlocks.Except(triedNodes).ToArray();
+			var nodes = untriedNodes.Length > 0 ? untriedNodes : nodesServingBlocks;
 
 			if (nodes.Length == 0)
 			{
