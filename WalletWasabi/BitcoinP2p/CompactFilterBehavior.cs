@@ -32,7 +32,7 @@ public class CompactFilterBehavior(
 		public string GetSpeed()
 		{
 			var seconds = Math.Max((DateTime.UtcNow - AssignedAt).TotalSeconds, 0.001);
-			return $"{BytesReceived / 1024.0 / seconds:F1} KB/s; {BytesReceived / 1024.0:F1} KB in {seconds:F1}s";
+			return $"{BytesReceived / 1024.0:F1} KB in {seconds:F1}s; {BytesReceived / 1024.0 / seconds:F1} KB/s";
 		}
 	}
 
@@ -156,8 +156,6 @@ public class CompactFilterBehavior(
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
 
-		Logger.LogDebug($"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment.RangeRequest}");
-
 		if (batchCount == 0)
 		{
 			Logger.LogDebug("Received an empty compact filter headers batch.");
@@ -191,7 +189,7 @@ public class CompactFilterBehavior(
 		}
 
 		// Validate headers using shared state
-		var filterHashArray = filterHashes.ToArray();
+		Logger.LogDebug($"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment.RangeRequest} ({assignment.GetSpeed()})");
 		var validationResult = synchronizationState.ValidateFilterHeaders(
 			assignment.RangeRequest,
 			filterHashes,
