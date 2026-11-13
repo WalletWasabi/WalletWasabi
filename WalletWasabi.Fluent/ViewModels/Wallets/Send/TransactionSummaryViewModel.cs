@@ -54,7 +54,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		_transaction = transactionResult;
 
-		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
+		UpdateConfirmationTime(info);
 
 		Money destinationAmount;
 		if (info.IsPayToMany)
@@ -118,6 +118,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		IsOtherPocketSelectionPossible = info.IsOtherPocketSelectionPossible;
 		AmountDiff = DiffOrNull(Amount, Parent.CurrentTransactionSummary.Amount);
 		FeeDiff = DiffOrNull(Fee, Parent.CurrentTransactionSummary.Fee);
+	}
+
+	public void UpdateConfirmationTime(TransactionInfo info)
+	{
+		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 	}
 
 	private static double? DiffOrNull(Amount? current, Amount? previous)
