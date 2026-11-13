@@ -837,7 +837,8 @@ public class P2pConnectionManager : IDisposable
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"Failed to connect to endpoint '{endpoint}' (requested cancellation: {cancellationToken.IsCancellationRequested})", e);
+			var ctx = e is OperationCanceledException ? null : e;
+			Logger.LogTrace($"Failed to connect to endpoint '{endpoint}' (requested cancellation: {cancellationToken.IsCancellationRequested})", ctx);
 
 			_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 			node?.DisconnectAsync();
