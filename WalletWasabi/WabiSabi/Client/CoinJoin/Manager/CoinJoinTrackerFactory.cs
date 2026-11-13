@@ -1,4 +1,6 @@
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -50,7 +52,7 @@ public class CoinJoinTrackerFactory
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			outputWallet.OutputProvider,
+			CreateOutputProvider(wallet, outputWallet),
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
@@ -61,4 +63,11 @@ public class CoinJoinTrackerFactory
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}
+
+	// Outputs go to the output wallet, but payments are always those of the wallet whose coins are mixed, because
+	// that is the wallet whose payments the coin selector looks at and whose payments are marked as signed and finished.
+	internal static OutputProvider CreateOutputProvider(Wallet wallet, Wallet outputWallet) =>
+		outputWallet.WalletId == wallet.WalletId
+			? wallet.OutputProvider
+			: new PaymentAwareOutputProvider(outputWallet.DestinationProvider, wallet.BatchedPayments, RandomnessProviders.Secure);
 }
