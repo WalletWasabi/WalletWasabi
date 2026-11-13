@@ -40,7 +40,7 @@ public class P2pBasedTests
 			using var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(dir, "Shared.sqlite"));
+			using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(dir, "Shared.sqlite"));
 			var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
 
 			var filterManager = new FilterManager(network, filterHeaderChain, blockFilterSqliteStorage, TestNodeBuilder.EventBus);
