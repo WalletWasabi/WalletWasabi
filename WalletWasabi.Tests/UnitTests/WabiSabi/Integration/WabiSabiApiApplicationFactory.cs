@@ -21,7 +21,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Extensions;
@@ -66,7 +65,6 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 				return (feeRate, minInputCountByRound) => RoundParameters.Create(config, feeRate, minInputCountByRound);
 			});
 			services.AddSingleton(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-			services.AddSingleton(s => new CoinJoinScriptStore());
 			services.AddSingleton(s => FeeRateProviders.RpcAsync(s.GetRequiredService<IRPCClient>()));
 			services.AddHttpClient();
 		});
