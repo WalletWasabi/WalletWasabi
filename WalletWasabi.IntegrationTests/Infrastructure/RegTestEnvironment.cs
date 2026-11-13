@@ -89,12 +89,12 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var filterHeaderChain = new FilterHeaderChain();
 
 		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		var filterManager = new FilterManager(
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
-			blockFilterSqliteStorage,
+			blockFilterSqliteRepository,
 			eventBus);
 		await filterManager.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
