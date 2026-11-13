@@ -6,6 +6,8 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Storages;
@@ -22,12 +24,13 @@ public delegate Wallet WalletFactory(KeyManager keyManager);
 public class Wallet : BackgroundService
 {
 	private readonly ComposedDisposable _disposables = new();
+	private readonly HardwareWalletService _hardwareWallets;
 
 	public static WalletFactory CreateFactory(
 		Network network, FilterManager filterManager, AllTransactionStore transactionStore, FilterHeaderChain filterHeaderChain,
 		MempoolService mempoolService, ServiceConfiguration serviceConfiguration, BlockProvider blockProvider,
-		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, filterManager, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
+		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider, HardwareWalletService hardwareWallets) =>
+		keyManager => new Wallet(network, keyManager, filterManager, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus, hardwareWallets);
 
 	private Wallet(
 		Network network,
@@ -39,9 +42,11 @@ public class Wallet : BackgroundService
 		MempoolService mempoolService,
 		ServiceConfiguration serviceConfiguration,
 		CpfpInfoProvider cpfpInfoProvider,
-		EventBus eventBus)
+		EventBus eventBus,
+		HardwareWalletService hardwareWallets)
 	{
 		Password = "";
+		_hardwareWallets = hardwareWallets;
 		Network = network;
 		KeyManager = keyManager;
 		ServiceConfiguration = serviceConfiguration;
@@ -122,7 +127,13 @@ public class Wallet : BackgroundService
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => KeyManager.HasCoinJoinAccount
+		? Coins.Where(coin => coin.ScriptType is ScriptType.Taproot)
+		: Coins;
+
+	/// <summary>Has the device authorize this wallet's rounds and fee cap, which gives the wallet the key chain that signs them.</summary>
+	public async Task AuthorizeCoinJoinOnDeviceAsync(string coordinatorIdentifier, CancellationToken cancellationToken) =>
+		KeyChain = await _hardwareWallets.AuthorizeCoinJoinAsync(KeyManager, coordinatorIdentifier, cancellationToken).ConfigureAwait(false);
 
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.
@@ -238,6 +249,9 @@ public class Wallet : BackgroundService
 	/// <inheritdoc/>
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
+		// A wallet whose coinjoins are signed by a device needs that device reachable before play/auto-start.
+		await _hardwareWallets.EnsureReadyAsync(KeyManager, cancellationToken).ConfigureAwait(false);
+
 		await WalletFilterProcessor.StartAsync(cancellationToken).ConfigureAwait(false);
 		Logger.LogTrace(FormatLog("Wallet filter processor is started.", this));
 
@@ -305,6 +319,9 @@ public class Wallet : BackgroundService
 		await base.StopAsync(cancel).ConfigureAwait(false);
 		await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 		WalletFilterProcessor.Dispose();
+
+		// Hand the device back, so that adding another wallet can enumerate it again.
+		_hardwareWallets.Release(KeyManager);
 
 		_disposables.Dispose();
 	}

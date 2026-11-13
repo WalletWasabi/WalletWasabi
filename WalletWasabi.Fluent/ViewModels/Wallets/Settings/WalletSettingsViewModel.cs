@@ -2,9 +2,12 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Avalonia.Threading;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -34,6 +37,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
     [AutoNotify] private SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
+    [AutoNotify] private string? _addressToConfirm;
+    [AutoNotify(SetterModifier = AccessModifier.Private)] private bool _canEnableCoinjoin;
+    [AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isRestartPending;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
@@ -110,6 +116,34 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
+        // The application has to restart afterwards: every page of this wallet was built for a wallet without the account.
+        CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+        EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            try
+            {
+                await walletModel.EnableCoinjoinAsync(address => Dispatcher.UIThread.Post(() => AddressToConfirm = address.ToString()), System.Threading.CancellationToken.None);
+                CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+                IsRestartPending = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                await ShowErrorAsync("Enable coinjoin", ex.ToUserFriendlyString(), "Could not enable coinjoin.");
+            }
+            finally
+            {
+                AddressToConfirm = null;
+            }
+        });
+
+        RestartNowCommand = ReactiveCommand.Create(() =>
+        {
+            UiContext.Navigate(MetaData.NavigationTarget).Clear();
+            AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+        });
+        RestartLaterCommand = ReactiveCommand.Create(() => IsRestartPending = false);
+
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             var result = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight, walletModel.Settings.MinGapLimit).GetResultAsync();
@@ -157,6 +191,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool IsHardwareWallet { get; }
     public bool IsWatchOnly { get; }
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
+
+    public bool HasCoinJoinAccount => _wallet.HasCoinJoinAccount;
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
     public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
@@ -172,6 +208,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
     public ICommand ResyncWalletCommand { get; }
+    public ICommand EnableCoinjoinCommand { get; }
+    public ICommand RestartNowCommand { get; }
+    public ICommand RestartLaterCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {

@@ -102,8 +102,12 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		try
 		{
-			var result = await UiContext.HardwareWalletInterface.DetectAsync(cancel);
+			var result = await UiContext.Services.HardwareWallets.DetectAsync(cancel);
 			EvaluateDetectionResult(result, cancel);
+		}
+		catch (HardwareWalletException ex)
+		{
+			Message = ex.Message;
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -149,7 +153,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 			else
 			{
 				Message = "Check your device and finish the initialization.";
-				AbandonedTasks.AddAndClearCompleted(UiContext.HardwareWalletInterface.InitHardwareWalletAsync(device, cancel));
+				AbandonedTasks.AddAndClearCompleted(UiContext.Services.HardwareWallets.InitializeAsync(device, cancel));
 			}
 
 			return;

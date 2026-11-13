@@ -39,6 +39,12 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
+		// See Slip25: a device refuses a round whose outputs leave its coinjoin account.
+		if (wallet.KeyManager.HasCoinJoinAccount)
+		{
+			outputWallet = wallet;
+		}
+
 		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
 		wallet.ConsolidationMode = outputWallet.WalletId != wallet.WalletId;
 
@@ -53,7 +59,7 @@ public class CoinJoinTrackerFactory
 			outputWallet.OutputProvider,
 			_roundStatusProvider,
 			coinSelector,
-			_coinJoinConfiguration,
+			_coinJoinConfiguration.CappedBy(wallet.KeyChain),
 			_inputVerifier,
 			_liquidityClueProvider,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),

@@ -120,7 +120,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return isSelected && !hasNoBalance && !WalletModel.IsWatchOnlyWallet;
+				 return isSelected && !hasNoBalance && WalletModel.CanCoinJoin;
 			 });
 
 
@@ -215,6 +215,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
 
 	public bool SeveralReceivingScriptTypes => WalletModel.SeveralReceivingScriptTypes;
+
+	public string TaprootReceiveName => WalletModel.HasCoinJoinAccount ? "Coinjoin Account Address" : "Taproot Address";
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -324,7 +326,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
-		if (!IsWatchOnly)
+		if (WalletModel.CanCoinJoin)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}

@@ -6,8 +6,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using System.Collections.Immutable;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
@@ -32,6 +34,56 @@ public class CoinJoinClientTests
 {
 	[Fact]
 	public async Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimumAsync()
+	{
+		var (aliceClientsThatSigned, signatureRequests, capturedSignature) = await SignTwoInputRoundAsync(keyChain => keyChain, absoluteMinInputCount: 21);
+
+		// Assert: With the fix, hasTooFewInputs = true (2 < 21), so mustSignAllInputs = false.
+		// With only 1 alice and mustSignAllInputs = false, the client signs with
+		// RemoveAt(random) which results in 0 signatures being sent.
+		Assert.Empty(aliceClientsThatSigned);
+		Assert.Equal(0, signatureRequests);
+		Assert.Null(capturedSignature);
+	}
+
+	/// <summary>A device signs before anything is posted, but with no input to sign there is nothing to ask it.</summary>
+	[Fact]
+	public async Task ADeviceIsNotAskedWhenNoInputIsToBeSignedAsync()
+	{
+		var device = new DeviceSigner();
+
+		var (aliceClientsThatSigned, signatureRequests, _) = await SignTwoInputRoundAsync(_ => device, absoluteMinInputCount: 21);
+
+		Assert.Empty(aliceClientsThatSigned);
+		Assert.Equal(0, signatureRequests);
+		Assert.Equal(0, device.SignCalls);
+	}
+
+	/// <summary>A device signs all our inputs in one go, so its failure fails the round at once; asking again per input would only retry a device that just failed.</summary>
+	[Fact]
+	public async Task ADeviceThatFailsToSignIsAskedOnceAndFailsTheRoundAsync()
+	{
+		var device = new DeviceSigner();
+
+		await Assert.ThrowsAsync<TrezorException>(() => SignTwoInputRoundAsync(_ => device, absoluteMinInputCount: 2));
+
+		Assert.Equal(1, device.SignCalls);
+	}
+
+	private sealed class DeviceSigner : IKeyChain
+	{
+		public int SignCalls { get; private set; }
+		public bool SigningTakesTime => true;
+		public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData) => throw new NotSupportedException();
+
+		public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
+		{
+			SignCalls++;
+			throw new TrezorException("The device was unplugged.");
+		}
+	}
+
+	/// <summary>Runs the signing phase of a round holding one input of ours and one of the coordinator's.</summary>
+	private static async Task<(ImmutableArray<AliceClient> AliceClientsThatSigned, int SignatureRequests, TransactionSignaturesRequest? CapturedSignature)> SignTwoInputRoundAsync(Func<IKeyChain, IKeyChain> signer, int absoluteMinInputCount)
 	{
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig()) with
 		{
@@ -76,14 +128,13 @@ public class CoinJoinClientTests
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(requestHandler, updaterCts.Token);
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
-		// Create CoinJoinClient with AbsoluteMinInputCount = 21
 		var coinJoinClient = new CoinJoinClient(
 			_ => requestHandler,
-			keyChain,
+			signer(keyChain),
 			outputProvider: null!,
 			roundStateProvider,
 			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0).SelectCoinsForRound,
-			new CoinJoinConfiguration(roundParameters.CoordinationIdentifier, 150m, AbsoluteMinInputCount: 21, AllowSoloCoinjoining: false),
+			new CoinJoinConfiguration(roundParameters.CoordinationIdentifier, 150m, absoluteMinInputCount, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());
 
@@ -100,12 +151,7 @@ public class CoinJoinClientTests
 
 		var (_, aliceClientsThatSigned) = await signingTask;
 
-		// Assert: With the fix, hasTooFewInputs = true (2 < 21), so mustSignAllInputs = false.
-		// With only 1 alice and mustSignAllInputs = false, the client signs with
-		// RemoveAt(random) which results in 0 signatures being sent.
-		Assert.Empty(aliceClientsThatSigned);
-		Assert.Equal(0, requestHandler.SignatureRequests);
-		Assert.Null(requestHandler.CapturedSignature);
+		return (aliceClientsThatSigned, requestHandler.SignatureRequests, requestHandler.CapturedSignature);
 	}
 
 	/// <summary>
@@ -223,6 +269,29 @@ public class CoinJoinClientTests
 
 		// Same scriptpubkeys, same amount of money but outputs were manipulated
 		Assert.False(CoinJoinClient.SanityCheck([output2, output3], [output1, AddOneSat(output2), SubOneSat(output3), output4]));
+	}
+
+	/// <summary>
+	/// A device signer refuses every round above the cap it was authorized with, so the client must skip such
+	/// rounds before registering inputs; the global cap still applies when it is the stricter one.
+	/// </summary>
+	[Theory]
+	[InlineData(null, 50)]
+	[InlineData(5, 5)]
+	[InlineData(150, 50)]
+	public void TheFeeCapIsTheStricterOfGlobalAndDevice(int? authorizedSatPerByte, int expectedSatPerByte)
+	{
+		var global = new CoinJoinConfiguration("coordinator", 50m, 1, AllowSoloCoinjoining: false);
+		var keyChain = new CappedKeyChain(authorizedSatPerByte is { } cap ? new FeeRate((decimal)cap) : null);
+
+		Assert.Equal(expectedSatPerByte, global.CappedBy(keyChain).MaxCoinJoinMiningFeeRate);
+	}
+
+	private sealed class CappedKeyChain(FeeRate? cap) : IKeyChain
+	{
+		public FeeRate? MaxMiningFeeRate => cap;
+		public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData) => throw new NotSupportedException();
+		public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin) => throw new NotSupportedException();
 	}
 
 	[Fact]
