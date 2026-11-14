@@ -177,7 +177,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				return new PocketViewModel(UiContext, pocket, availableCoins, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 			});
 
-		source.EditDiff(newItems, new LambdaComparer<CoinListItem>((a, b) => Equals(a?.Key, b?.Key)));
+		source.EditDiff(newItems);
 	}
 
 	private void RestoreExpandedRows(IEnumerable<LabelsArray> oldItemsLabels)
