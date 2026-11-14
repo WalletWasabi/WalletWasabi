@@ -142,6 +142,7 @@ listcoins
 createwallet
 getwalletinfo
 setlabel
+getcoinjoinstatus
 getnewaddress
 getstatus
 gethistory

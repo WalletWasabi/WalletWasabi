@@ -1,9 +1,16 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Client.Rpc;
 using WalletWasabi.Rpc;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
+using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -145,5 +152,52 @@ public class RpcTests
 		// Without a label the address would go back into the getnewaddress pool.
 		Assert.Throws<ArgumentException>(() => service.SetLabel(address, ""));
 		Assert.Throws<ArgumentException>(() => service.SetLabel(address, " , "));
+	}
+
+	[Fact]
+	public void DescribeCoinJoinEvent()
+	{
+		var error = WasabiJsonRpcService.DescribeCoinJoinEvent(new StartErrorEventArgs(null!, CoinjoinError.NoConfirmedCoinsEligibleToMix));
+		Assert.Equal("StartError", error["event"]);
+		Assert.Equal("NoConfirmedCoinsEligibleToMix", error["error"]);
+
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var ended = WasabiJsonRpcService.DescribeCoinJoinEvent(new CoinJoinStatusEventArgs(null!, new RoundEnded(roundState)));
+		Assert.Equal("RoundEnded", ended["event"]);
+		var round = Assert.IsType<Dictionary<string, object?>>(ended["round"]);
+		Assert.Equal(roundState.Id.ToString(), round["id"]);
+		Assert.Equal("InputRegistration", round["phase"]);
+		Assert.Equal("None", round["endRoundState"]);
+		Assert.Equal(roundState.CoinjoinState.Parameters.MaxAmountCredentialValue.Satoshi, round["maxAmountCredentialValue"]);
+		Assert.Equal(roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte, round["miningFeeRate"]);
+
+		// During input registration the coordinator has not published any input yet.
+		Assert.False(round.ContainsKey("inputCount"));
+		Assert.False(round.ContainsKey("outputCount"));
+
+		var coordinatorRound = WabiSabiFactory.CreateRound(cfg: new());
+		var (coin, ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: coordinatorRound.Id);
+		coordinatorRound.CoinjoinState = coordinatorRound.Assert<ConstructionState>().AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(coordinatorRound.Id));
+		coordinatorRound.SetPhase(Phase.OutputRegistration);
+		var outputRegistration = WasabiJsonRpcService.DescribeCoinJoinEvent(new CoinJoinStatusEventArgs(null!, new EnteringOutputRegistrationPhase(RoundState.FromRound(coordinatorRound), DateTimeOffset.UtcNow)));
+		round = Assert.IsType<Dictionary<string, object?>>(outputRegistration["round"]);
+		Assert.Equal(1, round["inputCount"]);
+		Assert.Equal(coin.Amount.Satoshi, round["inputAmount"]);
+		Assert.False(round.ContainsKey("outputCount"));
+
+		coordinatorRound.SetPhase(Phase.TransactionSigning);
+		var signing = WasabiJsonRpcService.DescribeCoinJoinEvent(new CoinJoinStatusEventArgs(null!, new EnteringSigningPhase(RoundState.FromRound(coordinatorRound), DateTimeOffset.UtcNow)));
+		round = Assert.IsType<Dictionary<string, object?>>(signing["round"]);
+		Assert.Equal(0, round["outputCount"]);
+
+		var signed = WasabiJsonRpcService.DescribeCoinJoinEvent(new CoinJoinStatusEventArgs(null!, new TransactionSigned(uint256.One, [])));
+		Assert.Equal("TransactionSigned", signed["event"]);
+		Assert.Equal(uint256.One.ToString(), signed["txid"]);
+
+		var timeoutAt = DateTimeOffset.UtcNow;
+		var entering = WasabiJsonRpcService.DescribeCoinJoinEvent(new CoinJoinStatusEventArgs(null!, new EnteringInputRegistrationPhase(roundState, timeoutAt)));
+		Assert.Equal("EnteringInputRegistrationPhase", entering["event"]);
+		Assert.Equal(timeoutAt, entering["timeoutAt"]);
+		Assert.NotNull(entering["round"]);
 	}
 }
