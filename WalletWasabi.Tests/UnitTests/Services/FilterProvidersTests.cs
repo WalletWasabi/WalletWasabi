@@ -376,6 +376,144 @@ public class FilterProvidersTests(ITestOutputHelper output)
 		}
 	}
 
+	[Fact]
+	public async Task RecoveringProvider_RetriesOfflineRpcWithoutSelectingP2pAsync()
+	{
+		var offline = true;
+		var probes = 0;
+		var genesisHash = Network.Main.GetGenesis().GetHash();
+		MockRpcClient rpc = new()
+		{
+			Network = Network.Main,
+			OnGetBestBlockHashAsync = () =>
+			{
+				probes++;
+				return offline
+					? Task.FromException<uint256>(new System.Net.Http.HttpRequestException("Connection refused"))
+					: Task.FromResult(genesisHash);
+			},
+			OnGetBlockFilterAsync = hash => Task.FromResult(CreateBlockFilter(hash)),
+			OnGetBlockCountAsync = () => Task.FromResult(0)
+		};
+		var provider = FilterProviders.CreateRecoveringFilterProvider(
+			rpc, new ConcurrentChain(Network.Main),
+			() => throw new InvalidOperationException("An unreachable RPC must not select P2P."),
+			() => true);
+
+		var unavailable = await provider(0, genesisHash, TestContext.Current.CancellationToken);
+		Assert.False(unavailable.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(15), unavailable.Error);
+
+		offline = false;
+		var recovered = await provider(0, genesisHash, TestContext.Current.CancellationToken);
+		Assert.True(recovered.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(recovered.Value);
+
+		var subsequent = await provider(0, genesisHash, TestContext.Current.CancellationToken);
+		Assert.True(subsequent.IsOk);
+		Assert.Equal(2, probes);
+	}
+
+	[Fact]
+	public async Task RecoveringProvider_UsesP2pWhenFilterIndexIsDisabledAsync()
+	{
+		var probes = 0;
+		var fallbacks = 0;
+		var genesisHash = Network.Main.GetGenesis().GetHash();
+		MockRpcClient rpc = new()
+		{
+			Network = Network.Main,
+			OnGetBestBlockHashAsync = () =>
+			{
+				probes++;
+				return Task.FromResult(genesisHash);
+			},
+			OnGetBlockFilterAsync = _ => Task.FromException<BlockFilter>(
+				new RPCException(RPCErrorCode.RPC_MISC_ERROR, "Index is not enabled", null))
+		};
+		var provider = FilterProviders.CreateRecoveringFilterProvider(
+			rpc, new ConcurrentChain(Network.Main),
+			() =>
+			{
+				fallbacks++;
+				return (_, _, _) => Task.FromResult(
+					WalletWasabi.Helpers.Result<FiltersResponse, TimeSpan>.Ok(new FiltersResponse.AlreadyOnBestBlock()));
+			},
+			() => false);
+
+		Assert.True((await provider(0, genesisHash, TestContext.Current.CancellationToken)).IsOk);
+		Assert.True((await provider(0, genesisHash, TestContext.Current.CancellationToken)).IsOk);
+		Assert.Equal(1, probes);
+		Assert.Equal(1, fallbacks);
+	}
+
+	[Fact]
+	public async Task RecoveringProvider_UsesP2pWithoutConfiguredRpcAsync()
+	{
+		var provider = FilterProviders.CreateRecoveringFilterProvider(
+			null, new ConcurrentChain(Network.Main),
+			() => (_, _, _) => Task.FromResult(
+				WalletWasabi.Helpers.Result<FiltersResponse, TimeSpan>.Ok(new FiltersResponse.AlreadyOnBestBlock())),
+			() => false);
+
+		var result = await provider(0, Network.Main.GetGenesis().GetHash(), TestContext.Current.CancellationToken);
+		Assert.True(result.IsOk);
+	}
+
+	[Fact]
+	public async Task RecoveringProvider_WaitsForSynchronizedRpcAsync()
+	{
+		var synchronized = false;
+		var fetches = 0;
+		var genesisHash = Network.Main.GetGenesis().GetHash();
+		MockRpcClient rpc = new()
+		{
+			Network = Network.Main,
+			OnGetBestBlockHashAsync = () => Task.FromResult(genesisHash),
+			OnGetBlockFilterAsync = hash => Task.FromResult(CreateBlockFilter(hash)),
+			OnGetBlockCountAsync = () =>
+			{
+				fetches++;
+				return Task.FromResult(0);
+			}
+		};
+		var provider = FilterProviders.CreateRecoveringFilterProvider(
+			rpc, new ConcurrentChain(Network.Main),
+			() => throw new InvalidOperationException("RPC supports filters."),
+			() => synchronized);
+
+		var waiting = await provider(0, genesisHash, TestContext.Current.CancellationToken);
+		Assert.False(waiting.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(7), waiting.Error);
+		Assert.Equal(0, fetches);
+
+		synchronized = true;
+		Assert.True((await provider(0, genesisHash, TestContext.Current.CancellationToken)).IsOk);
+		Assert.Equal(1, fetches);
+	}
+
+	[Fact]
+	public async Task RecoveringProvider_PropagatesCancellationDuringProbeAsync()
+	{
+		using var cts = new CancellationTokenSource();
+		MockRpcClient rpc = new()
+		{
+			Network = Network.Main,
+			OnGetBestBlockHashAsync = () =>
+			{
+				cts.Cancel();
+				return Task.FromCanceled<uint256>(cts.Token);
+			}
+		};
+		var provider = FilterProviders.CreateRecoveringFilterProvider(
+			rpc, new ConcurrentChain(Network.Main),
+			() => throw new InvalidOperationException("Cancellation must not select P2P."),
+			() => true);
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => provider(0, Network.Main.GetGenesis().GetHash(), cts.Token));
+	}
+
 	/// <summary>
 	/// Initializes a blockchain with 100 blocks.
 	/// </summary>

@@ -375,76 +375,12 @@ public class Global
 			.DisposeUsing(_disposables);
 	}
 
-	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
+	private Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		var supportsBlockFiltersResult = await (_bitcoinRpcClient is { } rpcClient
-				? rpcClient.SupportsBlockFiltersAsync(cancellationToken)
-				: Task.FromResult(Result<bool>.Fail(false)))
-			.ConfigureAwait(false);
-
-		var filtersProvider = supportsBlockFiltersResult
-			.Map(_ => FilterProviders.CreateBitcoinRpcFilterProvider(_bitcoinRpcClient!, _blockHeaders))
-			.Match(
-				rpcProvider => rpcProvider,
-				_ =>
-				{
-					var tip = FilterManager.GetTip()!.Header;
-					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
-					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
-
-					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
-				});
-
-
-		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterManager, FilterHeaders, EventBus));
-
-		if (supportsBlockFiltersResult.IsOk)
-		{
-			EventBus.Subscribe<RpcStatusChanged>(e =>
-			{
-				var action = e.Status.Match(
-					x => x.Synchronized ? resume : pause,
-					_ => pause);
-				action();
-			}).DisposeUsing(_disposables);
-		}
-		else
-		{
-			var errorBecauseIndexIsDisabled = supportsBlockFiltersResult.Error;
-			if( errorBecauseIndexIsDisabled)
-			{
-				Logger.LogInfo("\nWasabi is connected to a bitcoin RPC that doesn't provides compact filters (BIP158)."
-								+ "\nCompact filters are disabled by default in Bitcoin and you have to enable them."
-								+ "\nIf you are using your own node then edit the bitcoin.conf file and add the line:"
-								+ "\nblockfilterindex=1"
-								+ "\n"
-								+ "\nIf you are connected to a personal server product, some of them allow the user to enable"
-								+ "\nthe block filters (BIP158) in the UI while others require you to edit the bitcoin config"
-								+ "\nfile manually."
-								+ "\n"
-								+ "\nRemember to restart your bitcoin node after changing the configuration and wait for"
-								+ "\nwait for it to create the filters, what can take some time."
-								+ "\n-----------------------------------------------------------------------------------------");
-			}
-			else if(!string.IsNullOrWhiteSpace(Config.BitcoinRpcUri))
-			{
-				Logger.LogWarning($"Was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided. " +
-				                  "Please configure valid RPC credentials in settings and restart.");
-			}
-			else
-			{
-				Logger.LogInfo("No Bitcoin Node RPC was configured. Trying P2P synchronization.");
-			}
-
-			await resume().ConfigureAwait(false);
-		}
-
-		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
-			.DisposeUsing(_disposables);
-
+		var rpcSynchronized = 0;
 		EventBus.Subscribe<RpcStatusChanged>(e =>
 		{
+			Volatile.Write(ref rpcSynchronized, e.Status.IsOk && e.Status.Value.Synchronized ? 1 : 0);
 			if (e.Status.IsOk)
 			{
 				var serverTip = (uint)e.Status.Value.Headers;
@@ -452,6 +388,31 @@ public class Global
 				EventBus.Publish(new NetworkTipHeightChanged(serverTip));
 			}
 		}).DisposeUsing(_disposables);
+
+		FilterProvider CreateP2pProvider()
+		{
+			Logger.LogInfo(_bitcoinRpcClient is null
+				? "No Bitcoin Node RPC was configured. Trying P2P synchronization."
+				: "Bitcoin RPC block filter index is not enabled. Trying P2P synchronization.");
+
+			var tip = FilterManager.GetTip()!.Header;
+			var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
+			_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
+
+			return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
+		}
+
+		var filtersProvider = FilterProviders.CreateRecoveringFilterProvider(
+			_bitcoinRpcClient, _blockHeaders, CreateP2pProvider,
+			() => Volatile.Read(ref rpcSynchronized) != 0);
+
+		var (_, resume, serviceLoop) =
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterManager, FilterHeaders, EventBus));
+
+		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
+			.DisposeUsing(_disposables);
+
+		return resume();
 	}
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
