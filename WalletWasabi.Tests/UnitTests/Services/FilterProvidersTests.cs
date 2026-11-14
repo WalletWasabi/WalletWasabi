@@ -53,6 +53,31 @@ public class FilterProvidersTests(ITestOutputHelper output)
 	}
 
 	[Fact]
+	public async Task BitcoinP2pProvider_WaitsForBlockHeadersAsync()
+	{
+		var blockHeaders = InitializeBlockchain(Network.RegTest);
+		var tip = blockHeaders.Tip;
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(new SmartHeader(tip.HashBlock, uint256.Zero, (uint)tip.Height, tip.Header.BlockTime));
+		var blockHeaderSynchronizationState = new BlockHeaderSynchronizationState();
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, (uint)tip.Height, blockHeaderSynchronizationState: blockHeaderSynchronizationState);
+		var provider = FilterProviders.CreateBitcoinP2pFilterProvider(filterHeaders, blockHeaders, synchronizationState);
+
+		// Having the filter of the best known block does not mean being synchronized: the peers may have more block headers.
+		var result = await provider((uint)tip.Height, tip.HashBlock, TestContext.Current.CancellationToken);
+
+		Assert.False(result.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(1), result.Error);
+
+		// A node answers that it has no more block headers.
+		blockHeaderSynchronizationState.OnHeadersProcessed(isFullMessage: false, hasExtendedChain: false, chainTip: tip, nodeTip: tip);
+		result = await provider((uint)tip.Height, tip.HashBlock, TestContext.Current.CancellationToken);
+
+		Assert.True(result.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value);
+	}
+
+	[Fact]
 	public async Task BitcoinRpcProvider_FetchesBoundedPageAndKeepsBestHeightAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
