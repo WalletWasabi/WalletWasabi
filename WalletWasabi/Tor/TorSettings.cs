@@ -65,6 +65,7 @@ public record TorSettings
 
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
+		TorrcFilePath = Path.Combine(dataDir, "torrc");
 
 		if (torMode == TorMode.EnabledOnlyRunning && terminateOnExit)
 		{
@@ -98,6 +99,13 @@ public record TorSettings
 
 	/// <summary>Full path. Directory may not necessarily exist.</summary>
 	public string LogFilePath { get; }
+
+	/// <summary>Full path to the torrc file that Tor is instructed to read. The file does not have to exist.</summary>
+	/// <remarks>
+	/// Without an explicit torrc, Tor reads the default one of the OS user (e.g. <c>~/.torrc</c> on Linux, <c>%APPDATA%\tor\torrc</c> on Windows).
+	/// Such a file is typically left behind by a system Tor installation and its options (hidden services, ports, etc.) can prevent our Tor from starting.
+	/// </remarks>
+	public string TorrcFilePath { get; }
 
 	/// <summary>Whether Tor should be terminated when Wasabi Wallet terminates.</summary>
 	public bool TerminateOnExit { get; }
@@ -160,6 +168,8 @@ public record TorSettings
 
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = [
+			$"-f \"{TorrcFilePath}\"",
+			$"--ignore-missing-torrc",
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
 			$"--UseBridges {(useBridges ? "1" : "0")}",
