@@ -15,6 +15,7 @@ public record HttpClientHandlerConfiguration
 {
 	public static readonly HttpClientHandlerConfiguration Default = new();
 	public int MaxAttempts { get; init; } = 3;
+	public TimeSpan AttemptTimeout { get; init; } = Timeout.InfiniteTimeSpan;
 	public TimeSpan TimeBeforeRetryingAfterTooManyRequests { get; init; } = TimeSpan.FromSeconds(2);
 	public TimeSpan TimeBeforeRetryingAfterNetworkError { get; init; } = TimeSpan.FromSeconds(3);
 	public TimeSpan TimeBeforeRetryingAfterServerError { get; init; } = TimeSpan.FromSeconds(2);
@@ -169,9 +170,12 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 				throw new TimeoutException($"HTTP handler '{_name}' was disposed during request.");
 			}
 
+			using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			attemptCts.CancelAfter(_config.AttemptTimeout);
+
 			try
 			{
-				var response = await _send(this, request, cancellationToken).ConfigureAwait(false);
+				var response = await _send(this, request, attemptCts.Token).ConfigureAwait(false);
 
 				switch (response.StatusCode)
 				{
@@ -191,6 +195,10 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 						// Not something we can retry, return the response as is
 						return response;
 				}
+			}
+			catch (OperationCanceledException) when (attemptCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+			{
+				Logger.LogTrace($"Retrying {request.RequestUri} because there was no response after {_config.AttemptTimeout.TotalSeconds} seconds");
 			}
 			catch (OperationCanceledException)
 			{

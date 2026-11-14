@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -77,6 +78,53 @@ public class RetryHttpClientHandlerTests
 			Assert.Equal(1, requestsCount);
 		}
 		Assert.True(callbackCalled);
+	}
+
+	[Fact]
+	public async Task SendAsync_ResendsWhenAttemptTimesOutAsync()
+	{
+		var config = HttpClientHandlerConfiguration.Default with { AttemptTimeout = TimeSpan.FromMilliseconds(100) };
+		var requestsCount = 0;
+
+		using var handler = new RetryHttpClientHandler("retry-handler", _ => { }, config,
+			async (_, _, cancellationToken) =>
+			{
+				requestsCount++;
+				if (requestsCount == 1)
+				{
+					await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+				}
+				return new HttpResponseMessage(HttpStatusCode.OK);
+			});
+
+		using var httpClient = new HttpClient(handler, disposeHandler: false);
+		using var request = new HttpRequestMessage(HttpMethod.Get, "http://test.dev");
+
+		using var response = await httpClient.SendAsync(request);
+		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+		Assert.Equal(2, requestsCount);
+	}
+
+	[Fact]
+	public async Task SendAsync_CallerCancellationIsNotRetriedAsync()
+	{
+		var config = HttpClientHandlerConfiguration.Default with { AttemptTimeout = TimeSpan.FromSeconds(10) };
+		var requestsCount = 0;
+
+		using var handler = new RetryHttpClientHandler("retry-handler", _ => { }, config,
+			async (_, _, cancellationToken) =>
+			{
+				requestsCount++;
+				await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+				throw new UnreachableException();
+			});
+
+		using var httpClient = new HttpClient(handler, disposeHandler: false);
+		using var request = new HttpRequestMessage(HttpMethod.Get, "http://test.dev");
+		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => httpClient.SendAsync(request, cts.Token));
+		Assert.Equal(1, requestsCount);
 	}
 
 	// Tests that an ObjectDisposedException is thrown when the handler is disposed before sending an HTTP request.
