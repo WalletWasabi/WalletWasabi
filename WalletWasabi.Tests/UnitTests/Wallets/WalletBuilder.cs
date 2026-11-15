@@ -57,8 +57,8 @@ public class WalletBuilder
 
 	public WalletWasabi.Wallets.Wallet Build()
 	{
-		var eventBus = _eventBus ?? new EventBus();
-		_mempoolService ??= new MempoolService(eventBus);
+		_eventBus ??= new EventBus();
+		_mempoolService ??= new MempoolService(_eventBus);
 		_filterHeaderChain ??= new FilterHeaderChain();
 		_keyManager ??= ServiceFactory.CreateKeyManager("");
 
@@ -70,7 +70,7 @@ public class WalletBuilder
 			mempoolService: _mempoolService,
 			_serviceConfiguration,
 			blockProvider: _blockProvider,
-			eventBus,
+			_eventBus,
 			cpfpInfoProvider: null!);
 
 		return factory(_keyManager);
