@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 /// Represents an <see cref="OutputProvider">output provider</see> that has a reference to the <see cref="Wallet.BatchedPayments"/> structure.
 /// </summary>
 /// <remarks>
-/// This class is aware of the existence of payments for a <see cref="Wallet"/>, which allows it to provide outputs for coinjoin rounds that include those outputs that are payments.
+/// This class is aware of <see cref="Wallet"/>'s coinjoin payments, which allows it to provide outputs for coinjoin rounds that include those outputs that are payments.
 /// </remarks>
 public class PaymentAwareOutputProvider(
 	IDestinationProvider destinationProvider,
@@ -46,8 +46,7 @@ public class PaymentAwareOutputProvider(
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)
 	{
-		// Get the best combination of payments that can be done with the current amount
-		// registered in the round.
+		// Get the best combination of payments that can be done with the current amount registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
 		var bestPaymentSet = batchedPayments.MoveBestPaymentSetToInProgress(availableAmount, availableVsize, roundParameters, registeredInputs, roundId);

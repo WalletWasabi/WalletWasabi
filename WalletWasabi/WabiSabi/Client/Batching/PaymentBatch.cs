@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
