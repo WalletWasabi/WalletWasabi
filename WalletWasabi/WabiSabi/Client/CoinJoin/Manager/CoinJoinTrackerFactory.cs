@@ -47,10 +47,11 @@ public class CoinJoinTrackerFactory
 		var coinSelector = CoinSelectors.ComposedCoinSelector([
 			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold),
 			coinJoinCoinSelector.SelectCoinsForRound]);
+
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			CreateOutputProvider(wallet, outputWallet),
+			GetOrCreateOutputProvider(wallet: wallet, outputWallet: outputWallet),
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
@@ -62,7 +63,7 @@ public class CoinJoinTrackerFactory
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}
 
-	internal static OutputProvider CreateOutputProvider(Wallet wallet, Wallet outputWallet)
+	internal static OutputProvider GetOrCreateOutputProvider(Wallet wallet, Wallet outputWallet)
 	{
 		if (outputWallet.WalletId == wallet.WalletId)
 		{
