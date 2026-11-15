@@ -1,13 +1,15 @@
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
-// Represents an `OutputProvider` that has a reference to the `_batchedPayments` instance created by a `Wallet`.
-// This class is then aware of the existence of payments for a `Wallet`, what allows it to provide outputs for
-// coinjoin round which include those outputs that are payments.
+/// <summary>
+/// Represents an <see cref="OutputProvider">output provider</see> that has a reference to the <see cref="Wallet.BatchedPayments"/> structure.
+/// </summary>
+/// <remarks>
+/// This class is aware of the existence of payments for a <see cref="Wallet"/>, which allows it to provide outputs for coinjoin rounds that include those outputs that are payments.
+/// </remarks>
 public class PaymentAwareOutputProvider(
 	IDestinationProvider destinationProvider,
 	PaymentBatch batchedPayments,
