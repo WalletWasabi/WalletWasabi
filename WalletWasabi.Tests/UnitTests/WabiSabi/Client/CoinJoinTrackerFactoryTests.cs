@@ -5,9 +5,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.UnitTests.Services;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Coordinator;
 using Xunit;
 
