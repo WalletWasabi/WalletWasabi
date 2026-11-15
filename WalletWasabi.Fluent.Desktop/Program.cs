@@ -250,8 +250,7 @@ public static class WasabiAppExtensions
 							Dispatcher.UIThread.ShutdownStarted += (_, _) => isDispatcherShuttingDown = true;
 							Dispatcher.UIThread.UnhandledException += (_, e) =>
 							{
-								if (isDispatcherShuttingDown &&
-									Program.IsDbusMenuShutdownException(e.Exception))
+								if (isDispatcherShuttingDown && Program.IsDbusMenuShutdownException(e.Exception))
 								{
 									Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
 									e.Handled = true;
