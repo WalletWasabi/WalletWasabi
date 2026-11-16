@@ -22,6 +22,7 @@ public record TransactionKnownAsYoursByWarning(LabelsArray Labels) : PrivacyWarn
 public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Critical);
 
 public record SemiPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
+public record InterlinksRecipientsWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Warning);
 public record LargePercentSpentWarning(int PercentSpent) : PrivacyWarning(WarningSeverity.Warning);
 
 public record CreatesChangeWarning() : PrivacyWarning(WarningSeverity.Info);

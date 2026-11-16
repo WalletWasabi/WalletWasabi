@@ -86,8 +86,18 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterManager = new FilterManager(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterManager.DisposeUsing(_disposables);
+		var sqliteDbFilePath = Path.Combine(networkWorkFolderPath, "IndexStore", "IndexStore.sqlite");
+
+		if (Network == Network.RegTest)
+		{
+			SqliteStorageHelper.DeleteDatabaseFiles(sqliteDbFilePath);
+		}
+
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(sqliteDbFilePath);
+		sharedSqliteStorage.DisposeUsing(_disposables);
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+
+		FilterManager = new FilterManager(Network, FilterHeaders, blockFilterSqliteRepository, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -207,25 +217,6 @@ public class Global
 
 	private P2pConnectionManager ConfigureP2pConnectionManager()
 	{
-		if (Network == Network.Main)
-		{
-			if (Network.DNSSeeds is List<DNSSeedData> dnsSeeds)
-			{
-				dnsSeeds.Add(new DNSSeedData("petertodd.net", "seed.btc.petertodd.net"));
-				dnsSeeds.Add(new DNSSeedData("sprovoost.nl", "seed.bitcoin.sprovoost.nl"));
-				dnsSeeds.Add(new DNSSeedData("emzy.de", "dnsseed.emzy.de"));
-				dnsSeeds.Add(new DNSSeedData("wiz.biz", "seed.bitcoin.wiz.biz"));
-				dnsSeeds.Add(new DNSSeedData("achownodes.xyz", "seed.mainnet.achownodes.xyz"));
-			}
-		}
-		if (Network == Bitcoin.Instance.Signet)
-		{
-			if (Network.DNSSeeds is List<DNSSeedData> dnsSeeds)
-			{
-				dnsSeeds.Add(new DNSSeedData("sprovoost.nl", "seed.signet.bitcoin.sprovoost.nl"));
-				dnsSeeds.Add(new DNSSeedData("achownodes.xyz", "seed.signet.achownodes.xyz"));
-			}
-		}
 		if (Network == Network.RegTest)
 		{
 			if (Network.SeedNodes is List<NetworkAddress> addresses)
@@ -328,9 +319,9 @@ public class Global
 		{
 			internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
 		}
-		catch (ArgumentException)
+		catch (ArgumentException ex)
 		{
-			Logger.LogWarning($"Failed to connect to Bitcoin RPC using '{bitcoinRpcUri}'.");
+			Logger.LogWarning($"Failed to connect to Bitcoin RPC using '{bitcoinRpcUri}'.", ex);
 			return null;
 		}
 

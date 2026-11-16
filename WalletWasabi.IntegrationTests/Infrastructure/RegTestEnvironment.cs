@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -31,6 +30,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		IntegrationTestFixture fixture,
 		string workDir,
 		EventBus eventBus,
+		SharedSqliteStorage sharedSqliteStorage,
 		FilterManager filterManager,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
@@ -39,6 +39,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		Fixture = fixture;
 		WorkDir = workDir;
 		EventBus = eventBus;
+		SharedSqliteStorage = sharedSqliteStorage;
 		FilterManager = filterManager;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
@@ -49,6 +50,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public IntegrationTestFixture Fixture { get; }
 	public string WorkDir { get; }
 	public EventBus EventBus { get; }
+	public SharedSqliteStorage SharedSqliteStorage { get; }
 	public FilterManager FilterManager { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
@@ -85,10 +87,13 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+
 		var filterManager = new FilterManager(
-			Path.Combine(workDir, "filters"),
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
+			blockFilterSqliteRepository,
 			eventBus);
 		await filterManager.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
@@ -106,6 +111,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			fixture,
 			workDir,
 			eventBus,
+			sharedSqliteStorage,
 			filterManager,
 			transactionStore,
 			filterHeaderChain,
@@ -302,38 +308,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Waits for a specific number of events to be published on the EventBus.
-	/// </summary>
-	/// <typeparam name="TEvent">The type of event to wait for.</typeparam>
-	/// <param name="count">The number of events to wait for.</param>
-	/// <param name="timeout">Maximum time to wait.</param>
-	/// <returns>The collected events.</returns>
-	public async Task<List<TEvent>> WaitForEventsAsync<TEvent>(int count, TimeSpan timeout)
-		where TEvent : notnull
-	{
-		var events = new List<TEvent>();
-		var completion = new TaskCompletionSource<List<TEvent>>();
-
-		using var cts = new CancellationTokenSource(timeout);
-		using var registration = cts.Token.Register(() =>
-			completion.TrySetException(new TimeoutException($"Timed out waiting for {count} {typeof(TEvent).Name} events. Received {events.Count}.")));
-
-		using var subscription = EventBus.Subscribe<TEvent>(e =>
-		{
-			lock (events)
-			{
-				events.Add(e);
-				if (events.Count >= count)
-				{
-					completion.TrySetResult(new List<TEvent>(events));
-				}
-			}
-		});
-
-		return await completion.Task.ConfigureAwait(false);
-	}
-
-	/// <summary>
 	/// Waits for a condition to become true.
 	/// </summary>
 	/// <param name="condition">The condition to check.</param>
@@ -363,7 +337,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		FilterManager.Dispose();
+		SharedSqliteStorage.Dispose();
 		TransactionStore.Dispose();
 		return ValueTask.CompletedTask;
 	}

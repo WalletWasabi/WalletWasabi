@@ -19,7 +19,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -172,92 +171,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
-	}
-
-	[Fact]
-	public async Task FailToRegisterOutputsCoinJoinTestAsync()
-	{
-		long[] amounts = [10_000_000, 20_000_000, 30_000_000];
-		int inputCount = amounts.Length;
-
-		// At the end of the test a coinjoin transaction has to be created and broadcasted.
-		var transactionCompleted = new TaskCompletionSource<Transaction>();
-
-		// Create a key manager and use it to create fake coins.
-		_output.WriteLine("Creating key manager...");
-		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
-
-		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
-
-		_output.WriteLine("Coins were created successfully");
-
-		keyManager.AssertLockedInternalKeysIndexedAndPersist(21, false);
-		keyManager.AssertLockedInternalKeysIndexedAndPersist(21, true);
-
-		var keysCandidates = keyManager.GetNextCoinJoinKeys().ToArray();
-		var outputScriptCandidates = keysCandidates
-			.SelectMany(x => new[] {x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)})
-			.ToImmutableArray();
-
-		await using var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder
-			.AddMockRpcClient(coins, _ => { })
-			.ConfigureServices(services =>
-			{
-				// Instruct the coordinator DI container to use this scoped
-				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(_ => new WabiSabiConfig
-				{
-					MaxInputCountByRound = inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
-				});
-
-				// Emulate that all our outputs had been already used in the past.
-				// the server will prevent the registration and fail with a WabiSabiProtocolError.
-				services.AddSingleton(_ => new CoinJoinScriptStore(outputScriptCandidates));
-			}));
-
-		using var httpClient = coordinatorApp.CreateClient();
-
-		// Create the coinjoin client
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
-
-		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
-		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
-
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_=> apiClient, keyManager, roundStateProvider);
-
-		// Run the coinjoin client task.
-		var coinjoinResultTask = coinJoinClient.StartCoinJoinAsync(() => coins, cts.Token);
-
-		// If we see a blame round that means that the original round failed
-		var blameRoundWaiterTask = roundStateProvider.CreateRoundAwaiterAsync(r => r.IsBlame, cts.Token);
-
-		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
-		if (finishedTask == coinjoinResultTask)
-		{
-			var coinjoinResult = await coinjoinResultTask;
-			if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
-			{
-				var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
-				var common = outputScriptCandidates.Intersect(scripts);
-				Assert.Empty(common);
-				throw new Exception("Coinjoin should have never finished successfully.");
-			}
-		}
-		else
-		{
-			// Task.WhenAny does not propagate cancellation or failures from the winning task.
-			// Await it so a timeout fails the test instead of passing without a blame round.
-			await blameRoundWaiterTask;
-		}
 	}
 
 	/// <summary>

@@ -26,38 +26,47 @@ public class Wallet : BackgroundService
 	public static WalletFactory CreateFactory(
 		Network network, FilterManager filterManager, AllTransactionStore transactionStore, FilterHeaderChain filterHeaderChain,
 		MempoolService mempoolService, ServiceConfiguration serviceConfiguration, BlockProvider blockProvider,
-		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, filterManager, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
+		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider)
+	{
+		return keyManager =>
+		{
+			var walletId = new WalletId(Guid.NewGuid());
+			var transactionProcessor = new TransactionProcessor(transactionStore, mempoolService, keyManager, serviceConfiguration.DustThreshold, eventBus);
+			var walletFilterProcessor = new WalletFilterProcessor(keyManager, transactionStore, filterManager, filterHeaderChain, transactionProcessor, blockProvider, eventBus);
+
+			return new Wallet(walletId, network, keyManager, transactionStore, filterHeaderChain, transactionProcessor, walletFilterProcessor, serviceConfiguration, cpfpInfoProvider, eventBus);
+		};
+	}
 
 	private Wallet(
+		WalletId walletId,
 		Network network,
 		KeyManager keyManager,
-		FilterManager filterManager,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
-		BlockProvider blockProvider,
-		MempoolService mempoolService,
+		TransactionProcessor transactionProcessor,
+		WalletFilterProcessor walletFilterProcessor,
 		ServiceConfiguration serviceConfiguration,
 		CpfpInfoProvider cpfpInfoProvider,
 		EventBus eventBus)
 	{
-		Password = "";
+		WalletId = walletId;
 		Network = network;
 		KeyManager = keyManager;
+		TransactionStore = transactionStore;
+		Password = "";
+		FilterHeaderChain = filterHeaderChain;
+		TransactionProcessor = transactionProcessor;
+		WalletFilterProcessor = walletFilterProcessor;
 		ServiceConfiguration = serviceConfiguration;
 		CpfpInfoProvider = cpfpInfoProvider;
-		DestinationProvider = new InternalDestinationProvider(KeyManager);
-		_filterManager = filterManager;
-		TransactionStore = transactionStore;
-		FilterHeaderChain = filterHeaderChain;
-
-		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
-		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterManager, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
-		Coins = TransactionProcessor.Coins;
-		BatchedPayments = new PaymentBatch(Coins);
-		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
-		WalletId = new WalletId(Guid.NewGuid());
+
+		Coins = TransactionProcessor.Coins;
+
+		BatchedPayments = new PaymentBatch(Coins);
+		DestinationProvider = new InternalDestinationProvider(KeyManager);
+		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_lastFilterProcess = keyManager.GetBestHeight();
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
@@ -79,7 +88,6 @@ public class Wallet : BackgroundService
 	}
 
 	private readonly EventBus _eventBus;
-	private readonly FilterManager _filterManager;
 	private ChainHeight _lastFilterProcess;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
