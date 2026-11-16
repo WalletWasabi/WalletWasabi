@@ -1,11 +1,8 @@
 using NBitcoin;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
@@ -18,17 +15,16 @@ namespace WalletWasabi.Tests.UnitTests.Storages;
 /// </summary>
 public class FilterManagerTests
 {
-	[Fact]
+	[Fact(Timeout = 60000)]
 	public async Task FilterManagerTestsAsync()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
+		var directory = await Common.GetEmptyWorkDirAsync();
 
-		string directory = GetWorkDirectory();
-		await IoHelpers.TryDeleteDirectoryAsync(directory);
-		IoHelpers.EnsureContainingDirectoryExists(directory);
+		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
-		using var filterManager = new FilterManager(directory, Network.Main, new FilterHeaderChain(), new EventBus());
-		await filterManager.InitializeAsync(0, testCts.Token);
+		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteRepository, new EventBus());
+		await filterManager.InitializeAsync(0, TestContext.Current.CancellationToken);
 
 		// Remove starting filter.
 		FilterModel? filterModel = await filterManager.TryRemoveLastFilterAsync();
@@ -38,7 +34,4 @@ public class FilterManagerTests
 		filterModel = await filterManager.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
-
-	private string GetWorkDirectory([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
-		=> Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
 }

@@ -86,8 +86,18 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterManager = new FilterManager(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterManager.DisposeUsing(_disposables);
+		var sqliteDbFilePath = Path.Combine(networkWorkFolderPath, "IndexStore", "IndexStore.sqlite");
+
+		if (Network == Network.RegTest)
+		{
+			SqliteStorageHelper.DeleteDatabaseFiles(sqliteDbFilePath);
+		}
+
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(sqliteDbFilePath);
+		sharedSqliteStorage.DisposeUsing(_disposables);
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+
+		FilterManager = new FilterManager(Network, FilterHeaders, blockFilterSqliteRepository, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
