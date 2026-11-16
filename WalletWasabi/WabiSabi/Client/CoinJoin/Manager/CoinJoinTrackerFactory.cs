@@ -1,10 +1,10 @@
-using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
 public class CoinJoinTrackerFactory
 {
@@ -47,10 +47,11 @@ public class CoinJoinTrackerFactory
 		var coinSelector = CoinSelectors.ComposedCoinSelector([
 			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold),
 			coinJoinCoinSelector.SelectCoinsForRound]);
+
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			outputWallet.OutputProvider,
+			GetOrCreateOutputProvider(wallet: wallet, outputWallet: outputWallet),
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
@@ -60,5 +61,19 @@ public class CoinJoinTrackerFactory
 			minAnonScoreForPayments: minAnonScoreForPayments);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
+	}
+
+	internal static OutputProvider GetOrCreateOutputProvider(Wallet wallet, Wallet outputWallet)
+	{
+		if (outputWallet.WalletId == wallet.WalletId)
+		{
+			return wallet.OutputProvider;
+		}
+		else
+		{
+			// Outputs go to the output wallet, but payments are always those of the wallet whose coins are mixed, because that is the wallet whose
+			// payments the coin selector looks at and whose payments are marked as signed and finished.
+			return new PaymentAwareOutputProvider(outputWallet.DestinationProvider, wallet.BatchedPayments, RandomnessProviders.Secure);
+		}
 	}
 }
