@@ -100,7 +100,7 @@ public record StatusEvent : IAsyncEvent
 		string action;
 		(action, remainder) = Tokenizer.ReadUntilSeparator(remainder);
 
-		Dictionary<string, string> arguments = new();
+		var arguments = new Dictionary<string, string>();
 
 		// Optional pieces of information per spec.
 		while (remainder != string.Empty)

@@ -1,4 +1,3 @@
-using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Utils;
 
@@ -40,8 +39,8 @@ public class OrConnEvent : IAsyncEvent
 		}
 
 		string target;
-		OrStatus orStatus = OrStatus.UNKNOWN;
-		Reason reason = Reason.UNKNOWN;
+		var orStatus = OrStatus.UNKNOWN;
+		var reason = Reason.UNKNOWN;
 		int? nCircs = null;
 		string? connId = null;
 

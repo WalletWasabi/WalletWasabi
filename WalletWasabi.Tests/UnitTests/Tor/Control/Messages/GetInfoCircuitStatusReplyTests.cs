@@ -36,12 +36,12 @@ public class GetInfoCircuitStatusReplyTests
 
 		// Circuit #1.
 		{
-			CircuitInfo circuitInfo = reply.Circuits[0];
+			var circuitInfo = reply.Circuits[0];
 
 			Assert.Equal("1", circuitInfo.CircuitID);
 			Assert.Equal(CircuitStatus.BUILT, circuitInfo.CircuitStatus);
 
-			List<CircuitPath> circuitPaths = circuitInfo.CircuitPaths;
+			var circuitPaths = circuitInfo.CircuitPaths;
 			Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circuitPaths[0].FingerPrint);
 			Assert.Equal("libertas", circuitPaths[0].Nickname);
 
@@ -51,7 +51,7 @@ public class GetInfoCircuitStatusReplyTests
 			Assert.Equal("$3A9559477D72F71215850C97FA62A0DA7380964B", circuitPaths[2].FingerPrint);
 			Assert.Equal("PawNetBlue", circuitPaths[2].Nickname);
 
-			BuildFlag buildFlag = Assert.Single(circuitInfo.BuildFlags);
+			var buildFlag = Assert.Single(circuitInfo.BuildFlags);
 			Assert.Equal(BuildFlag.NEED_CAPACITY, buildFlag);
 
 			Assert.Equal(Purpose.GENERAL, circuitInfo.Purpose);
@@ -72,7 +72,7 @@ public class GetInfoCircuitStatusReplyTests
 			Assert.Equal("2", circuitInfo.CircuitID);
 			Assert.Equal(CircuitStatus.BUILT, circuitInfo.CircuitStatus);
 
-			List<CircuitPath> circuitPaths = circuitInfo.CircuitPaths;
+			var circuitPaths = circuitInfo.CircuitPaths;
 			Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circuitPaths[0].FingerPrint);
 			Assert.Equal("libertas", circuitPaths[0].Nickname);
 
@@ -133,12 +133,12 @@ public class GetInfoCircuitStatusReplyTests
 
 		// Circuit #4.
 		{
-			CircuitInfo circuitInfo = reply.Circuits[3];
+			var circuitInfo = reply.Circuits[3];
 
 			Assert.Equal("4", circuitInfo.CircuitID);
 			Assert.Equal(CircuitStatus.EXTENDED, circuitInfo.CircuitStatus);
 
-			List<CircuitPath> circuitPaths = circuitInfo.CircuitPaths;
+			var circuitPaths = circuitInfo.CircuitPaths;
 			Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circuitPaths[0].FingerPrint);
 			Assert.Equal("libertas", circuitPaths[0].Nickname);
 
@@ -158,12 +158,12 @@ public class GetInfoCircuitStatusReplyTests
 
 		// Circuit #5.
 		{
-			CircuitInfo circuitInfo = reply.Circuits[4];
+			var circuitInfo = reply.Circuits[4];
 
 			Assert.Equal("5", circuitInfo.CircuitID);
 			Assert.Equal(CircuitStatus.BUILT, circuitInfo.CircuitStatus);
 
-			List<CircuitPath> circuitPaths = circuitInfo.CircuitPaths;
+			var circuitPaths = circuitInfo.CircuitPaths;
 			Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circuitPaths[0].FingerPrint);
 			Assert.Equal("libertas", circuitPaths[0].Nickname);
 

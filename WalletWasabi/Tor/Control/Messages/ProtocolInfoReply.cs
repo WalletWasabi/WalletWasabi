@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Utils;
 
@@ -40,10 +36,10 @@ public record ProtocolInfoReply
 
 		string? torVersion = null;
 		string? cookieFilePath = null;
-		List<string> authMethods = new();
+		var authMethods = new List<string>();
 
 		// Optional pieces of information per spec.
-		foreach (string line in reply.ResponseLines.Skip(1).SkipLast(1))
+		foreach (var line in reply.ResponseLines.Skip(1).SkipLast(1))
 		{
 			(string token, string remainder) = Tokenizer.ReadUntilSeparator(line);
 

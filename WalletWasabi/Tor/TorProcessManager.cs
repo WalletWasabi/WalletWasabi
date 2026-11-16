@@ -188,7 +188,7 @@ public class TorProcessManager(EventBus eventBus)
 	/// </summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-	public virtual async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken token)
+	public virtual async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken cancellationToken)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
 		if (!File.Exists(settings.CookieAuthFilePath))
@@ -200,20 +200,20 @@ public class TorProcessManager(EventBus eventBus)
 		string cookieString = Convert.ToHexString(File.ReadAllBytes(settings.CookieAuthFilePath));
 
 		// Authenticate.
-		TorControlClientFactory factory = new(RandomnessProviders.Secure);
-		TorControlClient client = await factory.ConnectAndAuthenticateAsync(settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+		var factory = new TorControlClientFactory(RandomnessProviders.Secure);
+		var client = await factory.ConnectAndAuthenticateAsync(settings.ControlEndpoint, cookieString, cancellationToken).ConfigureAwait(false);
 
 		if (settings.TerminateOnExit)
 		{
 			// This is necessary for the scenario when Tor was started by a previous WW instance with TerminateTorOnExit=false configuration option.
-			TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
+			TorControlReply takeReply = await client.TakeOwnershipAsync(cancellationToken).ConfigureAwait(false);
 
 			if (!takeReply)
 			{
 				throw new TorControlException($"Failed to take ownership of the Tor instance. Reply: '{takeReply}'.");
 			}
 
-			TorControlReply resetReply = await client.ResetOwningControllerProcessConfAsync(token).ConfigureAwait(false);
+			TorControlReply resetReply = await client.ResetOwningControllerProcessConfAsync(cancellationToken).ConfigureAwait(false);
 
 			if (!resetReply)
 			{
