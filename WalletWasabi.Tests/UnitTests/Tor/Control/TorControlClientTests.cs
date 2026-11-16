@@ -9,9 +9,14 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 
+/// <summary>
+/// Tests for <see cref="TorControlClient"/>.
+/// </summary>
 public class TorControlClientTests
 {
-	/// <summary>Verifies that client receives correct async events from Tor.</summary>
+	/// <summary>
+	/// Verifies that client receives correct async events from Tor.
+	/// </summary>
 	[Fact]
 	public async Task ReceiveTorAsyncEventsUsingForeachAsync()
 	{
@@ -78,7 +83,9 @@ public class TorControlClientTests
 		Logger.LogTrace("Client: Done.");
 	}
 
-	/// <summary>Verifies a correct result of a mix of sync and async messages from Tor.</summary>
+	/// <summary>
+	/// Verifies a correct result of a mix of sync and async messages from Tor.
+	/// </summary>
 	[Fact]
 	public async Task ReceivingMixOfSyncAndAsyncMessageFromTorControlAsync()
 	{
@@ -155,7 +162,9 @@ public class TorControlClientTests
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await eventsEnumerator.MoveNextAsync());
 	}
 
-	/// <summary>Verifies behavior of the subscription API and its logical subscription model.</summary>
+	/// <summary>
+	/// Verifies behavior of the subscription API and its logical subscription model.
+	/// </summary>
 	[Fact]
 	public async Task SubscribeAndUnsubscribeAsync()
 	{

@@ -140,10 +140,8 @@ public record TorSettings
 	private readonly string _geoIp6Path;
 
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
-	public static string GetTorBinaryFilePath(string path)
-	{
-		return Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
-	}
+	public static string GetTorBinaryFilePath(string path) =>
+		Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
 
 	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>
 	/// <seealso href="https://github.com/torproject/tor/blob/22cb4c23d0d23dfda2c91817bac74a01831f94af/doc/man/tor.1.txt#L1298-L1305">

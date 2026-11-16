@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Messages.Events;
 using WalletWasabi.Tor.Control.Messages.StreamStatus;
 using Xunit;
@@ -16,12 +15,12 @@ public class StreamEventTests
 	{
 		string data = "650 STREAM 38 SENTCONNECT 36 94.204.133.221:8333 SOCKS_USERNAME=\"0QAAN5PBSOM5OXCTPXI0J\" SOCKS_PASSWORD=\"0QAAN5PBSOM5OXCTPXI0J\" CLIENT_PROTOCOL=SOCKS5 NYM_EPOCH=0 SESSION_GROUP=-4 ISO_FIELDS=SOCKS_USERNAME,SOCKS_PASSWORD,CLIENTADDR,SESSION_GROUP,NYM_EPOCH\r\n";
 
-		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
-		StreamEvent streamEvent = StreamEvent.FromReply(rawReply);
+		var rawReply = await TorControlReplyReaderTest.ParseAsync(data);
+		var streamEvent = StreamEvent.FromReply(rawReply);
 
 		Assert.NotNull(streamEvent.StreamInfo);
 
-		StreamInfo info = streamEvent.StreamInfo;
+		var info = streamEvent.StreamInfo;
 		Assert.Equal("38", info.StreamID);
 		Assert.Equal(StreamStatusFlag.SENTCONNECT, info.StreamStatus);
 		Assert.Equal("36", info.CircuitID);
@@ -42,12 +41,12 @@ public class StreamEventTests
 	{
 		string data = "650 STREAM 34 NEW 0 175.32.128.126:8333 SOURCE_ADDR=127.0.0.1:25180 PURPOSE=USER SOCKS_USERNAME=\"YF98TC0IZD4PNMXE2RH0V\" SOCKS_PASSWORD=\"YF98TC0IZD4PNMXE2RH0V\" CLIENT_PROTOCOL=SOCKS5 NYM_EPOCH=0 SESSION_GROUP=-4 ISO_FIELDS=SOCKS_USERNAME,SOCKS_PASSWORD,CLIENTADDR,SESSION_GROUP,NYM_EPOCH\r\n";
 
-		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
-		StreamEvent streamEvent = StreamEvent.FromReply(rawReply);
+		var rawReply = await TorControlReplyReaderTest.ParseAsync(data);
+		var streamEvent = StreamEvent.FromReply(rawReply);
 
 		Assert.NotNull(streamEvent.StreamInfo);
 
-		StreamInfo info = streamEvent.StreamInfo;
+		var info = streamEvent.StreamInfo;
 		Assert.Equal("34", info.StreamID);
 		Assert.Equal(StreamStatusFlag.NEW, info.StreamStatus);
 		Assert.Equal("0", info.CircuitID);
@@ -68,12 +67,12 @@ public class StreamEventTests
 	{
 		string data = "650 STREAM 69 NEW 0 138.201.196.252.$AC7C88D67339B90F2C10FF7B702DCB1EF3B8D663.exit:9993 PURPOSE=DIR_FETCH CLIENT_PROTOCOL=UNKNOWN NYM_EPOCH=0 SESSION_GROUP=-2 ISO_FIELDS=\r\n";
 
-		TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
-		StreamEvent streamEvent = StreamEvent.FromReply(rawReply);
+		var rawReply = await TorControlReplyReaderTest.ParseAsync(data);
+		var streamEvent = StreamEvent.FromReply(rawReply);
 
 		Assert.NotNull(streamEvent.StreamInfo);
 
-		StreamInfo info = streamEvent.StreamInfo;
+		var info = streamEvent.StreamInfo;
 		Assert.Equal("69", info.StreamID);
 		Assert.Equal(StreamStatusFlag.NEW, info.StreamStatus);
 		Assert.Equal("0", info.CircuitID);

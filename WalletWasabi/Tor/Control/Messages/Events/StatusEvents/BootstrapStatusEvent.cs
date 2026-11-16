@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
 
 namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 
-/// <summary>Status event of type <see cref="StatusType.STATUS_CLIENT"/> and ACTION=BOOTSTRAP.</summary>
+/// <summary>
+/// Status event of type <see cref="StatusType.STATUS_CLIENT"/> and ACTION=BOOTSTRAP.
+/// </summary>
 public record BootstrapStatusEvent : StatusEvent
 {
 	/// <remarks>See https://gitweb.torproject.org/torspec.git/tree/control-spec.txt 5.5.2</remarks>

@@ -1,11 +1,4 @@
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using SQLitePCL;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 
@@ -25,8 +18,8 @@ public static class TorStatusChecker
 	{
 		try
 		{
-			using HttpRequestMessage request = new(HttpMethod.Get, TorStatusUri);
-			using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			using var request = new HttpRequestMessage(HttpMethod.Get, TorStatusUri);
+			using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 			using var content = response.Content;
 
 			var systemsStatus = await content.ReadAsJsonAsync(Decode.TorStatus).ConfigureAwait(false);
