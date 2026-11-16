@@ -301,31 +301,28 @@ public class TorControlClient : IAsyncDisposable
 	/// <returns>Number of subscribed readers.</returns>
 	private int AddAsyncChannel(Channel<TorControlReply> channel)
 	{
-		int subscribers;
-
 		lock (_asyncChannelsLock)
 		{
-			AsyncChannels = [.. AsyncChannels, channel];
-			subscribers = AsyncChannels.Count;
+			AsyncChannels = AsyncChannels.Add(channel);
+			return AsyncChannels.Count;
 		}
-
-		return subscribers;
 	}
 
 	private void RemoveAsyncChannel(Channel<TorControlReply> channel)
 	{
 		lock (_asyncChannelsLock)
 		{
-			ImmutableList<Channel<TorControlReply>> newList = AsyncChannels.Remove(channel);
-			AsyncChannels = newList;
+			AsyncChannels = AsyncChannels.Remove(channel);
 		}
-
-		channel.Writer.TryComplete();
 	}
 
 	/// <summary>
 	/// Subscribes Tor control events by their names.
 	/// </summary>
+	/// <param name="cancellationToken">
+	/// Useful when the whole Tor process stops. Otherwise, the internal state of this object may get corrupted.
+	/// </param>
+	/// <remarks>If an event stream is already subscribed, no command is sent to Tor control.</remarks>
 	public async Task SubscribeEventsAsync(IReadOnlyList<string> names, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);

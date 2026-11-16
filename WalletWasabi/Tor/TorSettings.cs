@@ -139,7 +139,7 @@ public record TorSettings
 	private readonly string _geoIpPath;
 	private readonly string _geoIp6Path;
 
-	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
+	/// <returns>Full path to Tor binary.</returns>
 	public static string GetTorBinaryFilePath(string path) =>
 		Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
 
