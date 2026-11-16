@@ -1,11 +1,9 @@
 using NBitcoin;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
@@ -25,7 +23,7 @@ public class FilterManagerTests
 
 		var directory = await Common.GetEmptyWorkDirAsync();
 
-		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
+		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
 		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
 
 		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteStorage, new EventBus());

@@ -140,7 +140,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
+		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
 		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
 
 		bool result = filterStorage.TryAppend(filter0);
