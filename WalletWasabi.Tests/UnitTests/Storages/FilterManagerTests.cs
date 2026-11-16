@@ -24,9 +24,9 @@ public class FilterManagerTests
 		var directory = await Common.GetEmptyWorkDirAsync();
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
-		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
-		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteStorage, new EventBus());
+		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteRepository, new EventBus());
 		await filterManager.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.

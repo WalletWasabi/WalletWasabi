@@ -10,12 +10,12 @@ namespace WalletWasabi.Storages;
 /// </summary>
 public class FilterManager : IFilterManager
 {
-	public FilterManager(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteStorage blockFilterSqliteStorage, EventBus eventBus)
+	public FilterManager(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteRepository blockFilterSqliteRepository, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		IndexStorage = blockFilterSqliteStorage;
+		_blockFilterRepository = blockFilterSqliteRepository;
 	}
 
 	private readonly Network _network;
@@ -24,9 +24,9 @@ public class FilterManager : IFilterManager
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
-	private BlockFilterSqliteStorage IndexStorage { get; set; }
+	private readonly BlockFilterSqliteRepository _blockFilterRepository;
 
-	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
+	/// <summary>Guards <see cref="_blockFilterRepository"/>.</summary>
 	private readonly AsyncLock _indexLock = new();
 
 	/// <summary>
@@ -34,12 +34,12 @@ public class FilterManager : IFilterManager
 	/// </summary>
 	public uint? GetMinimumBlockHeight()
 	{
-		return IndexStorage.GetMinimumBlockHeight();
+		return _blockFilterRepository.GetMinimumBlockHeight();
 	}
 
 	public FilterModel? GetTip()
 	{
-		return IndexStorage.FetchLast(1).LastOrDefault();
+		return _blockFilterRepository.FetchLast(1).LastOrDefault();
 	}
 
 	public async Task InitializeAsync(ChainHeight oldestKnownTransactionHeight, CancellationToken cancellationToken)
@@ -50,11 +50,11 @@ public class FilterManager : IFilterManager
 
 			if (GetTip() is null)
 			{
-				IndexStorage.TryAppend(checkpoint);
+				_blockFilterRepository.TryAppend(checkpoint);
 			}
 			else
 			{
-				var currentMinHeight = IndexStorage.GetMinimumBlockHeight();
+				var currentMinHeight = _blockFilterRepository.GetMinimumBlockHeight();
 
 				if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight)
 				{
@@ -62,8 +62,8 @@ public class FilterManager : IFilterManager
 								   $"Current minimum height: {currentMinHeight.Value}, " +
 								   $"Desired checkpoint: {checkpoint.Header.Height}");
 
-					IndexStorage.Clear();
-					IndexStorage.TryAppend(checkpoint);
+					_blockFilterRepository.Clear();
+					_blockFilterRepository.TryAppend(checkpoint);
 				}
 			}
 
@@ -79,7 +79,7 @@ public class FilterManager : IFilterManager
 			int i = 0;
 
 			// Read last N filters. There is no need to read all of them.
-			foreach (FilterModel filter in IndexStorage.FetchLast(n: 5000))
+			foreach (FilterModel filter in _blockFilterRepository.FetchLast(n: 5000))
 			{
 				i++;
 
@@ -98,7 +98,7 @@ public class FilterManager : IFilterManager
 			// We found a corrupted entry. Clear the corrupted database and stop here.
 			Logger.LogError("Filter database table got corrupted. Clearing the filter database…");
 			Logger.LogDebug(ex);
-			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
+			_blockFilterRepository.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
 		}
 
@@ -126,7 +126,7 @@ public class FilterManager : IFilterManager
 	{
 		using (await _indexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			using var connection = IndexStorage.CreateConnection();
+			using var connection = _blockFilterRepository.CreateConnection();
 			using var transaction = connection.BeginTransaction();
 
 			int processed = 0;
@@ -140,7 +140,7 @@ public class FilterManager : IFilterManager
 						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
 					}
 
-					if (!IndexStorage.TryAppend(connection, filter))
+					if (!_blockFilterRepository.TryAppend(connection, filter))
 					{
 						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
@@ -164,7 +164,7 @@ public class FilterManager : IFilterManager
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return IndexStorage.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
+			return _blockFilterRepository.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
 		}
 	}
 
@@ -181,14 +181,14 @@ public class FilterManager : IFilterManager
 		{
 			if (height is null)
 			{
-				if (!IndexStorage.TryRemoveLast(out filter))
+				if (!_blockFilterRepository.TryRemoveLast(out filter))
 				{
 					return null;
 				}
 			}
 			else
 			{
-				if (!IndexStorage.TryRemoveLastIfNewerThan(height.Value, out filter))
+				if (!_blockFilterRepository.TryRemoveLastIfNewerThan(height.Value, out filter))
 				{
 					return null;
 				}
@@ -196,7 +196,7 @@ public class FilterManager : IFilterManager
 
 			if (_filterHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(FilterHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(FilterHeaderChain)} and {nameof(_blockFilterRepository)} are not in sync.");
 			}
 
 			_filterHeaderChain.RemoveTip();

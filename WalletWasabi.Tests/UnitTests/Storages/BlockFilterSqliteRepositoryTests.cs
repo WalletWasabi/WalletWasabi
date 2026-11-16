@@ -10,9 +10,9 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Storages;
 
 /// <summary>
-/// Tests for <see cref="BlockFilterSqliteStorage"/>.
+/// Tests for <see cref="BlockFilterSqliteRepository"/>.
 /// </summary>
-public class BlockFilterSqliteStorageTests
+public class BlockFilterSqliteRepositoryTests
 {
 	private static byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
 
@@ -25,7 +25,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var filterStorage = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		bool added = filterStorage.TryAppend(filter0);
 		Assert.True(added);
@@ -46,7 +46,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel startingFilter = FilterCheckpoints.GetWasabiGenesisFilter(Network.Main);
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var filterStorage = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 		filterStorage.TryAppend(startingFilter);
 
 		bool result = filterStorage.TryRemoveLast(out FilterModel? filter1);
@@ -68,7 +68,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var filterStorage = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 		filterStorage.TryAppend(filter0);
 
 		bool added = filterStorage.TryAppend(filter1);
@@ -105,7 +105,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter3 = CreateFilterModel(blockHeight: 3, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006508);
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var filterStorage = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		Assert.True(filterStorage.TryAppend(filter0));
 		Assert.True(filterStorage.TryAppend(filter1));
@@ -141,7 +141,7 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
-		var filterStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var filterStorage = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		bool result = filterStorage.TryAppend(filter0);
 

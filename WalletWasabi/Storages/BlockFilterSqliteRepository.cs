@@ -8,11 +8,11 @@ namespace WalletWasabi.Storages;
 /// SQLite-based storage for block filters.
 /// </summary>
 /// <remarks>The implementation is thread-safe because <see cref="SqliteConnection"/> are created per operation. The connection pool is used for efficiency.</remarks>
-public class BlockFilterSqliteStorage
+public class BlockFilterSqliteRepository
 {
 	private readonly SqliteConnectionFactory _connectionFactory;
 
-	public BlockFilterSqliteStorage(SqliteConnectionFactory connectionFactory)
+	public BlockFilterSqliteRepository(SqliteConnectionFactory connectionFactory)
 	{
 		_connectionFactory = connectionFactory;
 	}
