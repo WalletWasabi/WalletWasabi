@@ -1,6 +1,5 @@
 using NBitcoin;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -16,18 +15,16 @@ namespace WalletWasabi.Tests.UnitTests.Storages;
 /// </summary>
 public class FilterManagerTests
 {
-	[Fact]
+	[Fact(Timeout = 60000)]
 	public async Task FilterManagerTestsAsync()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
-
 		var directory = await Common.GetEmptyWorkDirAsync();
 
 		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
 		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		var filterManager = new FilterManager(Network.Main, new FilterHeaderChain(), blockFilterSqliteRepository, new EventBus());
-		await filterManager.InitializeAsync(0, testCts.Token);
+		await filterManager.InitializeAsync(0, TestContext.Current.CancellationToken);
 
 		// Remove starting filter.
 		FilterModel? filterModel = await filterManager.TryRemoveLastFilterAsync();

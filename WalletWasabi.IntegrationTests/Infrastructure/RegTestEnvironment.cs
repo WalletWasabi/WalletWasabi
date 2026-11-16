@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -306,38 +305,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		}
 
 		return txid;
-	}
-
-	/// <summary>
-	/// Waits for a specific number of events to be published on the EventBus.
-	/// </summary>
-	/// <typeparam name="TEvent">The type of event to wait for.</typeparam>
-	/// <param name="count">The number of events to wait for.</param>
-	/// <param name="timeout">Maximum time to wait.</param>
-	/// <returns>The collected events.</returns>
-	public async Task<List<TEvent>> WaitForEventsAsync<TEvent>(int count, TimeSpan timeout)
-		where TEvent : notnull
-	{
-		var events = new List<TEvent>();
-		var completion = new TaskCompletionSource<List<TEvent>>();
-
-		using var cts = new CancellationTokenSource(timeout);
-		using var registration = cts.Token.Register(() =>
-			completion.TrySetException(new TimeoutException($"Timed out waiting for {count} {typeof(TEvent).Name} events. Received {events.Count}.")));
-
-		using var subscription = EventBus.Subscribe<TEvent>(e =>
-		{
-			lock (events)
-			{
-				events.Add(e);
-				if (events.Count >= count)
-				{
-					completion.TrySetResult(new List<TEvent>(events));
-				}
-			}
-		});
-
-		return await completion.Task.ConfigureAwait(false);
 	}
 
 	/// <summary>
