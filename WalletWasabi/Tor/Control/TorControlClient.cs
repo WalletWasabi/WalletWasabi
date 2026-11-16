@@ -37,7 +37,7 @@ public class TorControlClient : IAsyncDisposable
 		_pipeWriter = pipeWriter;
 
 		_syncChannel = Channel.CreateUnbounded<TorControlReply>(Options);
-		AsyncChannels = new List<Channel<TorControlReply>>();
+		AsyncChannels = [];
 		_readerLoopTask = Task.Run(ReaderLoopAsync);
 	}
 
@@ -59,7 +59,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Guarded by <see cref="_asyncChannelsLock"/>.
 	/// <para>This list should be used only in a copy-on-write way to avoid iterating a modified list.</para>
 	/// </remarks>
-	private List<Channel<TorControlReply>> AsyncChannels { get; set; }
+	private ImmutableList<Channel<TorControlReply>> AsyncChannels { get; set; }
 
 	/// <summary>Lock to when sending a request to Tor control and waiting for a reply.</summary>
 	/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
@@ -316,8 +316,7 @@ public class TorControlClient : IAsyncDisposable
 	{
 		lock (_asyncChannelsLock)
 		{
-			List<Channel<TorControlReply>> newList = [.. AsyncChannels];
-			newList.Remove(channel);
+			ImmutableList<Channel<TorControlReply>> newList = AsyncChannels.Remove(channel);
 			AsyncChannels = newList;
 		}
 
@@ -462,7 +461,7 @@ public class TorControlClient : IAsyncDisposable
 
 				if (reply.StatusCode == StatusCode.AsynchronousEventNotify)
 				{
-					List<Channel<TorControlReply>> list;
+					ImmutableList<Channel<TorControlReply>> list;
 
 					lock (_asyncChannelsLock)
 					{
