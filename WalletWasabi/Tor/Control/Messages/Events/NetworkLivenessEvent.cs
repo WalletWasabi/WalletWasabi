@@ -9,9 +9,6 @@ public record NetworkLivenessEvent : IAsyncEvent
 {
 	public const string EventName = "NETWORK_LIVENESS";
 
-	private const string StatusUp = "UP";
-	private const string StatusDown = "DOWN";
-
 	public NetworkLivenessEvent(string status)
 	{
 		Status = status;

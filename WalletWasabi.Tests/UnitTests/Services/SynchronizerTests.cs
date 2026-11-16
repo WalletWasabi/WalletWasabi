@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.IO;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -24,7 +25,11 @@ public class SynchronizerTests
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 		filterHeaderChain.AppendTip(FilterCheckpoints.GetCheckpointForBirthday(700_000u, Network.Main).Header);
-		using var filterManager = new FilterManager(directory, Network.Main, filterHeaderChain, eventBus);
+
+		using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+
+		var filterManager = new FilterManager(Network.Main, filterHeaderChain, blockFilterSqliteRepository, eventBus);
 
 		var networkTipAnnounced = false;
 		using var _ = eventBus.Subscribe<NetworkTipHeightChanged>(_ => networkTipAnnounced = true);

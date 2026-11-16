@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Utils;
 
@@ -18,7 +15,7 @@ public record StreamInfo
 		CircuitID = circuitID;
 		TargetAddress = targetAddress;
 		Port = port;
-		IsoFields = Array.Empty<IsoFieldFlag>();
+		IsoFields = [];
 	}
 
 	/// <summary>Unique stream identifier.</summary>
@@ -95,7 +92,7 @@ public record StreamInfo
 			throw new TorControlReplyParseException($"{nameof(StreamInfo)} should contain 'target' value with a colon (':').");
 		}
 
-		string targetAddress = target[0..targetIndex];
+		var targetAddress = target[0..targetIndex];
 
 		if (!int.TryParse(target[(targetIndex + 1)..], NumberStyles.None, CultureInfo.InvariantCulture, out int targetPort))
 		{
@@ -107,9 +104,9 @@ public record StreamInfo
 			throw new TorControlReplyParseException($"{nameof(StreamInfo)}: Port value ({targetPort} is out of range.");
 		}
 
-		StreamStatusFlag streamStatus = Tokenizer.ParseEnumValue(circuitStatus, StreamStatusFlag.UNKNOWN);
+		var streamStatus = Tokenizer.ParseEnumValue(circuitStatus, StreamStatusFlag.UNKNOWN);
 
-		string remainder = remainder4;
+		var remainder = remainder4;
 
 		Reason? reason = null;
 		Reason? remoteReason = null;
@@ -121,7 +118,7 @@ public record StreamInfo
 		ClientProtocol? clientProtocol = null;
 		int? nymEpoch = null;
 		int? sessionGroup = null;
-		List<IsoFieldFlag> isoFields = new();
+		var isoFields = new List<IsoFieldFlag>();
 
 		// Optional arguments.
 		while (remainder != "")

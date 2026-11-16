@@ -1,6 +1,4 @@
-using Microsoft.Data.Sqlite;
 using Nito.AsyncEx;
-using System.IO;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
@@ -10,54 +8,15 @@ namespace WalletWasabi.Storages;
 /// <summary>
 /// Manages to store the compact filters safely.
 /// </summary>
-public class FilterManager : IFilterManager, IDisposable
+public class FilterManager : IFilterManager
 {
-	public FilterManager(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterManager(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteRepository blockFilterSqliteRepository, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
-
-		if (network == Network.RegTest)
-		{
-			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-		}
-
-		IndexStorage = CreateBlockFilterSqliteStorage();
+		_blockFilterRepository = blockFilterSqliteRepository;
 	}
-
-	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
-	{
-		try
-		{
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			if (storage.GetPragmaUserVersion() < 2)
-			{
-				storage.Dispose();
-				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-				SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-				storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-				storage.SetPragmaUserVersion(2);
-			}
-
-			return storage;
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
-
-			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			storage.SetPragmaUserVersion(2);
-			return storage;
-		}
-	}
-
-	/// <summary>SQLite file path for migration purposes.</summary>
-	private readonly string _storageFilePath;
 
 	private readonly Network _network;
 	private readonly FilterHeaderChain _filterHeaderChain;
@@ -65,9 +24,9 @@ public class FilterManager : IFilterManager, IDisposable
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
-	private BlockFilterSqliteStorage IndexStorage { get; set; }
+	private readonly BlockFilterSqliteRepository _blockFilterRepository;
 
-	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
+	/// <summary>Guards <see cref="_blockFilterRepository"/>.</summary>
 	private readonly AsyncLock _indexLock = new();
 
 	/// <summary>
@@ -75,12 +34,12 @@ public class FilterManager : IFilterManager, IDisposable
 	/// </summary>
 	public uint? GetMinimumBlockHeight()
 	{
-		return IndexStorage.GetMinimumBlockHeight();
+		return _blockFilterRepository.GetMinimumBlockHeight();
 	}
 
 	public FilterModel? GetTip()
 	{
-		return IndexStorage.FetchLast(1).LastOrDefault();
+		return _blockFilterRepository.FetchLast(1).LastOrDefault();
 	}
 
 	public async Task InitializeAsync(ChainHeight oldestKnownTransactionHeight, CancellationToken cancellationToken)
@@ -91,11 +50,11 @@ public class FilterManager : IFilterManager, IDisposable
 
 			if (GetTip() is null)
 			{
-				IndexStorage.TryAppend(checkpoint);
+				_blockFilterRepository.TryAppend(checkpoint);
 			}
 			else
 			{
-				var currentMinHeight = IndexStorage.GetMinimumBlockHeight();
+				var currentMinHeight = _blockFilterRepository.GetMinimumBlockHeight();
 
 				if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight)
 				{
@@ -103,8 +62,8 @@ public class FilterManager : IFilterManager, IDisposable
 								   $"Current minimum height: {currentMinHeight.Value}, " +
 								   $"Desired checkpoint: {checkpoint.Header.Height}");
 
-					IndexStorage.Clear();
-					IndexStorage.TryAppend(checkpoint);
+					_blockFilterRepository.Clear();
+					_blockFilterRepository.TryAppend(checkpoint);
 				}
 			}
 
@@ -120,7 +79,7 @@ public class FilterManager : IFilterManager, IDisposable
 			int i = 0;
 
 			// Read last N filters. There is no need to read all of them.
-			foreach (FilterModel filter in IndexStorage.FetchLast(n: 5000))
+			foreach (FilterModel filter in _blockFilterRepository.FetchLast(n: 5000))
 			{
 				i++;
 
@@ -139,7 +98,7 @@ public class FilterManager : IFilterManager, IDisposable
 			// We found a corrupted entry. Clear the corrupted database and stop here.
 			Logger.LogError("Filter database table got corrupted. Clearing the filter database…");
 			Logger.LogDebug(ex);
-			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
+			_blockFilterRepository.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
 		}
 
@@ -167,7 +126,7 @@ public class FilterManager : IFilterManager, IDisposable
 	{
 		using (await _indexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
-			using var connection = IndexStorage.CreateConnection();
+			using var connection = _blockFilterRepository.CreateConnection();
 			using var transaction = connection.BeginTransaction();
 
 			int processed = 0;
@@ -181,7 +140,7 @@ public class FilterManager : IFilterManager, IDisposable
 						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
 					}
 
-					if (!IndexStorage.TryAppend(connection, filter))
+					if (!_blockFilterRepository.TryAppend(connection, filter))
 					{
 						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
@@ -205,7 +164,7 @@ public class FilterManager : IFilterManager, IDisposable
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			return IndexStorage.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
+			return _blockFilterRepository.Fetch(fromHeight: fromHeight, limit: batchSize).ToArray();
 		}
 	}
 
@@ -222,14 +181,14 @@ public class FilterManager : IFilterManager, IDisposable
 		{
 			if (height is null)
 			{
-				if (!IndexStorage.TryRemoveLast(out filter))
+				if (!_blockFilterRepository.TryRemoveLast(out filter))
 				{
 					return null;
 				}
 			}
 			else
 			{
-				if (!IndexStorage.TryRemoveLastIfNewerThan(height.Value, out filter))
+				if (!_blockFilterRepository.TryRemoveLastIfNewerThan(height.Value, out filter))
 				{
 					return null;
 				}
@@ -237,7 +196,7 @@ public class FilterManager : IFilterManager, IDisposable
 
 			if (_filterHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(FilterHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(FilterHeaderChain)} and {nameof(_blockFilterRepository)} are not in sync.");
 			}
 
 			_filterHeaderChain.RemoveTip();
@@ -260,10 +219,5 @@ public class FilterManager : IFilterManager, IDisposable
 				break;
 			}
 		}
-	}
-
-	public void Dispose()
-	{
-		IndexStorage.Dispose();
 	}
 }

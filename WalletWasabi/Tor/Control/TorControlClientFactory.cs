@@ -1,14 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor.Control;
 
@@ -72,9 +67,9 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 	{
 		Span<byte> nonceBytes = stackalloc byte[32];
 		_random(nonceBytes);
-		string clientNonce = Convert.ToHexString(nonceBytes);
+		var clientNonce = Convert.ToHexString(nonceBytes);
 
-		TorControlReply authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);
+		var authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);
 
 		if (!authChallengeReply)
 		{
@@ -88,8 +83,8 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 			throw new TorControlException("Invalid number of lines in AUTHCHALLENGE reply.");
 		}
 
-		string reply = authChallengeReply.ResponseLines[0];
-		Match match = AuthChallengeRegex().Match(reply);
+		var reply = authChallengeReply.ResponseLines[0];
+		var match = AuthChallengeRegex().Match(reply);
 
 		if (!match.Success)
 		{
@@ -97,15 +92,15 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 			throw new TorControlException("AUTHCHALLENGE reply cannot be parsed.");
 		}
 
-		string serverNonce = match.Groups[2].Value;
-		string toHash = $"{cookieString}{clientNonce}{serverNonce}";
+		var serverNonce = match.Groups[2].Value;
+		var toHash = $"{cookieString}{clientNonce}{serverNonce}";
 
-		using HMACSHA256 hmacSha256 = new(ClientHmacKey);
-		byte[] serverHash = hmacSha256.ComputeHash(Convert.FromHexString(toHash));
-		string serverHashStr = Convert.ToHexString(serverHash);
+		using var hmacSha256 = new HMACSHA256(ClientHmacKey);
+		var serverHash = hmacSha256.ComputeHash(Convert.FromHexString(toHash));
+		var serverHashStr = Convert.ToHexString(serverHash);
 
 		Logger.LogTrace($"Authenticate using server hash: '{serverHashStr}'.");
-		TorControlReply authenticationReply = await controlClient.SendCommandAsync($"AUTHENTICATE {serverHashStr}\r\n", cancellationToken).ConfigureAwait(false);
+		var authenticationReply = await controlClient.SendCommandAsync($"AUTHENTICATE {serverHashStr}\r\n", cancellationToken).ConfigureAwait(false);
 
 		if (!authenticationReply)
 		{

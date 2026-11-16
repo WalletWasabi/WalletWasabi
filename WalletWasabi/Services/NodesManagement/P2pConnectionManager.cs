@@ -640,7 +640,7 @@ public class P2pConnectionManager : IDisposable
 	}
 
 	private abstract record CoordinatorMessage;
-	private record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
+	private record HarvestedEndpointsMessage(string Source, IReadOnlyList<EndPoint> Endpoints) : CoordinatorMessage;
 	private record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	private record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	private record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
@@ -654,8 +654,7 @@ public class P2pConnectionManager : IDisposable
 		bool SlowedDown,
 		int LastCrawlerIndex);
 
-	private record CrawlerState(
-		TimeSpan DelayBeforeVisitingNode);
+	private record CrawlerState(TimeSpan DelayBeforeVisitingNode);
 
 	private MessageHandler<CoordinatorMessage, CrawlingCoordinationState> CreateDiscovery(
 		MailboxProcessor<CrawlerMessage>[] crawlers) =>
@@ -668,7 +667,9 @@ public class P2pConnectionManager : IDisposable
 	{
 		switch (msg)
 		{
-			case HarvestedEndpointsMessage(Endpoints: var endpoints):
+			case HarvestedEndpointsMessage(Source: var source, Endpoints: var endpoints):
+				Logger.LogTrace($"Harvested P2P nodes from '{source}' ({endpoints.Count})");
+
 				var n = state.LastCrawlerIndex;
 				foreach (var endPoint in endpoints)
 				{
@@ -795,7 +796,7 @@ public class P2pConnectionManager : IDisposable
 
 		if (_torSocks5 is { } torEndpoint)
 		{
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false, streamIsolation:false, networkCredential:null));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false, streamIsolation: false, networkCredential: null));
 		}
 		else if (endpoint.IsTor())
 		{
@@ -836,7 +837,8 @@ public class P2pConnectionManager : IDisposable
 		}
 		catch (Exception e)
 		{
-			Logger.LogTrace($"Failed to connect to endpoint '{endpoint}' (requested cancellation: {cancellationToken.IsCancellationRequested})", e);
+			var ctx = e is OperationCanceledException ? null : e;
+			Logger.LogTrace($"Failed to connect to endpoint '{endpoint}' (requested cancellation: {cancellationToken.IsCancellationRequested})", ctx);
 
 			_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 			node?.DisconnectAsync();
@@ -847,7 +849,7 @@ public class P2pConnectionManager : IDisposable
 
 	private async Task HarvestAddressesAsync(Node node, CancellationToken cancellationToken)
 	{
-		var tcs = new TaskCompletionSource<EndPoint[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var tcs = new TaskCompletionSource<IReadOnlyList<EndPoint>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		timeoutCts.CancelAfter(CrawlerHarvestTimeout);
@@ -859,7 +861,7 @@ public class P2pConnectionManager : IDisposable
 		{
 			await node.SendMessageAsync(new GetAddrPayload()).ConfigureAwait(false);
 			var harvestedEndpoints = await tcs.Task.ConfigureAwait(false);
-			_discoveryCoordinator?.Post(new HarvestedEndpointsMessage(harvestedEndpoints));
+			_discoveryCoordinator?.Post(new HarvestedEndpointsMessage(node.Peer.Endpoint.ToEndpointString(), harvestedEndpoints));
 		}
 		catch (OperationCanceledException) when (token.IsCancellationRequested)
 		{
@@ -881,13 +883,13 @@ public class P2pConnectionManager : IDisposable
 			var harvested = new List<EndPoint>();
 			foreach (var a in addr.Addresses.OrderByDescending(x => x.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS)))
 			{
-				if (a.Endpoint is { } ep)
+				if (a.Endpoint is { } ep && ep.IsRoutable(allowLocal: false))
 				{
 					harvested.Add(ep);
 				}
 			}
 
-			tcs.TrySetResult(harvested.ToArray());
+			tcs.TrySetResult(harvested);
 		}
 	}
 
@@ -912,9 +914,9 @@ public class P2pConnectionManager : IDisposable
 		{
 			dnsHosts = Enumerable.Repeat(dnsHosts, 16).SelectMany(x => x).Shuffle();
 		}
-		var tasks = dnsHosts.Select(GetAddressesFromDnsAsync);
+		var map = dnsHosts.ToDictionary(GetAddressesFromDnsAsync, host => host);
 
-		await foreach (var task in Task.WhenEach(tasks).WithCancellation(cancellationToken))
+		await foreach (var task in Task.WhenEach(map.Keys).WithCancellation(cancellationToken))
 		{
 			var dnsQueryResult = await task.ConfigureAwait(false);
 
@@ -924,7 +926,11 @@ public class P2pConnectionManager : IDisposable
 					.Select(x => new IPEndPoint(x.MapToIPv6(), _network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
-				_discoveryCoordinator?.Post(new HarvestedEndpointsMessage(endpoints));
+				_discoveryCoordinator?.Post(new HarvestedEndpointsMessage($"DNS: {map[task]}", endpoints));
+			}
+			else
+			{
+				Logger.LogTrace($"DNS seed '{map[task]}' failed: {dnsQueryResult.Error.Message}");
 			}
 		}
 
@@ -932,7 +938,7 @@ public class P2pConnectionManager : IDisposable
 			.Select(x => x.Endpoint)
 			.ToArray();
 
-		_discoveryCoordinator?.Post(new HarvestedEndpointsMessage(endpointsFromSeedNodes));
+		_discoveryCoordinator?.Post(new HarvestedEndpointsMessage("Seed Nodes", endpointsFromSeedNodes));
 	}
 
 	#endregion
