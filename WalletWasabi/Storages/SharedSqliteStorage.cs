@@ -1,14 +1,17 @@
 using Microsoft.Data.Sqlite;
+using System.IO;
 
 namespace WalletWasabi.Storages;
 
 public delegate SqliteConnection SqliteConnectionFactory();
 
 /// <summary>
-/// SQLite-based storage for public data such Bitcoin block filters, P2P seed data, etc. which are not related to any particular wallet.
+/// SQLite-based storage for public data such as Bitcoin block filters, P2P seed data, etc. which are not related to any particular wallet.
 /// </summary>
 public class SharedSqliteStorage : IDisposable
 {
+	private const int CurrentUserVersion = 2;
+
 	private readonly string _connectionString;
 	private bool _disposedValue;
 
@@ -19,42 +22,45 @@ public class SharedSqliteStorage : IDisposable
 
 	public SqliteConnectionFactory GetConnectionFactory() => CreateConnection;
 
-	/// <summary>
-	/// Opens a new SQLite connection to the given database file.
-	/// </summary>
-	/// <param name="filePath">Path to the SQLite database file.</param>
-	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
-	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
-	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
 	public static SharedSqliteStorage FromFile(string filePath)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
 
-		try
-		{
-			var storage = Open(filePath);
+		var dbExists = File.Exists(filePath);
 
-			if (storage.GetUserVersion() >= 2)
+		if (dbExists)
+		{
+			try
 			{
-				return storage;
+				var storage = Open(filePath);
+
+				if (storage.GetUserVersion() >= CurrentUserVersion)
+				{
+					return storage;
+				}
+
+				storage.Dispose();
+				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
+			}
+			catch (SqliteException ex) when (ex.SqliteErrorCode is 11 or 26) // 11 ~ SQLITE_CORRUPT error code, 26 ~ SQLITE_NOTADB error code
+			{
+				Logger.LogError($"SQLite storage file '{filePath}' is corrupted (code {ex.SqliteExtendedErrorCode}). Deleting it.");
+				SqliteConnection.ClearAllPools();
 			}
 
-			storage.Dispose();
-			Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-		}
-		catch (SqliteException ex) when (ex.SqliteErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"SQLite storage file '{filePath}' is corrupted. Deleting it.");
-			SqliteConnection.ClearAllPools();
+			SqliteStorageHelper.DeleteDatabaseFiles(filePath);
 		}
 
-		SqliteStorageHelper.DeleteDatabaseFiles(filePath);
-
+		// Create a new database file and initialize it.
 		var newStorage = Open(filePath);
-		newStorage.SetUserVersion(2);
+		newStorage.SetUserVersion(CurrentUserVersion);
 		return newStorage;
 	}
 
+	/// <summary>
+	/// Opens a new SQLite connection to the given database file, if it exists or not.
+	/// </summary>
+	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
 	private static SharedSqliteStorage Open(string filePath)
 	{
 		SqliteConnectionStringBuilder builder = new();
@@ -102,6 +108,11 @@ public class SharedSqliteStorage : IDisposable
 	{
 		var connection = new SqliteConnection(_connectionString);
 		connection.Open();
+
+		using var command = connection.CreateCommand();
+		command.CommandText = "PRAGMA synchronous = NORMAL;";
+		command.ExecuteNonQuery();
+
 		return connection;
 	}
 
