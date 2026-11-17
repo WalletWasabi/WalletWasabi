@@ -584,8 +584,6 @@ public class TorControlClient : IAsyncDisposable
 			_names = names;
 		}
 
-		public ChannelReader<TorControlReply> Reader => _channel.Reader;
-
 		/// <summary>
 		/// Reads *all* events (not just subscribed ones!) until the subscription is disposed or the Tor control connection is closed.
 		/// </summary>
