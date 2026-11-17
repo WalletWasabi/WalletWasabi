@@ -285,7 +285,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Subscribes Tor control events by their names.
 	/// </summary>
 	/// <param name="cancellationToken">
-	/// DANGER: Useful when the whole Tor process stops. Otherwise, the internal state of this object may get corrupted.
+	/// DANGER: Cancelling after the command was sent makes all later replies off by one. Pass a token only if the client is going to be discarded.
 	/// </param>
 	/// <remarks>If an event stream is already subscribed, no command is sent to Tor control.</remarks>
 	public async Task<Subscription> SubscribeEventsAsync(IReadOnlyList<string> names, CancellationToken cancellationToken)
