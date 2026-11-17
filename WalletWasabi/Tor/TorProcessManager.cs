@@ -9,6 +9,8 @@ using WalletWasabi.Services;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor;
 
@@ -221,6 +223,48 @@ public class TorProcessManager(EventBus eventBus)
 			}
 		}
 
+		await WaitForBootstrapAsync(client, cancellationToken).ConfigureAwait(false);
+
 		return client;
+	}
+
+	public static async Task WaitForBootstrapAsync(TorControlClient client, CancellationToken cancellationToken)
+	{
+		// Subscribe to Tor's STATUS_CLIENT events to get bootstrapping updates.
+		IReadOnlyList<string> eventNames = ["STATUS_CLIENT"];
+		using var subscription = await client.SubscribeEventsAsync(eventNames, cancellationToken).ConfigureAwait(false);
+
+		// Tor may have finished bootstrapping before we subscribed.
+		var phase = await client.GetBootstrapPhaseAsync(cancellationToken).ConfigureAwait(false);
+		if (phase.IsBootstrapped)
+		{
+			return;
+		}
+
+		await foreach (var @event in subscription.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+		{
+			try
+			{
+				var asyncEvent = AsyncEventParser.Parse(@event);
+
+				if (asyncEvent is BootstrapStatusEvent bootstrap)
+				{
+					if (bootstrap.Progress >= 100)
+					{
+						return;
+					}
+
+					if (bootstrap.Recommendation == "warn")
+					{
+						Logger.LogWarning($"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason}).");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore events we cannot parse.
+				Logger.LogTrace($"Failed to parse Tor control event: {@event}.", ex);
+			}
+		}
 	}
 }
