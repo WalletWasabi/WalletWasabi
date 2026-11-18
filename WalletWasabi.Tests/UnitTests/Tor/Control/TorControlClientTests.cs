@@ -3,7 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
+using WalletWasabi.Tor.Control.Exceptions;
 using Xunit;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 
@@ -13,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 public class TorControlClientTests
 {
 	/// <summary>
-	/// Verifies that client receives correct async events from Tor.
+	/// Verifies that client receives correct async events from Tor using <see cref="TorControlClient.Subscription.ReadAllAsync(CancellationToken)"/>.
 	/// </summary>
 	[Fact(Timeout = 180000)] // 3 minutes
 	public async Task ReceiveTorAsyncEventsUsingForeachAsync()
@@ -30,23 +32,11 @@ public class TorControlClientTests
 		// Set up Tor control client.
 		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
-		// Subscribe to Tor events.
-		var events = client.ReadEventsAsync(timeoutCts.Token);
-
-		// Send a Tor event to all subscribed clients (only one here).
-		// This must happen after a client is subscribed.
+		// Set up Tor server task that sends async events to the client.
 		var serverTask = Task.Run(async () =>
 		{
-			// We do not want to send the data until the client is really subscribed.
-			while (!timeoutCts.IsCancellationRequested)
-			{
-				if (client.SubscriberCount == 1)
-				{
-					break;
-				}
-
-				await Task.Delay(200).ConfigureAwait(false);
-			}
+			// The client registers its subscription before it sends SETEVENTS, so once the command is answered no event can be missed.
+			await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC", timeoutCts.Token).ConfigureAwait(false);
 
 			for (int i = 0; i < ExpectedEventsNo; i++)
 			{
@@ -55,11 +45,18 @@ public class TorControlClientTests
 			}
 		});
 
-		// Iterate received events.
+		Assert.Equal(0, client.SubscriberCount);
+
+		// Subscribe to Tor events.
+		var subscription = await client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
+
+		// The client should have one subscriber now.
+		Assert.Equal(1, client.SubscriberCount);
+
 		int counter = 0;
 
 		// Client should get all the events.
-		await foreach (var receivedEvent in events)
+		await foreach (var receivedEvent in subscription.ReadAllAsync(timeoutCts.Token))
 		{
 			counter++;
 
@@ -75,8 +72,13 @@ public class TorControlClientTests
 			}
 		}
 
-		// Verifies that "break" in "await foreach" actually removes the internal Channel<T> (subscription).
+		// Dispose the subscription and verify that the client has no subscribers.
+		Assert.Equal(1, client.SubscriberCount);
+		subscription.Dispose();
 		Assert.Equal(0, client.SubscriberCount);
+
+		// Make sure that the server task is completed.
+		await serverTask;
 
 		Logger.LogTrace("Client: Done.");
 	}
@@ -98,13 +100,10 @@ public class TorControlClientTests
 		// Set up Tor control client.
 		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
-		// Subscribe to Tor events.
-		var events = client.ReadEventsAsync(timeoutCts.Token);
-		var eventsEnumerator = events.GetAsyncEnumerator();
-		var firstReplyTask = eventsEnumerator.MoveNextAsync();
-
 		var serverTask = Task.Run(async () =>
 		{
+			await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC", timeoutCts.Token).ConfigureAwait(false);
+
 			Logger.LogTrace($"Server: Send msg #1 (async) to client: '650 {AsyncEventContent}'.");
 			await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
@@ -121,6 +120,16 @@ public class TorControlClientTests
 			Logger.LogTrace($"Server: Send msg #4 (async) to client: '650 {AsyncEventContent}'.");
 			await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 		});
+
+		// Subscribe to Tor events.
+		var subscription = await client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
+
+		// Cancellation token source to stop the reader event reading.
+		using CancellationTokenSource readEventsByClientCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
+
+		var events = subscription.ReadAllAsync(readEventsByClientCts.Token);
+		var eventsEnumerator = events.GetAsyncEnumerator();
+		var firstReplyTask = eventsEnumerator.MoveNextAsync();
 
 		Logger.LogTrace("Client: Receive msg #1 (async).");
 		{
@@ -154,91 +163,201 @@ public class TorControlClientTests
 		}
 
 		// Client decided to stop reading Tor async events.
-		timeoutCts.Cancel();
+		readEventsByClientCts.Cancel();
 
 		// No more async events.
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await eventsEnumerator.MoveNextAsync());
+
+		subscription.Dispose();
+		await serverTask;
 	}
 
 	/// <summary>
-	/// Verifies behavior of the subscription API and its logical subscription model.
+	/// SETEVENTS is sent only when a new event name appears; disposing a subscription sends nothing.
 	/// </summary>
 	[Fact(Timeout = 120000)] // 2 minutes
-	public async Task SubscribeAndUnsubscribeAsync()
+	public async Task SubscribeEvents_SetEventsIsCalledOnlyForNewNamesAsync()
 	{
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
 		var toServer = new Pipe();
 		var toClient = new Pipe();
 
-		// Set up Tor control client.
 		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
-		Logger.LogTrace("Client: Subscribe 'CIRC' events.");
+		var task1 = client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
+		await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC", timeoutCts.Token);
+		var subscription1 = await task1;
+
+		// The whole set is sent, not only the new name.
+		var task2 = client.SubscribeEventsAsync(["CIRC", "STATUS_CLIENT"], timeoutCts.Token);
+		await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC STATUS_CLIENT", timeoutCts.Token);
+		var subscription2 = await task2;
+		Assert.Equal(2, client.SubscriberCount);
+
+		// Disposing sends nothing, and the Tor-side subscription stays.
+		subscription2.Dispose();
+		Assert.Equal(1, client.SubscriberCount);
+
+		// Already subscribed on Tor's side: completes without any command.
+		using var subscription3 = await client.SubscribeEventsAsync(["STATUS_CLIENT"], timeoutCts.Token);
+		Assert.Equal(2, client.SubscriberCount);
+
+		subscription1.Dispose();
+		subscription1.Dispose(); // No-op.
+		Assert.Equal(1, client.SubscriberCount);
+
+		// Nothing else was written to Tor: the next line on the wire is our GETCONF.
+		var getConfTask = client.GetConfAsync("SocksPort", timeoutCts.Token);
+		Assert.Equal("GETCONF SocksPort", await toServer.Reader.ReadLineAsync(timeoutCts.Token));
+		await toClient.Writer.WriteAsciiAndFlushAsync("250 SocksPort=9050\r\n", timeoutCts.Token);
+		await getConfTask;
+	}
+
+	/// <summary>
+	/// Tests that we subscribe to a Tor control server and then the connection is lost. The subscription must stop providing events.
+	/// A new subscription must announce that there will be no events right away.
+	/// </summary>
+	/// <returns></returns>
+	[Fact(Timeout = 120000)] // 2 minutes
+	public async Task SubscriptionEvents_ConnectionToTorIsLostAsync()
+	{
+		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+
+		var toServer = new Pipe();
+		var toClient = new Pipe();
+
+		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+		TorControlClient.Subscription subscription1;
+
+		// First subscription is set up and then the Tor control connection is lost.
 		{
-			var task = client.SubscribeEventsAsync(new string[] { "CIRC" }, timeoutCts.Token);
+			var subscribeTask = client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
+			await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC", timeoutCts.Token);
+			subscription1 = await subscribeTask;
 
-			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
-			var command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
-			Assert.Equal("SETEVENTS CIRC", command);
+			// Tor goes away.
+			await toClient.Writer.CompleteAsync();
 
-			Logger.LogTrace("Server: Reply with OK code.");
-			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
-
-			await task;
+			// The existing subscription reports "no more events".
+			await foreach (var _ in subscription1.ReadAllAsync(timeoutCts.Token))
+			{
+				Assert.Fail("No event was expected.");
+			}
 		}
 
-		Logger.LogTrace("Client: Subscribe 'CIRC' (already subscribed) and 'STATUS_CLIENT' (not subscribed) events.");
+		TorControlClient.Subscription subscription2;
+
+		// The second subscription is set up after the Tor control connection is lost. No events are expected, but the subscription succeeds.
 		{
-			var task = client.SubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
+			// 'CIRC' is already subscribed, so no SETEVENTS is sent and the call succeeds.
+			subscription2 = await client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
 
-			// CIRC is already subscribed.
-			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC STATUS_CLIENT' command.");
-			var command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+			// The new subscription must report "no more events" right away.
+			await foreach (var _ in subscription2.ReadAllAsync(timeoutCts.Token))
+			{
+				Assert.Fail("No event was expected.");
+			}
 
-			// This means that BOTH 'CIRC' and 'STATUS_CLIENT' must be subscribed now.
-			// Note: Given we count logical event subscriptions, 'CIRC' is now (logically) subscribed twice!
-			Assert.Equal("SETEVENTS CIRC STATUS_CLIENT", command);
-
-			Logger.LogTrace("Server: Reply with OK code.");
-			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
-
-			await task;
+			// Subscribers stay registered until subscriptions are disposed.
+			Assert.Equal(2, client.SubscriberCount);
 		}
 
-		Logger.LogTrace("Client: Unsubscribe 'CIRC' and 'STATUS_CLIENT' events.");
+		subscription1.Dispose();
+		subscription2.Dispose();
+
+		Assert.Equal(0, client.SubscriberCount);
+	}
+
+	/// <summary>
+	/// A rejected SETEVENTS must not leave the rejected names behind.
+	/// </summary>
+	[Fact(Timeout = 120000)] // 2 minutes
+	public async Task SubscriptionEvents_FailureLeavesNoTraceAsync()
+	{
+		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+
+		var toServer = new Pipe();
+		var toClient = new Pipe();
+
+		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
 		{
-			var task = client.UnsubscribeEventsAsync(new string[] { "CIRC", "STATUS_CLIENT" }, timeoutCts.Token);
+			var task = client.SubscribeEventsAsync(["BOGUS"], timeoutCts.Token);
+			Assert.Equal("SETEVENTS BOGUS", await toServer.Reader.ReadLineAsync(timeoutCts.Token));
+			await toClient.Writer.WriteAsciiAndFlushAsync("552 Unrecognized event \"BOGUS\"\r\n", timeoutCts.Token);
 
-			// CIRC is already subscribed.
-			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
-			var command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
-
-			// This means that CIRC is still subscribed (!). The reason for that is that we count logical subscriptions,
-			// so when two distinct components can work the subscription API and they don't affect each other.
-			Assert.Equal("SETEVENTS CIRC", command);
-
-			Logger.LogTrace("Server: Reply with OK code.");
-			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
-
-			await task;
+			await Assert.ThrowsAsync<TorControlException>(async () => await task);
+			Assert.Equal(0, client.SubscriberCount);
 		}
 
-		Logger.LogTrace("Client: Unsubscribe 'CIRC' events.");
+		// A different, valid subscription must not drag "BOGUS" along.
 		{
-			var task = client.UnsubscribeEventsAsync(new string[] { "CIRC" }, timeoutCts.Token);
-
-			// CIRC is already subscribed.
-			Logger.LogTrace("Server: Wait for 'SETEVENTS' command.");
-			var command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
-
-			// This means that no events are subscribed.
-			Assert.Equal("SETEVENTS", command);
-
-			Logger.LogTrace("Server: Reply with OK code.");
-			await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
-
-			await task;
+			var task = client.SubscribeEventsAsync(["CIRC"], timeoutCts.Token);
+			await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS CIRC", timeoutCts.Token);
+			using var subscription = await task;
+			Assert.Equal(1, client.SubscriberCount);
 		}
+
+		// "BOGUS" was not remembered, so asking for it again sends SETEVENTS again.
+		{
+			var task = client.SubscribeEventsAsync(["BOGUS"], timeoutCts.Token);
+			await HandleSetEventsRequestByServerAsync(toServer, toClient, "SETEVENTS BOGUS CIRC", timeoutCts.Token);
+			using var subscription = await task;
+		}
+	}
+
+	/// <summary>
+	/// Verifies that if <see cref="TorControlClient.SubscribeEventsAsync(IReadOnlyList{string}, CancellationToken)"/> is canceled,
+	/// then the internal message loop IS *corrupted*.
+	/// <para>This tests demonstrates a bug that is documented and accepted as a limitation of the current implementation.</para>
+	/// </summary>
+	[Fact(Timeout = 120000)] // 2 minutes
+	public async Task SubscriptionEvents_SubscriptionCancellingCorruptsStateAsync()
+	{
+		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+		using var subscribeCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
+
+		var toServer = new Pipe();
+		var toClient = new Pipe();
+
+		await using var client = new TorControlClient(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+
+		// The command reaches the server, but the server does not answer yet.
+		var subscribeTask = client.SubscribeEventsAsync(["CIRC"], subscribeCts.Token);
+		Assert.Equal("SETEVENTS CIRC", await toServer.Reader.ReadLineAsync(timeoutCts.Token));
+
+		subscribeCts.Cancel();
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await subscribeTask);
+		Assert.Equal(0, client.SubscriberCount);
+
+		// Tor answers the cancelled command late.
+		await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", timeoutCts.Token);
+
+		// A different command must get ITS OWN reply, not the stale "250 OK".
+		var getConfTask = client.GetConfAsync("SocksPort", timeoutCts.Token);
+		Assert.Equal("GETCONF SocksPort", await toServer.Reader.ReadLineAsync(timeoutCts.Token));
+		await toClient.Writer.WriteAsciiAndFlushAsync("250 SocksPort=9050\r\n", timeoutCts.Token);
+
+		var reply = await getConfTask;
+
+		// The expected reply is "250 SocksPort=9050", not the stale "250 OK" from the cancelled command!
+		// This is a known issue with the current implementation.
+		Assert.Equal("OK", Assert.Single(reply.ResponseLines));
+		Assert.NotEqual("SocksPort=9050", Assert.Single(reply.ResponseLines));
+	}
+
+	/// <summary>
+	/// Simulates Tor's side of a <c>SETEVENTS</c> exchange: expects the command and answers it with <c>250 OK</c>.
+	/// </summary>
+	private static async Task HandleSetEventsRequestByServerAsync(Pipe toServer, Pipe toClient, string expectedCommand, CancellationToken cancellationToken)
+	{
+		Logger.LogTrace($"Server: Wait for '{expectedCommand}' command.");
+		var command = await toServer.Reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+		Assert.Equal(expectedCommand, command);
+
+		Logger.LogTrace("Server: Reply with OK code.");
+		await toClient.Writer.WriteAsciiAndFlushAsync("250 OK\r\n", cancellationToken).ConfigureAwait(false);
 	}
 }

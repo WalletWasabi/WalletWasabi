@@ -2,7 +2,6 @@ using Nito.AsyncEx;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 using WalletWasabi.Tor.Control.Exceptions;
@@ -23,6 +22,9 @@ public class TorControlClient : IAsyncDisposable
 
 	/// <remarks>This helps with graceful stopping of the reader loop.</remarks>
 	private volatile bool _readLastSyncReply;
+
+	/// <remarks>Guarded by <see cref="_asyncChannelsLock"/>.</remarks>
+	private bool _readerStopped;
 
 	public TorControlClient(TcpClient tcpClient) :
 		this(PipeReader.Create(tcpClient.GetStream()), PipeWriter.Create(tcpClient.GetStream()))
@@ -54,6 +56,10 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>Guards <see cref="AsyncChannels"/>.</summary>
 	private readonly Lock _asyncChannelsLock = new();
 
+	/// <summary>Subscribed events. The events can be added but never removed.</summary>
+	/// <remarks>Guarded by <see cref="_messageLock"/>.</remarks>
+	private SortedSet<string> _subscribedEvents = new(StringComparer.Ordinal);
+
 	/// <summary>Channel only for <see cref="StatusCode.AsynchronousEventNotify"/> events.</summary>
 	/// <remarks>
 	/// Guarded by <see cref="_asyncChannelsLock"/>.
@@ -65,14 +71,8 @@ public class TorControlClient : IAsyncDisposable
 	/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
 	private readonly AsyncLock _messageLock = new();
 
-	/// <summary>Key represents an event name and value represents a subscription counter.</summary>
-	private SortedDictionary<string, int> SubscribedEvents { get; } = new();
 
-	/// <summary>Lock to guard all access to <see cref="SubscribedEvents"/>.</summary>
-	/// <remarks><see cref="_messageLock"/> must be locked first if it is needed too.</remarks>
-	private readonly Lock _subscriptionEventsLock = new();
-
-	/// <summary>Number of subscribers that currently listen to Tor's async events using <see cref="ReadEventsAsync"/>.</summary>
+	/// <summary>Number of subscribers that currently listen to Tor's async events.</summary>
 	/// <remarks>Mainly for tests.</remarks>
 	internal int SubscriberCount
 	{
@@ -132,17 +132,6 @@ public class TorControlClient : IAsyncDisposable
 		int result = int.Parse(value);
 
 		return result;
-	}
-
-	/// <summary>
-	/// Gets Tor's circuits that are currently available.
-	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO, and 4.1.1. Circuit status changed.</seealso>
-	public async Task<GetInfoCircuitStatusReply> GetCircuitStatusAsync(CancellationToken cancellationToken)
-	{
-		TorControlReply reply = await SendCommandAsync("GETINFO circuit-status\r\n", cancellationToken).ConfigureAwait(false);
-
-		return GetInfoCircuitStatusReply.FromReply(reply);
 	}
 
 	/// <summary>
@@ -259,43 +248,10 @@ public class TorControlClient : IAsyncDisposable
 		await _pipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
 		await _pipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
 
-		TorControlReply reply = await _syncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
+		var reply = await _syncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
 		Logger.LogTrace($"Client: Reply: '{reply}'");
 
 		return reply;
-	}
-
-	/// <summary>
-	/// Allows the caller to read Tor events using <c>await foreach</c>.
-	/// </summary>
-	/// <remarks>Processing of replies does not block other readers.</remarks>
-	/// <example>
-	/// <code>
-	/// await foreach (TorControlReply reply in TorControlClient.ReadEventsAsync())
-	/// {
-	///    Console.WriteLine(reply.ToString());
-	/// }
-	/// </code>
-	/// </example>
-	public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
-	{
-		Channel<TorControlReply> channel = Channel.CreateUnbounded<TorControlReply>(Options);
-
-		try
-		{
-			int subscribers = AddAsyncChannel(channel);
-
-			Logger.LogTrace($"ReadEventsAsync: subscribers: {subscribers}.");
-			await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
-			{
-				yield return item;
-			}
-		}
-		finally
-		{
-			Logger.LogTrace("ReadEventsAsync: About to unsubscribe.");
-			RemoveAsyncChannel(channel);
-		}
 	}
 
 	/// <returns>Number of subscribed readers.</returns>
@@ -304,6 +260,13 @@ public class TorControlClient : IAsyncDisposable
 		lock (_asyncChannelsLock)
 		{
 			AsyncChannels = AsyncChannels.Add(channel);
+
+			if (_readerStopped)
+			{
+				// Nothing will ever be written to this channel, complete the channel right away.
+				channel.Writer.TryComplete();
+			}
+
 			return AsyncChannels.Count;
 		}
 	}
@@ -320,127 +283,46 @@ public class TorControlClient : IAsyncDisposable
 	/// Subscribes Tor control events by their names.
 	/// </summary>
 	/// <param name="cancellationToken">
-	/// Useful when the whole Tor process stops. Otherwise, the internal state of this object may get corrupted.
+	/// DANGER: Cancelling after the command was sent makes all later replies off by one. Pass a token only if the client is going to be discarded.
 	/// </param>
 	/// <remarks>If an event stream is already subscribed, no command is sent to Tor control.</remarks>
-	public async Task SubscribeEventsAsync(IReadOnlyList<string> names, CancellationToken cancellationToken)
+	public async Task<Subscription> SubscribeEventsAsync(IReadOnlyList<string> names, CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);
 
-		bool sendCommand = false;
-		string subscribedEventNames;
+		var channel = Channel.CreateUnbounded<TorControlReply>(Options);
+		AddAsyncChannel(channel);
 
-		lock (_subscriptionEventsLock)
+		try
 		{
-			foreach (string eventName in names)
+			var wanted = new SortedSet<string>(_subscribedEvents, StringComparer.Ordinal);
+			bool changed = false;
+
+			foreach (string name in names)
 			{
-				if (SubscribedEvents.TryGetValue(eventName, out int counter))
+				changed |= wanted.Add(name);
+			}
+
+			if (changed)
+			{
+				var reply = await SendCommandNoLockAsync($"SETEVENTS {string.Join(' ', wanted)}\r\n", cancellationToken).ConfigureAwait(false);
+
+				if (!reply.Success)
 				{
-					SubscribedEvents[eventName] = counter + 1;
+					throw new TorControlException("Failed to subscribe events.");
 				}
-				else
-				{
-					sendCommand = true;
-					SubscribedEvents.Add(eventName, 1);
-				}
+
+				// Intentionally after the command succeeded.
+				_subscribedEvents = wanted;
 			}
 
-			// Get all event names that must be subscribed.
-			subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
+			return new Subscription(this, channel);
 		}
-
-		if (sendCommand)
+		catch
 		{
-			TorControlReply reply = await SendCommandNoLockAsync($"SETEVENTS {subscribedEventNames}\r\n", cancellationToken).ConfigureAwait(false);
-
-			if (!reply.Success)
-			{
-				// This should never happen.
-				throw new TorControlException("Failed to subscribe events.");
-			}
+			RemoveAsyncChannel(channel);
+			throw;
 		}
-	}
-
-	/// <summary>
-	/// Unsubscribes Tor control events by their names.
-	/// </summary>
-	/// <remarks>If the event listener counter gets to zero, the event stream is actually truly unsubscribed.</remarks>
-	/// <param name="cancellationToken">
-	/// Useful when the whole application stops. Otherwise, the internal state of this object may get corrupted.
-	/// </param>
-	public async Task UnsubscribeEventsAsync(IReadOnlyList<string> names, CancellationToken cancellationToken)
-	{
-		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);
-
-		bool sendCommand = false;
-		string subscribedEventNames;
-
-		lock (_subscriptionEventsLock)
-		{
-			foreach (string eventName in names)
-			{
-				if (SubscribedEvents.TryGetValue(eventName, out int counter))
-				{
-					counter--;
-
-					if (counter > 0)
-					{
-						SubscribedEvents[eventName] = counter;
-					}
-					else
-					{
-						SubscribedEvents.Remove(eventName);
-						sendCommand = true;
-					}
-				}
-			}
-
-			// Get all event names that remained.
-			subscribedEventNames = string.Join(' ', SubscribedEvents.Keys);
-		}
-
-		if (sendCommand)
-		{
-			string command = subscribedEventNames == "" ? "SETEVENTS\r\n" : $"SETEVENTS {subscribedEventNames}\r\n";
-			TorControlReply reply = await SendCommandNoLockAsync(command, cancellationToken).ConfigureAwait(false);
-
-			if (!reply.Success)
-			{
-				// This should never happen.
-				throw new TorControlException("Failed to unsubscribe events.");
-			}
-		}
-	}
-
-	/// <summary>
-	/// Unsubscribes all Tor control events.
-	/// </summary>
-	public async Task<bool> UnsubscribeAllEventsAsync()
-	{
-		// Sanity timeout.
-		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(10));
-		using IDisposable _ = await _messageLock.LockAsync(cts.Token).ConfigureAwait(false);
-
-		int count;
-
-		lock (_subscriptionEventsLock)
-		{
-			count = SubscribedEvents.Keys.Count;
-			SubscribedEvents.Clear();
-		}
-
-		if (count > 0)
-		{
-			TorControlReply reply = await SendCommandNoLockAsync($"SETEVENTS\r\n", cts.Token).ConfigureAwait(false);
-
-			if (!reply.Success)
-			{
-				// This should never happen.
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	/// <summary>
@@ -468,7 +350,7 @@ public class TorControlClient : IAsyncDisposable
 					// Notify every "subscriber" who reads all Tor events.
 					foreach (var channel in list)
 					{
-						await channel.Writer.WriteAsync(reply, _readerCts.Token).ConfigureAwait(false);
+						channel.Writer.TryWrite(reply);
 					}
 				}
 				else
@@ -509,26 +391,24 @@ public class TorControlClient : IAsyncDisposable
 		finally
 		{
 			_syncChannel.Writer.Complete(exception);
+
+			ImmutableList<Channel<TorControlReply>> subscribers;
+
+			lock (_asyncChannelsLock)
+			{
+				_readerStopped = true;
+				subscribers = AsyncChannels;
+			}
+
+			foreach (var subscriber in subscribers)
+			{
+				subscriber.Writer.TryComplete();
+			}
 		}
 	}
 
 	public async ValueTask DisposeAsync()
 	{
-		try
-		{
-			bool isOk = await UnsubscribeAllEventsAsync().ConfigureAwait(false);
-
-			if (!isOk)
-			{
-				Logger.LogWarning("Failed to unsubscribe all Tor control events.");
-			}
-		}
-		catch (Exception e)
-		{
-			Logger.LogDebug("Tor process might have terminated, so we cannot unsubscribe Tor events.");
-			Logger.LogTrace(e);
-		}
-
 		// Stop reader loop.
 		_readerCts.Cancel();
 
@@ -545,5 +425,42 @@ public class TorControlClient : IAsyncDisposable
 
 		_readerCts.Dispose();
 		_tcpClient?.Dispose();
+	}
+
+	/// <summary>
+	/// Active subscription to Tor control events.
+	/// </summary>
+	/// <remarks>
+	/// The channel receives *all* asynchronous events, not only those whose names were subscribed.
+	/// <para>Disposing does NOT unsubscribe from Tor events.</para>
+	/// </remarks>
+	public sealed class Subscription : IDisposable
+	{
+		private readonly TorControlClient _client;
+		private readonly Channel<TorControlReply> _channel;
+		private int _disposed;
+
+		internal Subscription(TorControlClient client, Channel<TorControlReply> channel)
+		{
+			_client = client;
+			_channel = channel;
+		}
+
+		/// <summary>
+		/// Reads *all* events (not just subscribed ones!) until the subscription is disposed or the Tor control connection is closed.
+		/// </summary>
+		public IAsyncEnumerable<TorControlReply> ReadAllAsync(CancellationToken cancellationToken)
+			=> _channel.Reader.ReadAllAsync(cancellationToken);
+
+		public void Dispose()
+		{
+			if (Interlocked.Exchange(ref _disposed, 1) != 0)
+			{
+				return;
+			}
+
+			_client.RemoveAsyncChannel(_channel);
+			_channel.Writer.TryComplete();
+		}
 	}
 }
