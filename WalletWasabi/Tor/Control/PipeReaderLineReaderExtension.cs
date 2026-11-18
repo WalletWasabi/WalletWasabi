@@ -55,7 +55,6 @@ public static class PipeReaderLineReaderExtension
 				if (TryParseLine(ref buffer, out ReadOnlySequence<byte> messageBytes))
 				{
 					var message = messageBytes.GetString(Encoding.ASCII);
-					Logger.LogTrace($"Read message: '{message}'");
 
 					// A single message was successfully parsed so mark the start as the
 					// parsed buffer as consumed. TryParseMessage trims the buffer to

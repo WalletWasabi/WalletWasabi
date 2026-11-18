@@ -231,6 +231,7 @@ public class TorProcessManager(EventBus eventBus)
 		return client;
 	}
 
+	/// <exception cref="TorControlException">When bootstrap does not finish for some reason.</exception>
 	public static async Task WaitForBootstrapAsync(TorControlClient client, CancellationToken cancellationToken)
 	{
 		// Subscribe to Tor's STATUS_CLIENT events to get bootstrapping updates.
@@ -265,7 +266,10 @@ public class TorProcessManager(EventBus eventBus)
 
 						if (bootstrap.Recommendation == "warn")
 						{
-							Logger.LogWarning($"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason}).");
+							string msg = bootstrap.Warning is not null
+								? $"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason ?? "N/A"})."
+								: $"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}, reason: {bootstrap.Reason ?? "N/A"}).";
+							Logger.LogWarning(msg);
 						}
 					}
 				}
@@ -275,6 +279,8 @@ public class TorProcessManager(EventBus eventBus)
 					Logger.LogTrace($"Failed to parse Tor control event: {@event}.", ex);
 				}
 			}
+
+			throw new TorControlException("Tor control connection closed before Tor bootstrapped.");
 		}
 		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
 		{
