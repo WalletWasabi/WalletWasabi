@@ -43,6 +43,9 @@ public record BootstrapStatusEvent : StatusEvent
 	/// <summary>A number between <c>0</c> and <c>100</c>.</summary>
 	public int Progress => int.Parse(Arguments["PROGRESS"], NumberStyles.None, NumberFormatInfo.InvariantInfo);
 
+	/// <summary>Tor has built its first circuit and can serve connections.</summary>
+	public bool IsBootstrapped => Progress >= 100;
+
 	/// <summary>Denotes a bootstrap phase.</summary>
 	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">5.5.2. Phases in Bootstrap Stage 1.</seealso>
 	/// <example><c>starting</c> for phase 0, <c>handshake</c> for phase 14, <c>done</c> for phase 100</example>

@@ -79,10 +79,16 @@ public record StatusEvent : IAsyncEvent
 			throw new TorControlReplyParseException($"{nameof(StatusEvent)}: Expected {StatusCode.AsynchronousEventNotify} status code.");
 		}
 
-		string remainder = reply.ResponseLines[0];
-		string value;
+		return Parse(reply.ResponseLines[0]);
+	}
 
-		(value, remainder) = Tokenizer.ReadUntilSeparator(remainder);
+	/// <param name="line">For example <c>STATUS_CLIENT NOTICE BOOTSTRAP PROGRESS=14 TAG=handshake SUMMARY="Handshaking with a relay"</c>.</param>
+	/// <exception cref="TorControlReplyParseException"/>
+	public static StatusEvent Parse(string line)
+	{
+		string remainder = line;
+
+		(var value, remainder) = Tokenizer.ReadUntilSeparator(remainder);
 
 		if (!Enum.TryParse(value, out StatusType statusType))
 		{

@@ -78,9 +78,9 @@ public class AsyncEventParserTests
 			var asyncEvent = AsyncEventParser.Parse(rawReply);
 
 			var bootstrapEvent = Assert.IsType<BootstrapStatusEvent>(asyncEvent);
-			Assert.Equal(bootstrapEvent.Progress, bootstrapEvent.Progress);
-			Assert.Equal(bootstrapEvent.Tag, bootstrapEvent.Tag);
-			Assert.Equal(bootstrapEvent.Summary, bootstrapEvent.Summary);
+			Assert.Equal(@event.ExpectedProgress, bootstrapEvent.Progress);
+			Assert.Equal(@event.ExpectedTag, bootstrapEvent.Tag);
+			Assert.Equal(@event.ExpectedSummary, bootstrapEvent.Summary);
 		}
 
 		// Final status event: Tor built its first circuit.

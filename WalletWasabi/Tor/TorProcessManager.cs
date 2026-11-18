@@ -16,6 +16,9 @@ namespace WalletWasabi.Tor;
 
 public class TorProcessManager(EventBus eventBus)
 {
+	/// <summary>Timeout for Tor bootstrap process to finish in milliseconds.</summary>
+	private const int BootstrapTimeoutMs = 30_000;
+
 	private static readonly byte[] NoAuthHandshakeMsg = [
 		0x05, // Version
 		0x01, // One method
@@ -241,30 +244,42 @@ public class TorProcessManager(EventBus eventBus)
 			return;
 		}
 
-		await foreach (var @event in subscription.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+		// Precaution in case Tor is not bootstrapping at all. It's not really expected to happen.
+		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeoutCts.CancelAfter(BootstrapTimeoutMs);
+
+		try
 		{
-			try
+			await foreach (var @event in subscription.ReadAllAsync(timeoutCts.Token).ConfigureAwait(false))
 			{
-				var asyncEvent = AsyncEventParser.Parse(@event);
-
-				if (asyncEvent is BootstrapStatusEvent bootstrap)
+				try
 				{
-					if (bootstrap.Progress >= 100)
-					{
-						return;
-					}
+					var asyncEvent = AsyncEventParser.Parse(@event);
 
-					if (bootstrap.Recommendation == "warn")
+					if (asyncEvent is BootstrapStatusEvent bootstrap)
 					{
-						Logger.LogWarning($"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason}).");
+						if (bootstrap.Progress >= 100)
+						{
+							return;
+						}
+
+						if (bootstrap.Recommendation == "warn")
+						{
+							Logger.LogWarning($"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason}).");
+						}
 					}
 				}
+				catch (Exception ex)
+				{
+					// Ignore events we cannot parse.
+					Logger.LogTrace($"Failed to parse Tor control event: {@event}.", ex);
+				}
 			}
-			catch (Exception ex)
-			{
-				// Ignore events we cannot parse.
-				Logger.LogTrace($"Failed to parse Tor control event: {@event}.", ex);
-			}
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			Logger.LogWarning($"Tor has not bootstrapped in {BootstrapTimeoutMs / 1000.0} seconds. Not waiting any longer.");
+			return;
 		}
 	}
 }

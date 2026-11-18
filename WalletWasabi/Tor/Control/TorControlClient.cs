@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Channels;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
@@ -15,6 +16,8 @@ namespace WalletWasabi.Tor.Control;
 /// </summary>
 public class TorControlClient : IAsyncDisposable
 {
+	private const string BootstrapPhasePrefix = "status/bootstrap-phase=";
+
 	private static readonly UnboundedChannelOptions Options = new()
 	{
 		SingleWriter = true
@@ -135,14 +138,30 @@ public class TorControlClient : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Gets how far Tor has got with bootstrapping; <see cref="GetInfoBootstrapPhaseReply.IsBootstrapped"/> once it can build circuits.
+	/// Gets how far Tor has got with bootstrapping; <see cref="BootstrapStatusEvent.IsBootstrapped"/> once it can build circuits.
 	/// </summary>
-	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO (status/bootstrap-phase).</seealso>
-	public async Task<GetInfoBootstrapPhaseReply> GetBootstrapPhaseAsync(CancellationToken cancellationToken)
+	/// <exception cref="TorControlReplyParseException"/>
+	public async Task<BootstrapStatusEvent> GetBootstrapPhaseAsync(CancellationToken cancellationToken)
 	{
-		TorControlReply reply = await SendCommandAsync("GETINFO status/bootstrap-phase\r\n", cancellationToken).ConfigureAwait(false);
+		var reply = await SendCommandAsync("GETINFO status/bootstrap-phase\r\n", cancellationToken).ConfigureAwait(false);
 
-		return GetInfoBootstrapPhaseReply.FromReply(reply);
+		if (!reply.Success)
+		{
+			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Expected reply with OK status.");
+		}
+
+		var line = reply.ResponseLines.FirstOrDefault(l => l.StartsWith(BootstrapPhasePrefix, StringComparison.Ordinal)) ??
+			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Missing status line.");
+
+		// The GETINFO value is a STATUS_CLIENT event without the event name.
+		var statusEvent = StatusEvent.Parse($"{StatusEvent.EventNameStatusClient} {line[BootstrapPhasePrefix.Length..]}");
+
+		if (statusEvent is not BootstrapStatusEvent bootstrapEvent)
+		{
+			throw new TorControlReplyParseException($"GETINFO[status/bootstrap-phase]: Expected BOOTSTRAP action, got '{statusEvent.Action}'.");
+		}
+
+		return bootstrapEvent;
 	}
 
 	/// <summary>
