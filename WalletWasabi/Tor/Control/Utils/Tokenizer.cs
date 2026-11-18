@@ -18,7 +18,7 @@ public static class Tokenizer
 			throw new TorControlReplyParseException("Expected a token.");
 		}
 
-		string[] parts = input.Split(separator: ' ', count: 2);
+		var parts = input.Split(separator: ' ', count: 2);
 
 		if (parts.Length == 2)
 		{
@@ -43,8 +43,8 @@ public static class Tokenizer
 			throw new TorControlReplyParseException("Missing equal sign ('=').");
 		}
 
-		string key = input[0..valueStartAt];
-		string remainder = input[(valueStartAt + 1)..];
+		var key = input[0..valueStartAt];
+		var remainder = input[(valueStartAt + 1)..];
 		string value;
 
 		if (remainder.Length == 0)
@@ -54,6 +54,7 @@ public static class Tokenizer
 		else if (allowValueAsQuotedString && remainder.Length > 0 && remainder[0] == '"')
 		{
 			(value, remainder) = ReadQuotedString(remainder);
+			remainder = remainder.TrimStart(' ');
 		}
 		else
 		{
