@@ -5,10 +5,9 @@ using WalletWasabi.Tor.Control.Utils;
 namespace WalletWasabi.Tor.Control.Messages;
 
 /// <summary>
-/// Reply to <c>GETINFO status/bootstrap-phase</c>: the most recent bootstrap status event, for example
-/// <c>status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS=100 TAG=done SUMMARY="Done"</c>.
+/// Reply to <c>GETINFO status/bootstrap-phase</c> request.
 /// </summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO (status/bootstrap-phase) and 5.5. Status events.</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO (status/bootstrap-phase) and 5.5. Status events.</seealso>
 public record GetInfoBootstrapPhaseReply(int Progress, string Tag, string Summary)
 {
 	private const string Prefix = "status/bootstrap-phase=";
@@ -16,48 +15,53 @@ public record GetInfoBootstrapPhaseReply(int Progress, string Tag, string Summar
 	/// <summary>Tor has built its first circuit and can serve connections.</summary>
 	public bool IsBootstrapped => Progress >= 100;
 
-	/// <exception cref="TorControlReplyParseException"/>
+	/// <remarks>Example: <c>250-status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS=0 TAG=starting SUMMARY=\"Starting\"\r\n250 OK\r\n</c>.</remarks>
 	public static GetInfoBootstrapPhaseReply FromReply(TorControlReply reply)
 	{
 		if (!reply.Success)
 		{
-			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Expected reply with OK status.");
+			throw new TorControlReplyParseException("GETINFO[bootstrap-phase]: Expected reply with OK status.");
 		}
 
-		string? line = reply.ResponseLines.FirstOrDefault(l => l.StartsWith(Prefix, StringComparison.Ordinal)) ??
-			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Missing status line.");
+		var line = reply.ResponseLines.FirstOrDefault(l => l.StartsWith(Prefix, StringComparison.Ordinal)) ??
+			throw new TorControlReplyParseException("GETINFO[bootstrap-phase]: Missing status line.");
 
-		// <severity> BOOTSTRAP PROGRESS=<n> TAG=<tag> SUMMARY="<text>" [WARNING="<text>" ...]
-		string remainder = line[Prefix.Length..];
+		// Remaining part is: <severity> BOOTSTRAP PROGRESS=<n> TAG=<tag> SUMMARY="<text>" [WARNING="<text>" ...]
+
+		// Skip "NOTICE" part.
+		var remainder = line[Prefix.Length..];
 		(_, remainder) = Tokenizer.ReadUntilSeparator(remainder);
 
-		string action;
-		(action, remainder) = Tokenizer.ReadUntilSeparator(remainder);
+		// Read "BOOTSTRAP" part.
+		(var action, remainder) = Tokenizer.ReadUntilSeparator(remainder);
 		if (action != "BOOTSTRAP")
 		{
-			throw new TorControlReplyParseException($"GETINFO[status/bootstrap-phase]: Expected BOOTSTRAP action, got '{action}'.");
+			throw new TorControlReplyParseException($"GETINFO[bootstrap-phase]: Expected BOOTSTRAP action, got '{action}'.");
 		}
 
-		Dictionary<string, string> arguments = new();
-		while (remainder != string.Empty)
+		// Read PROGRESS, TAG, and SUMMARY.
+		var arguments = new Dictionary<string, string>();
+		while (remainder != "")
 		{
-			string key;
-			string value;
-			(key, value, remainder) = Tokenizer.ReadKeyValueAssignment(remainder, allowValueAsQuotedString: true);
+			(var key, var value, remainder) = Tokenizer.ReadKeyValueAssignment(remainder, allowValueAsQuotedString: true);
 
 			// The separator after a quoted value stays in the remainder, so the next key starts with it.
 			arguments[key.TrimStart()] = value;
 		}
 
-		if (!arguments.TryGetValue("PROGRESS", out string? progressValue)
-			|| !int.TryParse(progressValue, NumberStyles.None, NumberFormatInfo.InvariantInfo, out int progress))
+		if (!arguments.TryGetValue("PROGRESS", out string? progressValue))
 		{
-			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Missing or invalid PROGRESS.");
+			throw new TorControlReplyParseException("GETINFO[bootstrap-phase]: Missing PROGRESS value.");
 		}
 
-		return new GetInfoBootstrapPhaseReply(
-			progress,
-			arguments.GetValueOrDefault("TAG", string.Empty),
-			arguments.GetValueOrDefault("SUMMARY", string.Empty));
+		if (!int.TryParse(progressValue, NumberStyles.None, NumberFormatInfo.InvariantInfo, out int progress))
+		{
+			throw new TorControlReplyParseException($"GETINFO[bootstrap-phase]: Invalid PROGRESS value '{progressValue}'.");
+		}
+
+		var tag = arguments.GetValueOrDefault("TAG", string.Empty);
+		var summary = arguments.GetValueOrDefault("SUMMARY", string.Empty);
+
+		return new GetInfoBootstrapPhaseReply(progress, tag, summary);
 	}
 }

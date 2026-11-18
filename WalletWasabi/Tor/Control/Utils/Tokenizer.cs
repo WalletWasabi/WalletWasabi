@@ -5,7 +5,7 @@ namespace WalletWasabi.Tor.Control.Utils;
 /// <summary>
 /// Helper functions for parsing Tor control protocol replies.
 /// </summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 2.3. Replies from Tor to the controller</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 2.3. Replies from Tor to the controller</seealso>
 public static class Tokenizer
 {
 	/// <summary>

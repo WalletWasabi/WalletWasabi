@@ -20,7 +20,7 @@ public class TorControlReplyReaderTest
 	[InlineData(StatusCode.AsynchronousEventNotify, 1, "650 CIRC 1000 EXTENDED moria1,moria2\r\n")]
 	public async Task WellformedTestsAsync(StatusCode expectedStatusCode, int expectedReplyLines, string data)
 	{
-		TorControlReply reply = await ParseAsync(data);
+		var reply = await ParseAsync(data);
 
 		if (expectedStatusCode == StatusCode.OK)
 		{
@@ -32,17 +32,34 @@ public class TorControlReplyReaderTest
 	}
 
 	/// <summary>Makes sure we don't normalize <c>\n</c>, <c>\t</c>, <c>\r</c> in Tor replies.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.1.1. Notes on an escaping bug</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">2.1.1. Notes on an escaping bug</seealso>
 	[Fact]
 	public async Task EscapingQuotesTestAsync()
 	{
-		TorControlReply reply = await ParseAsync("250-PROTOCOLINFO 1\r\n250-VERSION Tor=\\\"0.4.3.5\\\"\r\n250 OK\r\n");
+		var reply = await ParseAsync("250-PROTOCOLINFO 1\r\n250-VERSION Tor=\\\"0.4.3.5\\\"\r\n250 OK\r\n");
 
 		Assert.True(reply.Success);
 		Assert.Equal(3, reply.ResponseLines.Count);
 
 		// We are expected to read: 'VERSION Tor=\"0.4.3.5\"' (with the backslashes).
 		Assert.Equal(@"VERSION Tor=\""0.4.3.5\""", reply.ResponseLines[1]);
+	}
+
+	/// <summary>
+	/// Correctly process response to <c>GETINFO status/bootstrap-phase</c>.
+	/// </summary>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO (status/bootstrap-phase)</seealso>
+	[Fact]
+	public async Task GetInfo_BootstrapPhaseReplyTestAsync()
+	{
+		var reply = await ParseAsync("250-status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS=0 TAG=starting SUMMARY=\"Starting\"\r\n250 OK\r\n");
+
+		Assert.True(reply.Success);
+		Assert.Equal(StatusCode.OK, reply.StatusCode);
+		Assert.Equal(2, reply.ResponseLines.Count);
+
+		Assert.Equal("status/bootstrap-phase=NOTICE BOOTSTRAP PROGRESS=0 TAG=starting SUMMARY=\"Starting\"", reply.ResponseLines[0]);
+		Assert.Equal("250 OK", reply.ResponseLines[1]);
 	}
 
 	[Fact]
@@ -65,9 +82,9 @@ public class TorControlReplyReaderTest
 
 	public static async Task<TorControlReply> ParseAsync(string data)
 	{
-		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+		using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
-		Pipe pipe = new();
+		var pipe = new Pipe();
 		await pipe.Writer.WriteAsciiAndFlushAsync(data, timeoutCts.Token);
 		await pipe.Writer.CompleteAsync();
 		return await TorControlReplyReader.ReadReplyAsync(pipe.Reader, timeoutCts.Token).ConfigureAwait(false);

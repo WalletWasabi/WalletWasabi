@@ -14,14 +14,14 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 {
 	/// <summary>Client HMAC-SHA256 key for AUTHCHALLENGE.</summary>
 	/// <remarks>Server's HMAC key is <c>Tor safe cookie authentication server-to-controller hash</c></remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 3.24. AUTHCHALLENGE</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">Section 3.24. AUTHCHALLENGE</seealso>
 	private static byte[] ClientHmacKey = "Tor safe cookie authentication controller-to-server hash"u8.ToArray();
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
 	private readonly RandomnessProvider _random = random;
 
 	/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section 3.5</seealso>
 	/// <exception cref="TorControlException">If TCP connection cannot be established OR if authentication fails for some reason.</exception>
 	public async Task<TorControlClient> ConnectAndAuthenticateAsync(EndPoint endPoint, string cookieString, CancellationToken cancellationToken)
 	{
@@ -60,7 +60,7 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 	}
 
 	/// <summary>Authenticates client using SAFE-COOKIE.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.24 for SAFECOOKIE authentication.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section 3.24 for SAFECOOKIE authentication.</seealso>
 	/// <seealso href="https://github.com/torproject/stem/blob/63a476056017dda5ede35efc4e4f7acfcc1d7d1a/stem/connection.py#L893">Python implementation.</seealso>
 	/// <exception cref="TorControlException">If authentication fails for some reason.</exception>
 	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken)

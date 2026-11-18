@@ -189,7 +189,7 @@ public class TorProcessManager(EventBus eventBus)
 	/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
 	/// </summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	public virtual async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken cancellationToken)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.

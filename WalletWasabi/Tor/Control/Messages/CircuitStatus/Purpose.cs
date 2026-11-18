@@ -1,6 +1,6 @@
 namespace WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4.1.1. Circuit status changed".</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section "4.1.1. Circuit status changed".</seealso>
 public enum Purpose
 {
 	/// <summary>Circuit for AP and/or directory request streams.</summary>

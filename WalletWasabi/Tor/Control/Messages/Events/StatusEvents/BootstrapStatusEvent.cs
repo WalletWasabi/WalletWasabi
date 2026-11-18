@@ -7,7 +7,7 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 /// </summary>
 public record BootstrapStatusEvent : StatusEvent
 {
-	/// <remarks>See https://gitweb.torproject.org/torspec.git/tree/control-spec.txt 5.5.2</remarks>
+	/// <remarks>See https://github.com/torproject/torspec/blob/main/control-spec.txt 5.5.2</remarks>
 	public static readonly ImmutableDictionary<int, string> Phases = ImmutableDictionary<int, string>.Empty
 		.Add(0, "tag=starting: Starting")
 		.Add(1, "tag=conn_pt: Connecting to pluggable transport")
@@ -44,7 +44,7 @@ public record BootstrapStatusEvent : StatusEvent
 	public int Progress => int.Parse(Arguments["PROGRESS"], NumberStyles.None, NumberFormatInfo.InvariantInfo);
 
 	/// <summary>Denotes a bootstrap phase.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">5.5.2. Phases in Bootstrap Stage 1.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">5.5.2. Phases in Bootstrap Stage 1.</seealso>
 	/// <example><c>starting</c> for phase 0, <c>handshake</c> for phase 14, <c>done</c> for phase 100</example>
 	public string Tag => Arguments["TAG"];
 

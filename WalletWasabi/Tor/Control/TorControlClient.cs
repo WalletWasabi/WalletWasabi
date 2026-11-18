@@ -99,7 +99,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Gets protocol info (for version 1).
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.21. PROTOCOLINFO</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.21. PROTOCOLINFO</seealso>
 	public async Task<ProtocolInfoReply> GetProtocolInfoAsync(CancellationToken cancellationToken)
 	{
 		// Grammar: "PROTOCOLINFO" *(SP PIVERSION) CRLF
@@ -112,7 +112,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Gets process ID belonging to the main Tor process.
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO</seealso>
 	public async Task<int> GetTorProcessIdAsync(CancellationToken cancellationToken)
 	{
 		TorControlReply reply = await SendCommandAsync("GETINFO process/pid\r\n", cancellationToken).ConfigureAwait(false);
@@ -137,7 +137,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Gets how far Tor has got with bootstrapping; <see cref="GetInfoBootstrapPhaseReply.IsBootstrapped"/> once it can build circuits.
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO (status/bootstrap-phase).</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO (status/bootstrap-phase).</seealso>
 	public async Task<GetInfoBootstrapPhaseReply> GetBootstrapPhaseAsync(CancellationToken cancellationToken)
 	{
 		TorControlReply reply = await SendCommandAsync("GETINFO status/bootstrap-phase\r\n", cancellationToken).ConfigureAwait(false);
@@ -148,7 +148,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Instructs Tor to shut down when this control connection is closed.
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
 	public Task<TorControlReply> TakeOwnershipAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("TAKEOWNERSHIP\r\n", cancellationToken);
 
@@ -156,7 +156,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Requests controlled shutdown.
 	/// </summary>
 	/// <remarks>If server is a client (OP), exit immediately. If it's a relay (OR), close listeners and exit after <c>ShutdownWaitLength</c> seconds.</remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.7. SIGNAL.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.7. SIGNAL.</seealso>
 	public async Task<TorControlReply> SignalShutdownAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);
@@ -235,7 +235,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Causes Tor to stop polling for the existence of a process with its owning controller's PID.
 	/// </summary>
 	/// <remarks>If TAKEOWNERSHIP command is sent, Tor will still exit when the control connection ends.</remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
 	public Task<TorControlReply> ResetOwningControllerProcessConfAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("RESETCONF __OwningControllerProcess\r\n", cancellationToken);
 

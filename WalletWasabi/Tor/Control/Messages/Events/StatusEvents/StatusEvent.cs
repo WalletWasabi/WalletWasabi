@@ -35,7 +35,7 @@ public enum StatusSeverity
 /// StatusValue = 1*(ALNUM / '_')  / QuotedString
 /// </code>
 /// </remarks>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt"/>
 public record StatusEvent : IAsyncEvent
 {
 	public const string EventNameStatusGeneral = "STATUS_GENERAL";

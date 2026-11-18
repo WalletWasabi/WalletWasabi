@@ -3,7 +3,7 @@ using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control.Messages.Events.OrEvents;
 
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">4.1.3. OR Connection status changed</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">4.1.3. OR Connection status changed</seealso>
 public class OrConnEvent : IAsyncEvent
 {
 	public const string EventName = "ORCONN";

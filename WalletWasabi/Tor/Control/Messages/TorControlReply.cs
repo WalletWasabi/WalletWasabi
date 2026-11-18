@@ -20,7 +20,7 @@ namespace WalletWasabi.Tor.Control.Messages;
 ///   StatusCode = 3DIGIT
 /// </code>
 /// </remarks>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 2.3</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">Section 2.3</seealso>
 public record TorControlReply
 {
 	private static readonly ReadOnlyCollection<string> NoLines = new List<string>().AsReadOnly();
