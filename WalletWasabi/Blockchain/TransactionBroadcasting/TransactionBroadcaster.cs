@@ -74,18 +74,18 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 {
 	public static readonly ImmutableArray<ExternalBroadcasterInfo> Providers =
 	[
-		new("BlockstreamInfo", ("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), "/api/tx"),
-		new("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"), "/api/tx")
+		new("BlockstreamInfo", ("https://blockstream.info/", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/"), "api/tx"),
+		new("MempoolSpace", ("https://mempool.space/", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/"), "api/tx")
 	];
 
 	public static readonly ImmutableArray<ExternalBroadcasterInfo> TestNet4Providers =
 	[
-		new("MempoolSpace", ("https://mempool.space/testnet4", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"), "/api/tx")
+		new("MempoolSpace", ("https://mempool.space/testnet4/", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4/"), "api/tx")
 	];
 
 	public static readonly ImmutableArray<ExternalBroadcasterInfo> SignetProviders =
 	[
-		new("MempoolSpace", ("https://mempool.space/signet", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet"), "/api/tx")
+		new("MempoolSpace", ("https://mempool.space/signet/", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet/"), "api/tx")
 	];
 
 	/// <summary>Gets the sorted list of external transaction broadcasters with the preferred provider first.</summary>
@@ -134,7 +134,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, MediaTypeNames.Application.Json);
 
-			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
+			using var response = await httpClient.PostAsync(new Uri(requestUri, Broadcaster.ApiEndpoint), content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
 
 			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty(Broadcaster.Name));
