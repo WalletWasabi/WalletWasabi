@@ -257,18 +257,18 @@ public class TorProcessManager(EventBus eventBus)
 				{
 					var asyncEvent = AsyncEventParser.Parse(@event);
 
-					if (asyncEvent is BootstrapStatusEvent bootstrap)
+					if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
 					{
-						if (bootstrap.Progress >= 100)
+						if (bootstrapEvent.IsBootstrapped)
 						{
 							return;
 						}
 
-						if (bootstrap.Recommendation == "warn")
+						if (bootstrapEvent.Recommendation == "warn")
 						{
-							string msg = bootstrap.Warning is not null
-								? $"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}): {bootstrap.Warning} (reason: {bootstrap.Reason ?? "N/A"})."
-								: $"Tor bootstrap problem at {bootstrap.Progress}% ({bootstrap.Tag}, reason: {bootstrap.Reason ?? "N/A"}).";
+							string msg = bootstrapEvent.Warning is not null
+								? $"Tor bootstrap problem at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}): {bootstrapEvent.Warning} (reason: {bootstrapEvent.Reason ?? "N/A"})."
+								: $"Tor bootstrap problem at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}, reason: {bootstrapEvent.Reason ?? "N/A"}).";
 							Logger.LogWarning(msg);
 						}
 					}
