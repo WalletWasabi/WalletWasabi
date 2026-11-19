@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Extensions;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -1700,7 +1701,7 @@ public class TransactionProcessorTests
 		tx1.Outputs.Add(Money.Coins(0.4999m), changeScript);
 
 		// Sign tx1 with the correct key using KeyChain
-		tx1 = keyChain.Sign(tx1, spentCoin, tx1.PrecomputeTransactionData([spentCoin]));
+		tx1 = keyChain.Sign(new TransactionWithPrecomputedData(tx1, tx1.PrecomputeTransactionData([spentCoin])), spentCoin);
 
 		var smartTx1 = new SmartTransaction(tx1, Height.Mempool);
 		var result1 = transactionProcessor.Process(smartTx1);

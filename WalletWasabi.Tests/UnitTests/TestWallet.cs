@@ -10,6 +10,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -95,13 +96,14 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
+	public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{
 			throw new ArgumentException("Destination doesn't belong to this wallet.");
 		}
 
+		var transaction = unsignedCoinJoin.Transaction;
 		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
 	}
