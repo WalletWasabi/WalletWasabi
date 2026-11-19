@@ -8,6 +8,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Coordinator;
 using Xunit;
 
@@ -433,6 +434,23 @@ public class PaymentBatchTests
 
 		// The double payment bug would have failed here because the payment
 		// would have been included in the second coinjoin
+	}
+
+	/// <summary>
+	/// What is left after the payments must still make the smallest denomination, otherwise it cannot be registered (issue #15088).
+	/// </summary>
+	[Fact]
+	public void PaymentsLeaveMoreThanTheSmallestDenominationBehind()
+	{
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var minChange = UtxoSelectionParameters.FromRoundParameters(roundParameters, [.. roundParameters.AllowedOutputTypes]).MinAllowedOutputAmount;
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
+		var payment = Money.Coins(0.1m);
+		paymentBatch.AddPayment(BitcoinFactory.CreateSegwitAddress(), payment);
+		var cost = payment + roundParameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
+
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(cost + minChange, 1000, roundParameters, registeredInputs: []).PaymentCount);
+		Assert.Equal(1, paymentBatch.GetBestPaymentSet(cost + minChange + Money.Satoshis(1), 1000, roundParameters, registeredInputs: []).PaymentCount);
 	}
 
 	[Fact]
