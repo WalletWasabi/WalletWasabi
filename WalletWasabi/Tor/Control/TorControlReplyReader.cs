@@ -8,7 +8,7 @@ namespace WalletWasabi.Tor.Control;
 public class TorControlReplyReader
 {
 	/// <remarks>
-	/// <see href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Notes on an escaping bug</see> mentions that
+	/// <see href="https://github.com/torproject/torspec/blob/main/control-spec.txt">Notes on an escaping bug</see> mentions that
 	/// it is possible to implement a workaround so that a controller is compatible with buggy Tor implementations. This
 	/// implementation DOES NOT do that.
 	/// <para>However, such implementation is available <see href="https://github.com/zcash/zcash/pull/2251">here</see>.</para>
@@ -16,7 +16,7 @@ public class TorControlReplyReader
 	/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 	/// <exception cref="IOException">When reading fails because the internal stream is forcibly closed, etc.</exception>
 	/// <exception cref="TorControlReplyParseException">When received message does not follow Tor Control reply grammar.</exception>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section "4. Replies".</seealso>
 	/// <seealso href="https://github.com/lontivero/Torino/blob/d891616777ed596ef54dbf1d86c9b4771e45e8f3/src/Reply.cs#L72"/>
 	/// <seealso href="https://github.com/torproject/stem/blob/master/stem/response/__init__.py"/>
 	public static async Task<TorControlReply> ReadReplyAsync(PipeReader reader, CancellationToken cancellationToken)

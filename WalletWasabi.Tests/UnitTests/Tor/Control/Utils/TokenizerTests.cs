@@ -54,7 +54,7 @@ public class TokenizerTests
 		Assert.Equal("WARNING", key);
 		Assert.Equal("a \"b\" c", value);
 
-		// The separator after a quoted value is left in the remainder.
-		Assert.Equal(" COUNT=3", remainder);
+		// The separator after the quoted value (i.e. space) is NOT left in the remainder.
+		Assert.Equal("COUNT=3", remainder);
 	}
 }

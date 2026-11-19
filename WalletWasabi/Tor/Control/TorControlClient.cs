@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Channels;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
@@ -15,6 +16,8 @@ namespace WalletWasabi.Tor.Control;
 /// </summary>
 public class TorControlClient : IAsyncDisposable
 {
+	private const string BootstrapPhasePrefix = "status/bootstrap-phase=";
+
 	private static readonly UnboundedChannelOptions Options = new()
 	{
 		SingleWriter = true
@@ -99,7 +102,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Gets protocol info (for version 1).
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.21. PROTOCOLINFO</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.21. PROTOCOLINFO</seealso>
 	public async Task<ProtocolInfoReply> GetProtocolInfoAsync(CancellationToken cancellationToken)
 	{
 		// Grammar: "PROTOCOLINFO" *(SP PIVERSION) CRLF
@@ -112,7 +115,7 @@ public class TorControlClient : IAsyncDisposable
 	/// <summary>
 	/// Gets process ID belonging to the main Tor process.
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">3.9. GETINFO</seealso>
 	public async Task<int> GetTorProcessIdAsync(CancellationToken cancellationToken)
 	{
 		TorControlReply reply = await SendCommandAsync("GETINFO process/pid\r\n", cancellationToken).ConfigureAwait(false);
@@ -135,9 +138,36 @@ public class TorControlClient : IAsyncDisposable
 	}
 
 	/// <summary>
+	/// Gets how far Tor has got with bootstrapping; <see cref="BootstrapStatusEvent.IsBootstrapped"/> once it can build circuits.
+	/// </summary>
+	/// <exception cref="TorControlReplyParseException"/>
+	public async Task<BootstrapStatusEvent> GetBootstrapPhaseAsync(CancellationToken cancellationToken)
+	{
+		var reply = await SendCommandAsync("GETINFO status/bootstrap-phase\r\n", cancellationToken).ConfigureAwait(false);
+
+		if (!reply.Success)
+		{
+			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Expected reply with OK status.");
+		}
+
+		var line = reply.ResponseLines.FirstOrDefault(l => l.StartsWith(BootstrapPhasePrefix, StringComparison.Ordinal)) ??
+			throw new TorControlReplyParseException("GETINFO[status/bootstrap-phase]: Missing status line.");
+
+		// The GETINFO value is a STATUS_CLIENT event without the event name.
+		var statusEvent = StatusEvent.Parse($"{StatusEvent.EventNameStatusClient} {line[BootstrapPhasePrefix.Length..]}");
+
+		if (statusEvent is not BootstrapStatusEvent bootstrapEvent)
+		{
+			throw new TorControlReplyParseException($"GETINFO[status/bootstrap-phase]: Expected BOOTSTRAP action, got '{statusEvent.Action}'.");
+		}
+
+		return bootstrapEvent;
+	}
+
+	/// <summary>
 	/// Instructs Tor to shut down when this control connection is closed.
 	/// </summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
 	public Task<TorControlReply> TakeOwnershipAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("TAKEOWNERSHIP\r\n", cancellationToken);
 
@@ -145,7 +175,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Requests controlled shutdown.
 	/// </summary>
 	/// <remarks>If server is a client (OP), exit immediately. If it's a relay (OR), close listeners and exit after <c>ShutdownWaitLength</c> seconds.</remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.7. SIGNAL.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.7. SIGNAL.</seealso>
 	public async Task<TorControlReply> SignalShutdownAsync(CancellationToken cancellationToken)
 	{
 		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);
@@ -224,7 +254,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Causes Tor to stop polling for the existence of a process with its owning controller's PID.
 	/// </summary>
 	/// <remarks>If TAKEOWNERSHIP command is sent, Tor will still exit when the control connection ends.</remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
 	public Task<TorControlReply> ResetOwningControllerProcessConfAsync(CancellationToken cancellationToken)
 		=> SendCommandAsync("RESETCONF __OwningControllerProcess\r\n", cancellationToken);
 

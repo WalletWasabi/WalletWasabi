@@ -7,7 +7,7 @@ namespace WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
 /// </summary>
 public record BootstrapStatusEvent : StatusEvent
 {
-	/// <remarks>See https://gitweb.torproject.org/torspec.git/tree/control-spec.txt 5.5.2</remarks>
+	/// <remarks>See https://github.com/torproject/torspec/blob/main/control-spec.txt 5.5.2</remarks>
 	public static readonly ImmutableDictionary<int, string> Phases = ImmutableDictionary<int, string>.Empty
 		.Add(0, "tag=starting: Starting")
 		.Add(1, "tag=conn_pt: Connecting to pluggable transport")
@@ -43,8 +43,11 @@ public record BootstrapStatusEvent : StatusEvent
 	/// <summary>A number between <c>0</c> and <c>100</c>.</summary>
 	public int Progress => int.Parse(Arguments["PROGRESS"], NumberStyles.None, NumberFormatInfo.InvariantInfo);
 
+	/// <summary>Tor has built its first circuit and can serve connections.</summary>
+	public bool IsBootstrapped => Progress >= 100;
+
 	/// <summary>Denotes a bootstrap phase.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">5.5.2. Phases in Bootstrap Stage 1.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">5.5.2. Phases in Bootstrap Stage 1.</seealso>
 	/// <example><c>starting</c> for phase 0, <c>handshake</c> for phase 14, <c>done</c> for phase 100</example>
 	public string Tag => Arguments["TAG"];
 
@@ -52,7 +55,7 @@ public record BootstrapStatusEvent : StatusEvent
 	/// <remarks>That is, the task it is working on after sending the status event.</remarks>
 	public string Summary => Arguments["SUMMARY"];
 
-	/// <summary>Human readable string with any hints Tor has to offer about why it's having troubles bootstrapping or <c>null</c>.</summary>
+	/// <summary>Human readable string with any hints Tor has to offer about why it's having troubles bootstrapping, or <c>null</c>.</summary>
 	public string? Warning
 	{
 		get
@@ -62,12 +65,36 @@ public record BootstrapStatusEvent : StatusEvent
 		}
 	}
 
-	/// <summary>Long-term-stable controller-facing tags to identify particular issues in a bootstrapping step or <c>null</c>.</summary>
+	/// <summary>Long-term-stable controller-facing tags to identify particular issues in a bootstrapping step, or <c>null</c>.</summary>
 	public string? Reason
 	{
 		get
 		{
 			Arguments.TryGetValue("REASON", out string? result);
+			return result;
+		}
+	}
+
+	/// <summary>Number tells how many bootstrap problems there have been so far at this phase, or <c>null</c>.</summary>
+	public int? Count
+	{
+		get
+		{
+			if (Arguments.TryGetValue("COUNT", out var str) && int.TryParse(str, NumberStyles.None, NumberFormatInfo.InvariantInfo, out var value))
+			{
+				return value;
+			}
+
+			return null;
+		}
+	}
+
+	/// <summary><c>address:port</c> combination where 'address' is an IPv4 or IPv6 address, or <c>null</c>.</summary>
+	public string? HostAddr
+	{
+		get
+		{
+			Arguments.TryGetValue("HOSTADDR", out string? result);
 			return result;
 		}
 	}

@@ -9,11 +9,16 @@ using WalletWasabi.Services;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.Events.StatusEvents;
+using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor;
 
 public class TorProcessManager(EventBus eventBus)
 {
+	/// <summary>Timeout for Tor bootstrap process to finish in milliseconds.</summary>
+	private const int BootstrapTimeoutMs = 30_000;
+
 	private static readonly byte[] NoAuthHandshakeMsg = [
 		0x05, // Version
 		0x01, // One method
@@ -187,7 +192,7 @@ public class TorProcessManager(EventBus eventBus)
 	/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
 	/// </summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	public virtual async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken cancellationToken)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
@@ -221,6 +226,70 @@ public class TorProcessManager(EventBus eventBus)
 			}
 		}
 
+		await WaitForBootstrapAsync(client, cancellationToken).ConfigureAwait(false);
+
 		return client;
+	}
+
+	/// <exception cref="TorControlException">When bootstrap does not finish for some reason.</exception>
+	public static async Task WaitForBootstrapAsync(TorControlClient client, CancellationToken cancellationToken)
+	{
+		// Subscribe to Tor's STATUS_CLIENT events to get bootstrapping updates.
+		IReadOnlyList<string> eventNames = ["STATUS_CLIENT"];
+		using var subscription = await client.SubscribeEventsAsync(eventNames, cancellationToken).ConfigureAwait(false);
+
+		// Tor may have finished bootstrapping before we subscribed.
+		var phase = await client.GetBootstrapPhaseAsync(cancellationToken).ConfigureAwait(false);
+		if (phase.IsBootstrapped)
+		{
+			return;
+		}
+
+		// Precaution in case Tor is not bootstrapping at all. It's not really expected to happen.
+		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeoutCts.CancelAfter(BootstrapTimeoutMs);
+
+		try
+		{
+			await foreach (var @event in subscription.ReadAllAsync(timeoutCts.Token).ConfigureAwait(false))
+			{
+				try
+				{
+					var asyncEvent = AsyncEventParser.Parse(@event);
+
+					if (asyncEvent is BootstrapStatusEvent bootstrapEvent)
+					{
+						if (bootstrapEvent.IsBootstrapped)
+						{
+							return;
+						}
+
+						// Do not flood logs.
+						bool log = bootstrapEvent.Recommendation == "warn" && (bootstrapEvent.Count is null || bootstrapEvent.Count < 3 || bootstrapEvent.Count % 5 == 0);
+
+						if (log)
+						{
+							string reason = $"Reason={bootstrapEvent.Reason ?? "N/A"}";
+							string hostAddress = bootstrapEvent.HostAddr is null ? "" : $", HostAddress={bootstrapEvent.HostAddr}";
+							string count = bootstrapEvent.Count is null ? "" : $", Count={bootstrapEvent.Count}";
+							string msg = $"Bootstrap warning at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}): {bootstrapEvent.Warning} ({reason}{hostAddress}{count}).";
+							Logger.LogWarning(msg);
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					// Ignore events we cannot parse.
+					Logger.LogTrace($"Failed to parse Tor control event: {@event}.", ex);
+				}
+			}
+
+			throw new TorControlException("Tor control connection closed before Tor bootstrapped.");
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			Logger.LogWarning($"Tor has not bootstrapped in {BootstrapTimeoutMs / 1000.0} seconds. Not waiting any longer.");
+			return;
+		}
 	}
 }

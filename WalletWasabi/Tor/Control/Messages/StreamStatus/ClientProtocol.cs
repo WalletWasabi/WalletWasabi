@@ -8,7 +8,7 @@ namespace WalletWasabi.Tor.Control.Messages.StreamStatus;
 /// </para>
 /// <para>Controllers MUST tolerate unrecognized client protocols.</para>
 /// </remarks>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4.1.2. Stream status changed".</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section "4.1.2. Stream status changed".</seealso>
 public enum ClientProtocol
 {
 	/// <summary>SOCKS version 4.</summary>

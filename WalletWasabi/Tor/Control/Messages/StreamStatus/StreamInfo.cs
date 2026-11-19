@@ -4,8 +4,10 @@ using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control.Messages.StreamStatus;
 
-/// <summary>Implemented as specified in <c>4.1.2. Stream status changed</c> spec.</summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>
+/// <summary>
+/// Implemented as specified in <c>4.1.2. Stream status changed</c> spec.
+/// </summary>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt"/>
 public record StreamInfo
 {
 	public StreamInfo(string streamID, StreamStatusFlag streamStatus, string circuitID, string targetAddress, int port)
@@ -23,7 +25,7 @@ public record StreamInfo
 	/// Currently, Tor only uses digits, but this may change.
 	/// <para>String matches <c>^[a-zA-Z0-9]{1,16}$</c>.</para>
 	/// </remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">2.4. General-use tokens</seealso>
 	public string StreamID { get; }
 
 	/// <summary>Status of the Tor stream.</summary>

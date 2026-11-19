@@ -23,7 +23,7 @@ public record CircuitInfo
 	/// Currently, Tor only uses digits, but this may change.
 	/// <para>String matches <c>^[a-zA-Z0-9]{1,16}$</c>.</para>
 	/// </remarks>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">2.4. General-use tokens</seealso>
 	public string CircuitID { get; }
 	public CircuitStatus CircuitStatus { get; }
 	public List<CircuitPath> CircuitPaths { get; init; } = new();
@@ -144,7 +144,7 @@ public record CircuitInfo
 		return circuitInfo;
 	}
 
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">2.4. General-use tokens (see <c>LongName</c>)</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">2.4. General-use tokens (see <c>LongName</c>)</seealso>
 	private static List<CircuitPath> ParseCircuitPath(string paths)
 	{
 		List<CircuitPath> result = new();

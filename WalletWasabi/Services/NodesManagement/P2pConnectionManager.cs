@@ -66,6 +66,13 @@ public class P2pConnectionManager : IDisposable
 	private const int DefaultCrawlerCount = 10;
 	private const int MaxPeersPerNetgroup = 3;
 
+	/// <summary>How many times the same DNS seed is resolved over Tor.</summary>
+	/// <remarks>
+	/// Tor's <c>RESOLVE</c> returns just one address per query.
+	/// <para>The constant must stay low because each resolution requires its own circuit. See Tor setting <c>MaxClientCircuitsPending</c> (default 32).</para>
+	/// </remarks>
+	private const int DnsQueriesPerSeedOverTor = 4;
+
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
@@ -912,8 +919,9 @@ public class P2pConnectionManager : IDisposable
 		var dnsHosts = _network.DNSSeeds.Select(x => x.Host);
 		if (_dnsResolver is DnsSocksResolver)
 		{
-			dnsHosts = Enumerable.Repeat(dnsHosts, 16).SelectMany(x => x).Shuffle();
+			dnsHosts = Enumerable.Repeat(dnsHosts, DnsQueriesPerSeedOverTor).SelectMany(x => x).Shuffle();
 		}
+
 		var map = dnsHosts.ToDictionary(GetAddressesFromDnsAsync, host => host);
 
 		await foreach (var task in Task.WhenEach(map.Keys).WithCancellation(cancellationToken))

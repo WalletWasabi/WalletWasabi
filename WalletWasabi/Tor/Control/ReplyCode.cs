@@ -3,7 +3,7 @@ namespace WalletWasabi.Tor.Control;
 /// <summary>
 /// An enumerator containing the status codes sent in response to commands.
 /// </summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section "4. Replies".</seealso>
 public enum StatusCode : int
 {
 	/// <summary>The command was processed.</summary>
@@ -55,6 +55,6 @@ public enum StatusCode : int
 	UnmanagedEntity = 555,
 
 	/// <summary>A notification sent following an asynchronous operation.</summary>
-	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">4.1. Asynchronous events</seealso>
+	/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">4.1. Asynchronous events</seealso>
 	AsynchronousEventNotify = 650,
 }

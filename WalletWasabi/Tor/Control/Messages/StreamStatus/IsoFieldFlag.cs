@@ -4,7 +4,7 @@ namespace WalletWasabi.Tor.Control.Messages.StreamStatus;
 /// The "ISO_FIELDS" field indicates the set of STREAM event fields for which stream
 /// isolation is enabled for the listener port that a client used to initiate this stream.
 /// </summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4.1.2. Stream status changed".</seealso>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt">See section "4.1.2. Stream status changed".</seealso>
 public enum IsoFieldFlag
 {
 	SOCKS_USERNAME,

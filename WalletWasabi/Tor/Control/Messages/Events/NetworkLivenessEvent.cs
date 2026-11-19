@@ -4,7 +4,7 @@ using WalletWasabi.Tor.Control.Utils;
 namespace WalletWasabi.Tor.Control.Messages.Events;
 
 /// <summary>Network liveness event as specified in <c>4.1.27. Network liveness has changed</c> spec.</summary>
-/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt"/>
+/// <seealso href="https://github.com/torproject/torspec/blob/main/control-spec.txt"/>
 public record NetworkLivenessEvent : IAsyncEvent
 {
 	public const string EventName = "NETWORK_LIVENESS";
