@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -64,6 +66,15 @@ public partial interface IWalletModel : INotifyPropertyChanged
 	AmountProvider AmountProvider { get; }
 
 	bool IsHardwareWallet { get; }
+
+	/// <summary>Whether this wallet can coinjoin at all: a watch-only wallet can, if a device signs for it.</summary>
+	bool CanCoinJoin { get; }
+
+	bool HasCoinJoinAccount { get; }
+
+	bool CanEnableCoinjoin { get; }
+
+	Task EnableCoinjoinAsync(Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken);
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -187,6 +198,15 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public AmountProvider AmountProvider { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool CanCoinJoin => !IsWatchOnlyWallet || HasCoinJoinAccount;
+
+	public bool HasCoinJoinAccount => Wallet.KeyManager.HasCoinJoinAccount;
+
+	public bool CanEnableCoinjoin => Wallet.KeyManager.CanAddCoinJoinAccount;
+
+	public Task EnableCoinjoinAsync(Action<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken) =>
+		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, addressToConfirm, cancellationToken);
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 

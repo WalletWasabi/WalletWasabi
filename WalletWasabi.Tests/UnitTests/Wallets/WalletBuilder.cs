@@ -71,7 +71,8 @@ public class WalletBuilder
 			_serviceConfiguration,
 			blockProvider: _blockProvider,
 			_eventBus,
-			cpfpInfoProvider: null!);
+			cpfpInfoProvider: null!,
+			hardwareWallets: null!);
 
 		return factory(_keyManager);
 	}
