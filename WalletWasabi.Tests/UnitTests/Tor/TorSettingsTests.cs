@@ -21,6 +21,8 @@ public class TorSettingsTests
 
 		string expected = string.Join(
 			" ",
+			$"-f \"{Path.Combine("temp", "tempDataDir", "torrc")}\"",
+			$"--ignore-missing-torrc",
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
 			$"--UseBridges 0",

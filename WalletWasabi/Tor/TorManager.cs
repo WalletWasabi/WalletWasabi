@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
@@ -13,9 +14,16 @@ namespace WalletWasabi.Tor;
 public class TorManager : IAsyncDisposable
 {
 	internal const string TorProcessStartedByDifferentUser = "Tor was started by another user and we can't use it nor kill it.";
+	internal const string NoAttemptToStartTorWasSuccessful = "No attempt to start Tor was successful. Try to kill any running Tor instance using the activity monitor.";
+
+	/// <summary>Maximum number of lines of Tor's output reported in the exception when Tor fails to start.</summary>
+	private const int MaxReportedLogFileLines = 10;
 
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
+
+	/// <summary>Description of why the latest attempt to start Tor failed, or <c>null</c> if it is not known.</summary>
+	private volatile string? _lastStartupFailure;
 
 	public TorManager(TorSettings settings, TorProcessManager processManager)
 	{
@@ -88,7 +96,8 @@ public class TorManager : IAsyncDisposable
 
 		if (_settings.TorMode == TorMode.Enabled)
 		{
-			throw new InvalidOperationException($"No attempt to start Tor was successful. Try to kill any running Tor instance using the activity monitor.");
+			string details = _lastStartupFailure is { } failure ? $"{Environment.NewLine}{failure}" : "";
+			throw new InvalidOperationException($"{NoAttemptToStartTorWasSuccessful}{details}");
 		}
 
 		throw new InvalidOperationException($"No attempt to connect to Tor was successful. It seems no Tor instance is currently running.\n" +
@@ -254,13 +263,21 @@ public class TorManager : IAsyncDisposable
 					string arguments = _settings.GetCmdArguments();
 					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
 
+					DateTime startedAt = DateTime.UtcNow;
 					process = _processManager.StartProcess(_settings, arguments);
 
 					bool isRunning = await _processManager.EnsureRunningAsync(process, _settings.SocksEndpoint, cancellationToken).ConfigureAwait(false);
 
 					if (!isRunning)
 					{
-						Logger.LogTrace("Failed to start Tor process. Trying again.");
+						bool exitedOnItsOwn = process.HasExited;
+
+						// Tor may still be running (e.g. it is not able to open its SOCKS port). Do not leave it behind.
+						// Waiting for the exit also makes sure that everything Tor wrote to its output was read.
+						await KillProcessAsync(process, cancellationToken).ConfigureAwait(false);
+
+						_lastStartupFailure = GetStartupFailureDescription(process, exitedOnItsOwn, startedAt);
+						Logger.LogError($"Failed to start Tor process. Trying again. {_lastStartupFailure}");
 						continue;
 					}
 
@@ -291,12 +308,13 @@ public class TorManager : IAsyncDisposable
 			catch (TorControlException ex)
 			{
 				Logger.LogDebug("Tor control failed to initialize.", ex);
+				_lastStartupFailure = $"Tor control failed to initialize: {ex.Message}";
 
 				// If Tor control fails to initialize, we want to try to start Tor again and initialize Tor control again.
 				if (process is not null)
 				{
 					Logger.LogDebug("Attempt to kill the running Tor process.");
-					_processManager.KillProcess(process);
+					await KillProcessAsync(process, globalCancellationToken).ConfigureAwait(false);
 				}
 				else
 				{
@@ -337,6 +355,99 @@ public class TorManager : IAsyncDisposable
 					TorControlClient = null;
 				}
 			}
+		}
+	}
+
+	/// <summary>
+	/// Kills <paramref name="process"/> if it is still running and waits until it exits.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="Process.WaitForExitAsync(CancellationToken)"/> also waits until the asynchronous readers of the standard output and error
+	/// reach the end of the streams, even if the process has already exited. That must happen before the process is disposed and before its output is inspected.
+	/// </remarks>
+	private async Task KillProcessAsync(Process process, CancellationToken cancellationToken)
+	{
+		try
+		{
+			if (!process.HasExited)
+			{
+				_processManager.KillProcess(process);
+			}
+
+			await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning($"Failed to kill Tor process: {ex.Message}");
+		}
+	}
+
+	/// <summary>
+	/// Describes why the Tor process we have just started is not usable: whether it exited and what problems it reported.
+	/// </summary>
+	/// <param name="process">Tor process started by us. It must have exited already so that its output is complete.</param>
+	/// <param name="exitedOnItsOwn"><c>true</c> if the process exited by itself, <c>false</c> if it was running and we terminated it.</param>
+	/// <param name="startedAt">When the process was started. Older content of the Tor log file belongs to a previous Tor instance.</param>
+	/// <remarks>Tor reports problems with its configuration to its standard output and everything else to its log file (if enabled).</remarks>
+	private string GetStartupFailureDescription(Process process, bool exitedOnItsOwn, DateTime startedAt)
+	{
+		List<string> lines = [];
+
+		lines.Add(exitedOnItsOwn
+			? $"Tor process exited with code {process.ExitCode}."
+			: $"Tor process (PID {process.Id}) was running but it did not accept connections on {_settings.SocksEndpoint}.");
+
+		List<string> torLines = [.. _processManager.GetRecentOutput(process).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+		torLines.AddRange(ReadLogFileTail(startedAt));
+
+		// Tor prefixes every line with its severity. Warnings and errors explain the failure, notices are just noise.
+		string[] problems = torLines.Where(line => line.Contains("[warn]") || line.Contains("[err]")).Distinct().ToArray();
+
+		if (problems.Length > 0)
+		{
+			lines.Add("Tor reported:");
+			lines.AddRange(problems);
+		}
+		else if (torLines.Count > 0)
+		{
+			lines.Add("Tor output:");
+			lines.AddRange(torLines.TakeLast(MaxReportedLogFileLines));
+		}
+
+		return string.Join(Environment.NewLine, lines);
+	}
+
+	/// <returns>Last lines of the Tor log file, or no lines if the file is disabled, missing, stale or unreadable.</returns>
+	private IEnumerable<string> ReadLogFileTail(DateTime startedAt)
+	{
+		if (!_settings.Log)
+		{
+			return [];
+		}
+
+		try
+		{
+			// Tor truncates the log file every time it starts (TruncateLogFile) but only if it gets that far. Make sure it is not a stale file.
+			if (!File.Exists(_settings.LogFilePath) || File.GetLastWriteTimeUtc(_settings.LogFilePath) < startedAt)
+			{
+				return [];
+			}
+
+			using FileStream stream = new(_settings.LogFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+			using StreamReader reader = new(stream);
+			return reader.ReadToEnd()
+				.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+				.TakeLast(MaxReportedLogFileLines)
+				.ToArray();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogDebug($"Failed to read Tor log file '{_settings.LogFilePath}'.", ex);
+			return [];
 		}
 	}
 

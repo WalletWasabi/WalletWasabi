@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -58,6 +59,71 @@ public class TorManagerTests
 	}
 
 	/// <summary>
+	/// Simulates: Tor OS process starts but its SOCKS5 port never becomes available (e.g. a stale Tor process blocks the port).
+	/// We should give up after the specified number of attempts, explain why the last attempt failed and not leave Tor processes behind.
+	/// </summary>
+	[Fact(Timeout = 120_000)]
+	public async Task TorFailsToStartAsync()
+	{
+		// Tor settings.
+		string dataDir = Path.Combine("temp", "tempDataDir");
+		string distributionFolder = "tempDistributionDir";
+		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+
+		var processManager = new TestProcessManager(new EventBus())
+		{
+			IsTorRunningAsyncResult = false,
+			EnsureRunningAsyncResult = false,
+		};
+
+		InvalidOperationException ex;
+
+		await using (TorManager manager = new(settings, processManager))
+		{
+			ex = await Assert.ThrowsAsync<InvalidOperationException>(
+				async () => await manager.StartAsync(attempts: 2, TestContext.Current.CancellationToken).ConfigureAwait(false));
+		}
+
+		Assert.StartsWith(TorManager.NoAttemptToStartTorWasSuccessful, ex.Message);
+		Assert.Contains("Tor process", ex.Message);
+
+		// The manager keeps trying to start Tor until it is disposed, so there can be more attempts than requested.
+		Assert.True(processManager.StartProcessCallCount >= 2);
+
+		// No Tor process started by the manager may be left behind.
+		foreach (int processId in processManager.StartedProcessIds)
+		{
+			await WaitUntilProcessIsGoneAsync(processId, TestContext.Current.CancellationToken);
+		}
+	}
+
+	private static async Task WaitUntilProcessIsGoneAsync(int processId, CancellationToken cancellationToken)
+	{
+		using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeoutCts.CancelAfter(TimeSpan.FromSeconds(10));
+
+		while (true)
+		{
+			try
+			{
+				using Process process = Process.GetProcessById(processId);
+
+				if (process.HasExited)
+				{
+					return;
+				}
+			}
+			catch (ArgumentException)
+			{
+				// No such process.
+				return;
+			}
+
+			await Task.Delay(100, timeoutCts.Token);
+		}
+	}
+
+	/// <summary>
 	/// Simulates: Tor OS process is started but by a different OS user. We should throw an exception
 	/// in this case as it is an unsupported scenario at the moment.
 	/// </summary>
@@ -90,6 +156,7 @@ public class TorManagerTests
 	class TestProcessManager : TorProcessManager
 	{
 		public int StartProcessCallCount { get; private set; }
+		public List<int> StartedProcessIds { get; } = [];
 		public TimeSpan? WaitForTorProcessDelay { get; set; }
 		public bool? IsTorRunningAsyncResult { get; set; }
 		public bool? EnsureRunningAsyncResult { get; set; }
@@ -105,7 +172,9 @@ public class TorManagerTests
 		public override Process StartProcess(TorSettings settings, string arguments)
 		{
 			StartProcessCallCount++;
-			return base.StartProcess(settings, arguments);
+			Process process = base.StartProcess(settings, arguments);
+			StartedProcessIds.Add(process.Id);
+			return process;
 		}
 
 		public override async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken)
