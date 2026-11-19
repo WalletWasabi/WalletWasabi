@@ -264,11 +264,15 @@ public class TorProcessManager(EventBus eventBus)
 							return;
 						}
 
-						if (bootstrapEvent.Recommendation == "warn")
+						// Do not flood logs.
+						bool log = bootstrapEvent.Recommendation == "warn" && (bootstrapEvent.Count is null || bootstrapEvent.Count < 3 || bootstrapEvent.Count % 5 == 0);
+
+						if (log)
 						{
-							string msg = bootstrapEvent.Warning is not null
-								? $"Tor bootstrap problem at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}): {bootstrapEvent.Warning} (reason: {bootstrapEvent.Reason ?? "N/A"})."
-								: $"Tor bootstrap problem at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}, reason: {bootstrapEvent.Reason ?? "N/A"}).";
+							string reason = $"Reason={bootstrapEvent.Reason ?? "N/A"}";
+							string hostAddress = bootstrapEvent.HostAddr is null ? "" : $", HostAddress={bootstrapEvent.HostAddr}";
+							string count = bootstrapEvent.Count is null ? "" : $", Count={bootstrapEvent.Count}";
+							string msg = $"Bootstrap warning at {bootstrapEvent.Progress}% ({bootstrapEvent.Tag}): {bootstrapEvent.Warning} ({reason}{hostAddress}{count}).";
 							Logger.LogWarning(msg);
 						}
 					}

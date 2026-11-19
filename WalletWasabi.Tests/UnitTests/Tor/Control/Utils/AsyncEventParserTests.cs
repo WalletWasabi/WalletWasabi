@@ -62,6 +62,13 @@ public class AsyncEventParserTests
 	public async Task ParseBootstrapEventsAsync()
 	{
 		BootstrapTestCase[] bootstrapEvents = [
+			new(
+				"650 STATUS_CLIENT WARN BOOTSTRAP PROGRESS=0 TAG=starting SUMMARY=\"Starting\" WARNING=\"No route to host [WSAEHOSTUNREACH ]\" REASON=NOROUTE COUNT=144 RECOMMENDATION=warn HOSTID=\"365653526F11172310F084BCF0D341E3A03314D4\" HOSTADDR=\"192.42.116.53:443\"\r\n",
+				0,
+				"starting",
+				"Starting",
+				144
+			),
 			new("650 STATUS_CLIENT NOTICE BOOTSTRAP PROGRESS=5 TAG=conn SUMMARY=\"Connecting to a relay\"\r\n", 5, "conn", "Connecting to a relay"),
 			new("650 STATUS_CLIENT NOTICE BOOTSTRAP PROGRESS=10 TAG=conn_done SUMMARY=\"Connected to a relay\"\r\n", 10, "conn_done", "Connected to a relay"),
 			new("650 STATUS_CLIENT NOTICE BOOTSTRAP PROGRESS=14 TAG=handshake SUMMARY=\"Handshaking with a relay\"\r\n", 14, "handshake", "Handshaking with a relay"),
@@ -81,6 +88,7 @@ public class AsyncEventParserTests
 			Assert.Equal(@event.ExpectedProgress, bootstrapEvent.Progress);
 			Assert.Equal(@event.ExpectedTag, bootstrapEvent.Tag);
 			Assert.Equal(@event.ExpectedSummary, bootstrapEvent.Summary);
+			Assert.Equal(@event.ExpectedCount, bootstrapEvent.Count);
 		}
 
 		// Final status event: Tor built its first circuit.
@@ -92,4 +100,4 @@ public class AsyncEventParserTests
 }
 
 /// <param name="ReceivedMessage">Received bootstrap event received over Tor control protocol.</param>
-file record struct BootstrapTestCase(string ReceivedMessage, int ExpectedProgress, string ExpectedTag, string ExpectedSummary);
+file record struct BootstrapTestCase(string ReceivedMessage, int ExpectedProgress, string ExpectedTag, string ExpectedSummary, int? ExpectedCount = null);
