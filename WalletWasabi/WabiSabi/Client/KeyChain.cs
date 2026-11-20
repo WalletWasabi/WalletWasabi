@@ -31,30 +31,31 @@ public class KeyChain : IKeyChain
 		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
 	}
 
-	public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
+	public PSBT Sign(PSBT psbt)
 	{
-		var transaction = unsignedCoinJoin.Transaction.Clone();
-
-		if (transaction.Inputs.Count == 0)
+		if (psbt.Inputs.Count == 0)
 		{
-			throw new ArgumentException("No inputs to sign.", nameof(transaction));
+			throw new ArgumentException("No inputs to sign.", nameof(psbt));
 		}
 
-		if (!transaction.Inputs.Exists(input => input.PrevOut == coin.Outpoint))
+		foreach (var input in psbt.Inputs)
 		{
-			throw new InvalidOperationException("Missing input.");
+			var utxo = input.GetTxOut();
+			if (utxo is null)
+			{
+				continue;
+			}
+
+			Key? key = _keyManager.GetSecrets(_password, utxo.ScriptPubKey).SingleOrDefault();
+			if (key is null)
+			{
+				continue;
+			}
+
+			BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), utxo.ScriptPubKey);
+			psbt.SignWithKeys(secret);
 		}
 
-		Key key = _keyManager.GetSecrets(_password, coin.ScriptPubKey).SingleOrDefault()
-		          ?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
-		BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), coin.ScriptPubKey);
-
-		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
-		builder.AddKeys(secret);
-		builder.AddCoins(coin);
-		builder.SetSigningOptions(new SigningOptions(TaprootSigHash.All, (TaprootReadyPrecomputedTransactionData)unsignedCoinJoin.PrecomputedTransactionData));
-		builder.SignTransactionInPlace(transaction);
-
-		return transaction;
+		return psbt;
 	}
 }

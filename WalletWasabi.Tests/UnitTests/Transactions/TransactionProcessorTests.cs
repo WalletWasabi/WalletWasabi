@@ -1701,7 +1701,11 @@ public class TransactionProcessorTests
 		tx1.Outputs.Add(Money.Coins(0.4999m), changeScript);
 
 		// Sign tx1 with the correct key using KeyChain
-		tx1 = keyChain.Sign(new TransactionWithPrecomputedData(tx1, tx1.PrecomputeTransactionData([spentCoin])), spentCoin);
+		var psbt = PSBT.FromTransaction(tx1, Network.RegTest);
+		psbt.Inputs[0].WitnessUtxo = spentCoin.TxOut;
+		keyChain.Sign(psbt);
+		psbt.Finalize();
+		tx1 = psbt.ExtractTransaction();
 
 		var smartTx1 = new SmartTransaction(tx1, Height.Mempool);
 		var result1 = transactionProcessor.Process(smartTx1);

@@ -96,16 +96,25 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
+	public PSBT Sign(PSBT psbt)
 	{
-		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
+		foreach (var input in psbt.Inputs)
 		{
-			throw new ArgumentException("Destination doesn't belong to this wallet.");
+			var utxo = input.GetTxOut();
+			if (utxo is null)
+			{
+				continue;
+			}
+
+			if (!ScriptPubKeys.TryGetValue(utxo.ScriptPubKey, out var extKey))
+			{
+				continue;
+			}
+
+			psbt.SignWithKeys(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network));
 		}
 
-		var transaction = unsignedCoinJoin.Transaction;
-		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
-		return transaction;
+		return psbt;
 	}
 
 	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
