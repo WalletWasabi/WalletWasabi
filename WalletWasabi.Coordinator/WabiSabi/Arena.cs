@@ -282,7 +282,7 @@ public partial class Arena : PeriodicRunner
 					try
 					{
 						var targetFeeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-						Logger.LogInfo(FormatLog($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
+						Logger.LogInfo(FormatLog($"Current Clamped Fee Rate: {targetFeeRate.SatoshiPerByte} sat/vB. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.", round));
 					}
 					catch (Exception ex)
 					{
@@ -583,7 +583,9 @@ public partial class Arena : PeriodicRunner
 	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
 	{
 		var feeEstimations = await _feeRateProvider(cancellationToken).ConfigureAwait(false);
-		return feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
+		var feeRate = feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
+
+		return FeeRate.Min(_config.MaximumAcceptableFeeRate, FeeRate.Max(_config.MinimumAcceptableFeeRate, feeRate));
 	}
 
 	/// <summary>

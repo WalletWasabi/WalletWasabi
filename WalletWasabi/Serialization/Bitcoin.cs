@@ -42,7 +42,7 @@ public static partial class Encode
 			("TxOut", TxOut(coin.TxOut))
 		]);
 
-	private static JsonNode FeeRate(FeeRate feeRate) =>
+	private static JsonNode FeeRatePerKvB(FeeRate feeRate) =>
 		MoneySatoshis(feeRate.FeePerK);
 
 	private static JsonNode WitScript(WitScript witScript) =>
@@ -85,7 +85,7 @@ public static partial class Decode
 	public static Decoder<Money> MoneyBitcoins =>
 		String.Map(Money.Parse).Catch();
 
-	private static Decoder<FeeRate> FeeRate =>
+	private static Decoder<FeeRate> FeeRatePerKvB =>
 		MoneySatoshis.Map(m => new FeeRate(m)).Catch();
 
 	private static Decoder<WitScript> WitScript =>
