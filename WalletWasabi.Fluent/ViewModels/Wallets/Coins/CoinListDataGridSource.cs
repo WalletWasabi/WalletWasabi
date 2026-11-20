@@ -51,14 +51,19 @@ public static class CoinListDataGridSource
 			return 2;
 		}
 
-		if (!x.IsConfirmed)
+		if (x.CoinJoinIneligibilityToolTip is not null)
 		{
 			return 3;
 		}
 
-		if (!x.IsExcludedFromCoinJoin)
+		if (!x.IsConfirmed)
 		{
 			return 4;
+		}
+
+		if (!x.IsExcludedFromCoinJoin)
+		{
+			return 5;
 		}
 
 		return 0;

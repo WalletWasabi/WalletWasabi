@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
@@ -192,6 +193,62 @@ public class CoinJoinClientTests
 			() => coinJoinClient.StartRoundAsync([coin], CoinJoinClient.UnrestrictedRound.Instance, getStatusRoundState, TestContext.Current.CancellationToken));
 
 		Assert.Equal(expectedError, ex.CoinjoinError);
+	}
+
+	/// <summary>
+	/// A wallet whose only non-private coin is below the round's minimum finds no round to join. The coin tells why,
+	/// and a coin that the round accepts does not keep the reason an earlier round left on it (issue #11416).
+	/// </summary>
+	[Fact(Timeout = 30_000)]
+	public async Task CoinsTellWhyTheRoundDoesNotAcceptThemAsync()
+	{
+		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
+		var roundState = RoundState.FromRound(round);
+		var requestHandler = new InputRegistrationFailingRequestHandler(roundState, registrationError: null);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, TestContext.Current.CancellationToken);
+
+		var keyManager = ServiceFactory.CreateKeyManager("");
+		var tooSmallCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(keyManager), Money.Satoshis(4_000), anonymitySet: 1);
+		var privateCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(keyManager), Money.Coins(1m), anonymitySet: 10);
+		privateCoin.CoinJoinIneligibility = new CoinJoinIneligibility.Uneconomical(new FeeRate(500m));
+
+		var coinJoinClient = new CoinJoinClient(
+			_ => requestHandler,
+			new KeyChain(keyManager, ""),
+			new OutputProvider(new InternalDestinationProvider(keyManager), RandomnessProviders.Insecure),
+			new RoundStateProvider(roundStateUpdater),
+			new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0).SelectCoinsForRound,
+			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150m, AbsoluteMinInputCount: 2, AllowSoloCoinjoining: false),
+			InputVerifiers.NoVerification(),
+			new LiquidityClueProvider());
+
+		// The client waits for a round, finds no coin to register in the one it gets, and waits for another one.
+		var waitingForRoundCount = 0;
+		var roundSkipped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		coinJoinClient.CoinJoinClientProgress += (_, e) =>
+		{
+			if (e is WaitingForRound && Interlocked.Increment(ref waitingForRoundCount) == 2)
+			{
+				roundSkipped.TrySetResult();
+			}
+		};
+
+		using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+		var coinJoinTask = coinJoinClient.StartCoinJoinAsync(() => [tooSmallCoin, privateCoin], cts.Token);
+
+		// Round states only reach the client when the updater is told to fetch them.
+		while (!roundSkipped.Task.IsCompleted && !coinJoinTask.IsCompleted)
+		{
+			roundStateUpdater.Update();
+			await Task.Delay(50, TestContext.Current.CancellationToken);
+		}
+
+		Assert.False(coinJoinTask.IsCompleted);
+		Assert.Equal(new CoinJoinIneligibility.AmountTooLow(roundState.CoinjoinState.Parameters.AllowedInputAmounts.Min), tooSmallCoin.CoinJoinIneligibility);
+		Assert.Null(privateCoin.CoinJoinIneligibility);
+
+		cts.Cancel();
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => coinJoinTask);
 	}
 
 	[Fact]
