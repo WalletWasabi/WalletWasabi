@@ -1,9 +1,5 @@
 using System.IO;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 

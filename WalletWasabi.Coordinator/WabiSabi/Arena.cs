@@ -359,7 +359,6 @@ public partial class Arena : PeriodicRunner
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
 		var state = round.Assert<SigningState>();
-
 		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
 
 		var alicesWhoDidNotSign = round.Alices
@@ -382,9 +381,8 @@ public partial class Arena : PeriodicRunner
 			}
 		}
 
-		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
-
-		Logger.LogInfo(FormatLog($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}", round));
+		var count = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
+		Logger.LogInfo(FormatLog($"Removed {count} alices, because they didn't sign. Remaining: {round.InputCount}", round));
 
 		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
@@ -416,8 +414,7 @@ public partial class Arena : PeriodicRunner
 			}
 		}
 
-		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
-
+		var removedAlices = round.Alices.RemoveAll(alicesToRemove.Contains);
 		Logger.LogInfo(FormatLog($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}", round));
 
 		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
