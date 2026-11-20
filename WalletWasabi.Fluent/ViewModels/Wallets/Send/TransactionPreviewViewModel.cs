@@ -19,6 +19,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 
@@ -390,6 +391,11 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				})
 			.DisposeWith(disposables);
 
+		UiContext.Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => UpdateConfirmationTimes())
+			.DisposeWith(disposables);
+
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
@@ -413,6 +419,15 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
 		}
+		else if (Transaction is { })
+		{
+			UpdateConfirmationTimes();
+		}
+	}
+
+	private void UpdateConfirmationTimes()
+	{
+		TransactionSummaries.ForEach(summary => summary.UpdateConfirmationTime(_info));
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
