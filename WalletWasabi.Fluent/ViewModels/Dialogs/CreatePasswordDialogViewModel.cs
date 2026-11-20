@@ -73,12 +73,12 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 
 	private void ValidatePassword(IValidationErrors errors)
 	{
-		if (PasswordHelper.IsTrimmable(Password, out _))
+		if (PasswordHelper.IsTrimmable(Password))
 		{
 			errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
 		}
 
-		if (PasswordHelper.IsTooLong(Password, out _))
+		if (PasswordHelper.IsTooLong(Password))
 		{
 			errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 		}
