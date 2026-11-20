@@ -49,4 +49,28 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<!-- A running Tor from this output directory locks tor.exe. Skip copying it when it is the same binary, fail the build otherwise. -->
+	<Target Name="HandleRunningTor" BeforeTargets="_CopyOutOfDateSourceItemsToOutputDirectory" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<PropertyGroup>
+			<FullOutDir>$([System.IO.Path]::GetFullPath('$(OutDir)'))</FullOutDir>
+		</PropertyGroup>
+		<Exec Command="powershell -NoProfile -Command &quot;(Get-Process tor -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith('$(FullOutDir)', 'OrdinalIgnoreCase') }).Count&quot;" ConsoleToMSBuild="true" StandardOutputImportance="low" IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="RunningTorCount" />
+		</Exec>
+		<ItemGroup Condition="'$(RunningTorCount)' != '' And '$(RunningTorCount)' != '0'">
+			<_RunningTor Include="@(_SourceItemsToCopyToOutputDirectory)" Condition="'%(Filename)%(Extension)' == 'tor.exe' And Exists('$(FullOutDir)%(TargetPath)')" />
+		</ItemGroup>
+		<GetFileHash Files="@(_RunningTor)" Condition="'@(_RunningTor)' != ''">
+			<Output TaskParameter="Hash" PropertyName="SourceTorHash" />
+		</GetFileHash>
+		<GetFileHash Files="@(_RunningTor->'$(FullOutDir)%(TargetPath)')" Condition="'@(_RunningTor)' != ''">
+			<Output TaskParameter="Hash" PropertyName="OutputTorHash" />
+		</GetFileHash>
+		<Error Condition="'$(SourceTorHash)' != '$(OutputTorHash)'" Text="tor.exe in '$(FullOutDir)' is running and differs from the source tor.exe. Close Wasabi or stop Tor, then build again." />
+		<ItemGroup>
+			<FileWrites Include="@(_RunningTor->'$(FullOutDir)%(TargetPath)')" />
+			<_SourceItemsToCopyToOutputDirectory Remove="@(_RunningTor)" />
+		</ItemGroup>
+	</Target>
 </Project>
