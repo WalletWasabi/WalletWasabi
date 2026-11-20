@@ -183,9 +183,9 @@ for PLATFORM in "${PLATFORMS[@]}"; do
 
   if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
     if [[ "$PLATFORM" == "osx-arm64" ]]; then
-      # Tor is universal and remains in osx64. HWI has a separate arm64 binary.
+      # Tor is universal and remains in osx64. HWI and libusb have separate arm64 binaries.
       find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" ! -name "osx-arm64" -exec rm -rf {} +
-      rm "$BUNDLED_APPS_DIR/osx64/hwi"
+      rm "$BUNDLED_APPS_DIR/osx64/hwi" "$BUNDLED_APPS_DIR/osx64/libusb-1.0.0.dylib"
     else
       find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" -exec rm -rf {} +
     fi

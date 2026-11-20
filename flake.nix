@@ -51,6 +51,7 @@
           preBuild = ''
             cp -r ${pkgs.tor}/bin/tor ${bundledApps}/Tor/tor
             cp ${pkgs.hwi}/bin/hwi ${bundledApps}/hwi
+            cp ${pkgs.libusb1}/lib/libusb-1.0.so.0 ${bundledApps}/libusb-1.0.so.0
             cp ${pkgs.bitcoind}/bin/bitcoind ${bundledAppsIntegrationTest}/bitcoind
           '';
         };
