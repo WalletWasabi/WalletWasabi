@@ -79,7 +79,7 @@ public static class TransactionModifierWalletExtensions
 		return cancelTransaction;
 	}
 
-	public static async Task<BuildTransactionResult> SpeedUpTransactionAsync(
+	public static async Task<SpeedUpTransactionResult> SpeedUpTransactionAsync(
 		this Wallet wallet,
 		SmartTransaction transactionToSpeedUp,
 		FeeRate? preferredFeeRate,
@@ -122,7 +122,7 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null)
+	private static SpeedUpTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -134,6 +134,7 @@ public static class TransactionModifierWalletExtensions
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
 		var originalFee = transactionToSpeedUp.Transaction.GetFee(transactionToSpeedUp.WalletInputs.Select(x => x.Coin).ToArray());
+		var originalFeeRate = new FeeRate(originalFee, txSizeBytes);
 		var minRelayFeeRate = network.CreateTransactionBuilder().StandardTransactionPolicy.MinRelayTxFee ?? new FeeRate(1m);
 		var minRelayFee = originalFee + minRelayFeeRate.GetFee(txSizeBytes);
 		var minimumRbfFeeRate = new FeeRate(minRelayFee, txSizeBytes);
@@ -233,10 +234,10 @@ public static class TransactionModifierWalletExtensions
 
 		rbf.Transaction.SetSpeedup();
 
-		return rbf;
+		return new SpeedUpTransactionResult(rbf, originalFeeRate, new FeeRate(rbf.Fee, rbf.Transaction.Transaction.GetVirtualSize()));
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
 		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
@@ -272,7 +273,7 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		if (transactionToCpfp.Confirmed)
 		{
@@ -297,8 +298,10 @@ public static class TransactionModifierWalletExtensions
 			v => v,
 			e => throw new InvalidOperationException(e));
 
+		var effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+
 		// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
-		if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
+		if (effectiveFeeRate > bestFeeRate)
 		{
 			throw new InvalidOperationException(
 				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} sat/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
@@ -333,7 +336,9 @@ public static class TransactionModifierWalletExtensions
 
 		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);
 
-		return cpfp;
+		var newEffectiveFeeRate = new FeeRate((feePaidByAncestorsAndTx + cpfp.Fee.Satoshi) / (ancestorsSizeVBytes + txSizeVBytes + cpfp.Transaction.Transaction.GetVirtualSize()));
+
+		return new SpeedUpTransactionResult(cpfp, effectiveFeeRate, newEffectiveFeeRate);
 	}
 
 	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)

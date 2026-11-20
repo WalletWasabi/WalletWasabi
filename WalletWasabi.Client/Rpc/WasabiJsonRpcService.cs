@@ -426,7 +426,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
-		var speedUpSmartTransaction = speedUpResult.Transaction;
+		var speedUpSmartTransaction = speedUpResult.BoostingTransaction.Transaction;
 		return speedUpSmartTransaction.Transaction.ToHex();
 	}
 
