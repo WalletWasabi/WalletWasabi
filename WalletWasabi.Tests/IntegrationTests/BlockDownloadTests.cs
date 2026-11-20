@@ -1,5 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
@@ -66,5 +68,55 @@ public class BlockDownloadTests
 		await testCts.CancelAsync();
 
 		await tickTask;
+	}
+
+	[Fact]
+	public async Task NodesAlreadyTriedAreAskedLastAsync()
+	{
+		using var testCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+
+		using var silentPeer1 = CreateSilentPeer(port: 28444);
+		using var silentPeer2 = CreateSilentPeer(port: 28445);
+		var seedNodes = (List<NetworkAddress>)Network.RegTest.SeedNodes;
+		NetworkAddress[] silentPeers = [new(silentPeer1.LocalEndpoint), new(silentPeer2.LocalEndpoint)];
+		seedNodes.AddRange(silentPeers);
+
+		try
+		{
+			var eventBus = new EventBus();
+			using var p2pConnectionManager = new P2pConnectionManager(Network.RegTest, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
+			p2pConnectionManager.Start(testCts.Token);
+
+			while (p2pConnectionManager.Nodes.Length < 2)
+			{
+				eventBus.Publish(new Tick(DateTime.UtcNow));
+				await Task.Delay(100, testCts.Token);
+			}
+
+			for (var i = 0; i < 20; i++)
+			{
+				var first = await p2pConnectionManager.GetSingleUseNodeAsync([], testCts.Token);
+				var second = await p2pConnectionManager.GetSingleUseNodeAsync([first.Node], testCts.Token);
+				Assert.NotSame(first.Node, second.Node);
+
+				// Once every node was tried, any of them is acceptable again.
+				var third = await p2pConnectionManager.GetSingleUseNodeAsync([first.Node, second.Node], testCts.Token);
+				Assert.Contains(third.Node, new[] { first.Node, second.Node });
+			}
+		}
+		finally
+		{
+			seedNodes.RemoveAll(x => silentPeers.Contains(x));
+		}
+	}
+
+	/// <summary>A peer that completes the handshake but never answers anything else.</summary>
+	private static NodeServer CreateSilentPeer(int port)
+	{
+		var peer = new NodeServer(Network.RegTest) { LocalEndpoint = new IPEndPoint(IPAddress.Loopback, port) };
+		peer.InboundNodeConnectionParameters.TemplateBehaviors.Clear();
+		peer.InboundNodeConnectionParameters.Services = NodeServices.Network;
+		peer.Listen();
+		return peer;
 	}
 }
