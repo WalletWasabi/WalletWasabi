@@ -391,7 +391,13 @@ public partial class Arena : PeriodicRunner
 
 	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
-		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
+		var state = round.Assert<SigningState>();
+		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
+
+		// Alices with a valid signature have proven they are online and honest, so a missed ready-to-sign request is forgiven.
+		var alicesToRemove = round.Alices
+			.Where(alice => !alice.ReadyToSign && unsignedOutpoints.Contains(alice.Coin.Outpoint))
+			.ToHashSet();
 
 		if (ReasonableOffendersCount(alicesToRemove.Count, round.Parameters.MinInputCountByRound))
 		{
