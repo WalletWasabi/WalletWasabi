@@ -27,6 +27,7 @@
               <PathIcon Data="{StaticResource eye_hide_regular}" />
             </Viewbox>
             <PrivacyTextPresenter Name="PART_PrivacyText"
+                                           MinPrivacyChars="{TemplateBinding MinPrivacyChars}"
                                            MaxPrivacyChars="{TemplateBinding MaxPrivacyChars}"/>
           </Panel>
         </Panel>

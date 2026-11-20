@@ -28,6 +28,9 @@ public class PrivacyContentControl : ContentControl
 	public static readonly StyledProperty<bool> UseOpacityProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, bool>(nameof(UseOpacity), defaultValue: true);
 
+	public static readonly StyledProperty<int> MinPrivacyCharsProperty =
+		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MinPrivacyChars));
+
 	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyContentControl, int>(nameof(MaxPrivacyChars), int.MaxValue);
 
@@ -71,6 +74,12 @@ public class PrivacyContentControl : ContentControl
 	{
 		get => GetValue(UseOpacityProperty);
 		set => SetValue(UseOpacityProperty, value);
+	}
+
+	public int MinPrivacyChars
+	{
+		get => GetValue(MinPrivacyCharsProperty);
+		set => SetValue(MinPrivacyCharsProperty, value);
 	}
 
 	public int MaxPrivacyChars
