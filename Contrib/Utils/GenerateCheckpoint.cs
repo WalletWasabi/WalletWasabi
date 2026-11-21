@@ -1,7 +1,7 @@
 #!/usr/bin/env dotnet
 #:package NBitcoin
 #:property PublishAot=false
-#:property TargetFramework=net10.0
+#:property TargetFramework=net11.0
 
 /// <summary>
 /// Standalone tool that connects to a Bitcoin peer supporting compact block filters (BIP 157/158), and fetches:

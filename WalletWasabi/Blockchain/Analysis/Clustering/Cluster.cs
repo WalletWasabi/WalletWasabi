@@ -46,10 +46,7 @@ public class Cluster(ImmutableHashSet<HdPubKey> keys) : IEquatable<Cluster>
 			return false;
 		}
 
-		// Not `SetEquals`: on .NET 10 it copies the other set into a new `HashSet` on every call.
-		var mine = GetKeys();
-		var theirs = other.GetKeys();
-		return mine.Count == theirs.Count && mine.IsSupersetOf(theirs);
+		return GetKeys().SetEquals(other.GetKeys());
 	}
 
 	public static bool operator ==(Cluster? x, Cluster? y) => x?.Equals(y) ?? y is null;
