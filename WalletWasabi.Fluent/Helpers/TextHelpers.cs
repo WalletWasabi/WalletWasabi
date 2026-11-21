@@ -93,7 +93,7 @@ public static partial class TextHelpers
 		return $"Confirmed ({confirmations} confirmation{AddSIfPlural((int)confirmations)})";
 	}
 
-	public static string FormatPercentageDiff(double n)
+	public static string FormatPercentageDiff(decimal n)
 	{
 		var precision = 0.01m;
 		var withFriendlyDecimals = (n * 100).WithFriendlyDecimals();

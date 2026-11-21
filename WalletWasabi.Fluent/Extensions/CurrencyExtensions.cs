@@ -96,11 +96,6 @@ public static class CurrencyExtensions
 		};
 	}
 
-	public static decimal WithFriendlyDecimals(this double n)
-	{
-		return WithFriendlyDecimals((decimal) n);
-	}
-
 	public static decimal WithFriendlyDecimals(this decimal n)
 	{
 		return Math.Abs(n) switch
