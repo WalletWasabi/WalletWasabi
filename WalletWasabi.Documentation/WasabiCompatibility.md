@@ -31,8 +31,8 @@ This document lists all the officially supported software and devices by Wasabi 
 ## What is required to run Wasabi Wallet on officially supported Operating Systems?
 
 Wasabi dependencies are:
-- .NET 10.0 [reqs](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md).
-- Avalonia [reqs](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements).
+- .NET 11.0 ([requirements](https://github.com/dotnet/core/blob/main/release-notes/11.0/supported-os.md)).
+- Avalonia ([requirements](https://github.com/AvaloniaUI/Avalonia/wiki/Runtime-Requirements)).
 
 ## What are the bottlenecks of officially supporting Hardware Wallets?
 
