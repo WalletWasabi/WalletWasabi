@@ -1,3 +1,6 @@
+using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -5,9 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto.Randomness;
@@ -315,28 +315,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
 					Logger.LogWarning(FormatLog($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.", round));
-
-					var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
-					Action<OutPoint, Money, uint256> prisonAction = _prison.FailedToSign;
-					var reason = "they didn't sign";
-					var offenderAlices = round.Alices
-						.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
-						.ToHashSet();
-
-					if (round.FastSigningPhase)
-					{
-						// Alices with a valid signature have proven they are online and honest, so a missed ready-to-sign request is forgiven.
-						// Compute Alices that did not sign and did not signal "read-to-sign".
-						var notReady = offenderAlices.Where(alice => !alice.ReadyToSign).ToHashSet();
-						if (notReady.Count > 0)
-						{
-							offenderAlices = notReady;
-							prisonAction = _prison.FailedToSignalReadyToSign;
-							reason = "they weren't ready";
-						}
-					}
-
-					await FailTransactionSigningPhaseAsync(round, offenderAlices, prisonAction, reason, cancellationToken).ConfigureAwait(false);
+					await FailTransactionSigningPhaseAsync(round, cancellationToken);
 				}
 			}
 			catch (RPCException ex)
@@ -370,18 +349,27 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async Task FailTransactionSigningPhaseAsync(
-		Round round,
-		HashSet<Alice> offenderAlices,
-		Action<OutPoint, Money, uint256> prisonAction,
-		string reason,
-		CancellationToken cancellationToken)
+	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
+		var state = round.Assert<SigningState>();
+		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
+		var offenderAlices = round.Alices
+			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
+			.ToHashSet();
+
 		if (ReasonableOffendersCount(offenderAlices.Count, round.Parameters.MinInputCountByRound))
 		{
 			foreach (var alice in offenderAlices)
 			{
-				prisonAction(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				// Intentionally lighter penalty for those who also missed ready-to-sign (e.g. hardware wallets).
+				if (round.FastSigningPhase && !alice.ReadyToSign)
+				{
+					_prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				}
+				else
+				{
+					_prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				}
 			}
 		}
 		else
@@ -394,8 +382,7 @@ public partial class Arena : PeriodicRunner
 		}
 
 		var removed = round.Alices.RemoveAll(offenderAlices.Contains);
-		Logger.LogInfo(FormatLog($"Removed {removed} alices, because {reason}. Remaining: {round.InputCount}", round));
-
+		Logger.LogInfo(FormatLog($"Removed {removed} alices, because they didn't sign. Remaining: {round.InputCount}", round));
 		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
