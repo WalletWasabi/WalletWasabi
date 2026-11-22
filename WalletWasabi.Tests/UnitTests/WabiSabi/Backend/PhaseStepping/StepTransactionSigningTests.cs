@@ -226,8 +226,16 @@ public class StepTransactionSigningTests
 		await arena.StopAsync(token);
 	}
 
-	[Fact(Timeout = 180_000)]
-	public async Task AliceWasNotReadyAsync()
+	/// <summary>
+	/// Verifies how the coordinator treats Alices that did not send a ready-to-sign request.
+	/// </summary>
+	/// <remarks>Not sending a ready-to-sign request is fine if the Alice signs. Alices who do not sign are banned and excluded from the blame round.</remarks>
+	[Theory(Timeout = 180_000)]
+	[InlineData(true, false, true, false)]  // 1. Only good Alice is ready and signs.
+	[InlineData(false, false, true, true)]  // 2. Nobody is ready, but both sign.
+	[InlineData(false, false, true, false)] // 3. Nobody is ready, only good Alice signs.
+	[InlineData(false, true, true, false)]  // 4. Bad Alice is ready but does not sign.
+	public async Task AliceWasNotReadyAsync(bool goodReady, bool badReady, bool goodSigns, bool badSigns)
 	{
 		var token = TestContext.Current.CancellationToken;
 
@@ -244,7 +252,7 @@ public class StepTransactionSigningTests
 		mockRpcClient.OnSendRawTransactionAsync = (tx) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
-		Prison prison = WabiSabiFactory.CreatePrison();
+		var prison = WabiSabiFactory.CreatePrison();
 
 		using var arena = await ArenaBuilder.From(cfg, mockRpcClient, prison).CreateAndStartAsync();
 		var (round, badAliceClient, goodAliceClient) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
@@ -252,34 +260,52 @@ public class StepTransactionSigningTests
 		var badOutpoint = badAliceClient.SmartCoin.Coin.Outpoint;
 		var goodOutpoint = goodAliceClient.SmartCoin.Coin.Outpoint;
 
-		// There are only two alices in the round.
 		Assert.Equal(2, round.Alices.Count);
 
-		// One alice is a good one (read-to-sign was done), and a bad alice (no ready-to-sign request).
-		{
-			var goodAlice = round.Alices.Single(x => goodOutpoint == x.Coin.Outpoint);
-			Assert.True(goodAlice.ReadyToSign);
-
-			var badAlice = round.Alices.Single(x => badOutpoint == x.Coin.Outpoint);
-			badAlice.ReadyToSign = false;
-		}
+		// Configure the ready-to-sign state for each alice.
+		round.Alices.Single(x => goodOutpoint == x.Coin.Outpoint).ReadyToSign = goodReady;
+		round.Alices.Single(x => badOutpoint == x.Coin.Outpoint).ReadyToSign = badReady;
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var signedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
-		await goodAliceClient.SignTransactionAsync(signedCoinJoin, keyChain, token);
+		var unsignedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+
+		// Good Alice always signs.
+		Assert.True(goodSigns);
+		await goodAliceClient.SignTransactionAsync(unsignedCoinJoin, keyChain, token);
+
+		if (badSigns)
+		{
+			await badAliceClient.SignTransactionAsync(unsignedCoinJoin, keyChain, token);
+		}
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.Ended, round.Phase);
 
-		Assert.True(prison.IsBanned(badOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
-		var onlyRound = arena.Rounds.Single(x => x is BlameRound);
-		var blameRound = Assert.IsType<BlameRound>(onlyRound);
-		Assert.Equal(round.Id, blameRound.BlameOf.Id);
-		var whitelist = blameRound.BlameWhitelist;
-		Assert.Contains(goodOutpoint, whitelist);
-		Assert.DoesNotContain(badOutpoint, whitelist);
+		var dos = cfg.GetDoSConfiguration();
+		var now = DateTimeOffset.UtcNow;
+
+		// A good alice is never banned, even when she did not send ready-to-sign but signed.
+		Assert.False(prison.IsBanned(goodOutpoint, dos, now));
+
+		if (goodSigns && badSigns)
+		{
+			// The transaction was fully signed, so the broadcast was attempted (and rejected by the mock).
+			// Nobody is punished and there is no blame round.
+			Assert.Equal(EndRoundState.TransactionBroadcastFailed, round.EndRoundState);
+			Assert.False(prison.IsBanned(badOutpoint, dos, now));
+			Assert.DoesNotContain(arena.Rounds, x => x is BlameRound);
+		}
+		else
+		{
+			// The bad alice did not sign: she is banned and left out of the blame round.
+			Assert.True(prison.IsBanned(badOutpoint, dos, now), "Bad outpoint is not banned!");
+			var blameRound = Assert.IsType<BlameRound>(Assert.Single(arena.Rounds, x => x is BlameRound));
+			Assert.Equal(round.Id, blameRound.BlameOf.Id);
+			Assert.Contains(goodOutpoint, blameRound.BlameWhitelist);
+			Assert.DoesNotContain(badOutpoint, blameRound.BlameWhitelist);
+		}
 
 		await arena.StopAsync(token);
 	}
