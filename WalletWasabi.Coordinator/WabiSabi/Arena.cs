@@ -397,6 +397,13 @@ public partial class Arena : PeriodicRunner
 			.Where(alice => !alice.ReadyToSign && unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
+		if (alicesToRemove.Count == 0)
+		{
+			// Everyone who missed ready-to-sign signed anyway, so only the missing signatures failed the round.
+			await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
+			return;
+		}
+
 		if (ReasonableOffendersCount(alicesToRemove.Count, round.Parameters.MinInputCountByRound))
 		{
 			foreach (var alice in alicesToRemove)
