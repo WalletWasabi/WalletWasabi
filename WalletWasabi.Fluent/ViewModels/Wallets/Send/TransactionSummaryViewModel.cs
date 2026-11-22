@@ -26,8 +26,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private Amount? _fee;
 	[AutoNotify] private Amount? _amount;
 	[AutoNotify] private FeeRate? _feeRate;
-	[AutoNotify] private double? _amountDiff;
-	[AutoNotify] private double? _feeDiff;
+	[AutoNotify] private decimal? _amountDiff;
+	[AutoNotify] private decimal? _feeDiff;
 	[AutoNotify] private InputsCoinListViewModel? _inputList;
 	[AutoNotify] private OutputsCoinListViewModel? _outputList;
 	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = [];
@@ -120,7 +120,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeDiff = DiffOrNull(Fee, Parent.CurrentTransactionSummary.Fee);
 	}
 
-	private static double? DiffOrNull(Amount? current, Amount? previous)
+	private static decimal? DiffOrNull(Amount? current, Amount? previous)
 	{
 		if (current is null || previous is null)
 		{
