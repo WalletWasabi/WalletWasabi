@@ -70,6 +70,7 @@ public class Round
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
 
+	/// <summary><c>true</c> when the output registration phase timed out before all Alices signaled "ready-to-sign".</summary>
 	public bool FastSigningPhase { get; set; }
 
 	public RoundParameters Parameters { get; }
