@@ -212,7 +212,7 @@ public class CoinJoinManager : BackgroundService
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)))
 				{
 					throw new CoinJoinClientException(
-						GetUnavailableNonPrivateCoinsError(coinSelectionResult, walletToStart),
+						GetUnavailableCoinsError(coinSelectionResult, walletToStart),
 						$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 			}
@@ -318,30 +318,31 @@ public class CoinJoinManager : BackgroundService
 			return result;
 		}
 
-		throw new CoinJoinClientException(GetUnavailableNonPrivateCoinsError(result, wallet), "No candidate coins available for coinjoin.");
+		throw new CoinJoinClientException(GetUnavailableCoinsError(result, wallet), "No candidate coins available for coinjoin.");
 	}
 
 
-	private static CoinjoinError GetUnavailableNonPrivateCoinsError(CoinSelectionResult result, Wallet wallet)
+	private static CoinjoinError GetUnavailableCoinsError(CoinSelectionResult result, Wallet wallet)
 	{
-		bool AnyNonPrivate(SmartCoin[] coins) => coins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		var arePaymentsPending = wallet.BatchedPayments.AreTherePendingPayments;
+		bool AnyUsable(SmartCoin[] coins) => coins.Any(x => arePaymentsPending || !x.IsPrivate(wallet.AnonScoreTarget));
 
-		if (AnyNonPrivate(result.UnconfirmedCoins))
+		if (AnyUsable(result.UnconfirmedCoins))
 		{
 			return CoinjoinError.NoConfirmedCoinsEligibleToMix;
 		}
 
-		if (AnyNonPrivate(result.ImmatureCoins))
+		if (AnyUsable(result.ImmatureCoins))
 		{
 			return CoinjoinError.OnlyImmatureCoinsAvailable;
 		}
 
-		if (AnyNonPrivate(result.ExcludedCoins))
+		if (AnyUsable(result.ExcludedCoins))
 		{
 			return CoinjoinError.OnlyExcludedCoinsAvailable;
 		}
 
-		if (AnyNonPrivate(result.BannedCoins))
+		if (AnyUsable(result.BannedCoins))
 		{
 			return CoinjoinError.CoinsRejected;
 		}
@@ -623,7 +624,9 @@ public class CoinJoinManager : BackgroundService
 			// - If there was a CjClient exception, for example PlebStop or no coins to mix,
 			// Keep trying, so CJ starts automatically when the wallet becomes mixable again.
 			ScheduleRestartAutomatically(wallet, _state.TrackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, finishedCoinJoin.OutputWallet, cancellationToken);
-			NotifyCoinJoinStartError(wallet, cjClientException.CoinjoinError);
+			NotifyCoinJoinStartError(wallet, cjClientException.CoinjoinError is CoinjoinError.NoCoinsEligibleToMix
+				? GetUnavailableCoinsError(GetCoinSelection(wallet), wallet)
+				: cjClientException.CoinjoinError);
 		}
 		else
 		{
