@@ -38,22 +38,14 @@ public class KeyChain : IKeyChain
 			throw new ArgumentException("No inputs to sign.", nameof(psbt));
 		}
 
+		var masterKey = _keyManager.GetMasterExtKey(_password);
 		foreach (var input in psbt.Inputs)
 		{
-			var utxo = input.GetTxOut();
-			if (utxo is null)
+			if (input.GetTxOut() is { } utxo && _keyManager.TryGetKeyForScriptPubKey(utxo.ScriptPubKey, out var hdPubKey))
 			{
-				continue;
+				var key = masterKey.Derive(hdPubKey.FullKeyPath).PrivateKey;
+				input.Sign(key.GetBitcoinSecret(_keyManager.GetNetwork(), utxo.ScriptPubKey).PrivateKey);
 			}
-
-			Key? key = _keyManager.GetSecrets(_password, utxo.ScriptPubKey).SingleOrDefault();
-			if (key is null)
-			{
-				continue;
-			}
-
-			BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), utxo.ScriptPubKey);
-			psbt.SignWithKeys(secret);
 		}
 
 		return psbt;

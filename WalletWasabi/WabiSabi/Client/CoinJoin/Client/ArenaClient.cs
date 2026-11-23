@@ -190,12 +190,10 @@ public class ArenaClient
 		PSBT unsignedPsbt,
 		CancellationToken cancellationToken)
 	{
-		var psbt = unsignedPsbt.Clone();
-
+		var psbt = keyChain.Sign(unsignedPsbt.Clone());
 		var psbtInput = psbt.Inputs.FindIndexedInput(coin.Outpoint)
 		                ?? throw new InvalidOperationException("Missing input.");
 
-		keyChain.Sign(psbt);
 		psbtInput.FinalizeInput();
 
 		var witScript = psbtInput.FinalScriptWitness
