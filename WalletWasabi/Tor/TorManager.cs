@@ -260,7 +260,9 @@ public class TorManager : IAsyncDisposable
 
 					if (!isRunning)
 					{
-						Logger.LogTrace("Failed to start Tor process. Trying again.");
+						string exitInfo = process.HasExited ? $" Exit code: {process.ExitCode}." : "";
+						Logger.LogWarning($"Tor process failed to start.{exitInfo} Retrying.");
+						Logger.LogInfo($"See Tor log file: '{_settings.LogFilePath}' if the issue persists.");
 						continue;
 					}
 

@@ -30,7 +30,7 @@ public class TorProcessManager(EventBus eventBus)
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
 	public virtual Process StartProcess(TorSettings settings, string arguments)
 	{
-		ProcessStartInfo startInfo = new()
+		var startInfo = new ProcessStartInfo()
 		{
 			FileName = settings.TorBinaryFilePath,
 			Arguments = arguments,
@@ -124,14 +124,14 @@ public class TorProcessManager(EventBus eventBus)
 	/// <summary>
 	/// Ensure <paramref name="process"/> is actually running.
 	/// </summary>
-	public virtual async Task<bool> EnsureRunningAsync(Process process, EndPoint socksEndpoint, CancellationToken token)
+	public virtual async Task<bool> EnsureRunningAsync(Process process, EndPoint socksEndpoint, CancellationToken cancellationToken)
 	{
 		int i = 0;
 		while (true)
 		{
 			i++;
 
-			bool isRunning = await IsTorRunningAsync(socksEndpoint, token).ConfigureAwait(false);
+			bool isRunning = await IsTorRunningAsync(socksEndpoint, cancellationToken).ConfigureAwait(false);
 
 			if (isRunning)
 			{
@@ -140,7 +140,6 @@ public class TorProcessManager(EventBus eventBus)
 
 			if (process.HasExited)
 			{
-				Logger.LogError($"Tor process failed to start! Exit code: {process.ExitCode}.");
 				return false;
 			}
 
@@ -153,7 +152,7 @@ public class TorProcessManager(EventBus eventBus)
 			}
 
 			// Wait 250 milliseconds between attempts.
-			await Task.Delay(250, token).ConfigureAwait(false);
+			await Task.Delay(250, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
