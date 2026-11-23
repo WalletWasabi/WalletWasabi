@@ -21,6 +21,7 @@ public class TorSettingsTests
 
 		var expected = string.Join(
 			" ",
+			$"--defaults-torrc \"{Path.Combine(dataDir, "torrc-defaults")}\"",
 			$"-f \"{Path.Combine(dataDir, "torrc")}\"",
 			$"--ignore-missing-torrc",
 			$"--LogTimeGranularity 1",
