@@ -406,8 +406,8 @@
   },
   {
     "pname": "NBitcoin",
-    "version": "10.0.21",
-    "hash": "sha256-gWOIz+2qhyIhaJv98AN+9gNh3nsv0zBJsIo7KLznjoI="
+    "version": "10.0.23",
+    "hash": "sha256-8tTzNqMvoUqVTYWkJH35ac8z5xXGbZ0dlfugG04B1Ek="
   },
   {
     "pname": "NBitcoin.Secp256k1",
