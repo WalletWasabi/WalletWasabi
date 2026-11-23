@@ -65,7 +65,10 @@ public class UiConfig : NotifyPropertyChangedBase
 		_windowWidth = windowWidth;
 		_windowHeight = windowHeight;
 		_fiatCurrency = fiatCurrency;
+	}
 
+	public void StartObserving()
+	{
 		this.WhenAnyValue(
 				x => x.Autocopy,
 				x => x.AutoPaste,

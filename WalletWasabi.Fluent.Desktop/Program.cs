@@ -240,6 +240,8 @@ public static class WasabiAppExtensions
 					.SetupAppBuilder(services.Config.EnableGpu)
 					.AfterSetup(_ =>
 					{
+						uiConfig.StartObserving();
+
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
