@@ -1,12 +1,14 @@
 using System.IO;
 using System.Reactive.Linq;
+using System.Text;
+using System.Threading;
 using WalletWasabi.Bases;
 using WalletWasabi.Serialization;
 using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Configuration;
 
-public class UiConfig : ConfigBase
+public class UiConfig : NotifyPropertyChangedBase
 {
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
@@ -24,6 +26,8 @@ public class UiConfig : ConfigBase
 	private double? _windowWidth;
 	private double? _windowHeight;
 	private string _fiatCurrency;
+	private readonly Lock _fileLock = new();
+
 
 	public UiConfig(
 		string filePath,
@@ -42,8 +46,9 @@ public class UiConfig : ConfigBase
 		bool sendAmountConversionReversed,
 		double? windowWidth,
 		double? windowHeight,
-		string fiatCurrency) : base(filePath)
+		string fiatCurrency)
 	{
+		FilePath = filePath;
 		_privacyMode = privacyMode;
 		_isCustomChangeAddress = isCustomChangeAddress;
 		_autocopy = autocopy;
@@ -116,6 +121,8 @@ public class UiConfig : ConfigBase
 			fiatCurrency: UiConstants.DefaultFiatCurrency)
 	{
 	}
+
+	public string FilePath { get; }
 
 	public bool Oobe
 	{
@@ -239,6 +246,14 @@ public class UiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	public void ToFile()
+	{
+		lock (_fileLock)
+		{
+			File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
+		}
+	}
+
+	private string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, UiConfigEncode.UiConfig);
 }
