@@ -140,7 +140,7 @@ public class TorProcessManager(EventBus eventBus)
 
 			if (process.HasExited)
 			{
-				Logger.LogError("Tor process failed to start!");
+				Logger.LogError($"Tor process failed to start! Exit code: {process.ExitCode}.");
 				return false;
 			}
 

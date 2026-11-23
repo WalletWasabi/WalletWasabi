@@ -156,8 +156,13 @@ public record TorSettings
 
 		bool useBridges = Bridges.Length > 0;
 
+		// Intentionally, a non-existing file to prevent Tor from reading a default torrc file that may lead to Tor startup issues.
+		string torrcFilePath = Path.Combine(DataDir, "torrc");
+
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = [
+			$"-f \"{torrcFilePath}\"",
+			$"--ignore-missing-torrc",
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
 			$"--UseBridges {(useBridges ? "1" : "0")}",

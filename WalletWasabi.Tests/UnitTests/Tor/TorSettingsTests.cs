@@ -12,15 +12,17 @@ public class TorSettingsTests
 	[Fact]
 	public void GetCmdArgumentsTest()
 	{
-		string dataDir = Path.Combine("temp", "tempDataDir");
-		string distributionFolder = "tempDistributionDir";
+		var dataDir = Path.Combine("temp", "tempDataDir");
+		var distributionFolder = "tempDistributionDir";
 
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		var settings = new TorSettings(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
-		string arguments = settings.GetCmdArguments();
+		var arguments = settings.GetCmdArguments();
 
-		string expected = string.Join(
+		var expected = string.Join(
 			" ",
+			$"-f \"{Path.Combine(dataDir, "torrc")}\"",
+			$"--ignore-missing-torrc",
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
 			$"--UseBridges 0",

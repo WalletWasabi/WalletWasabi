@@ -27,7 +27,7 @@ public class TorManagerTests
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		var settings = new TorSettings(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		var processManager = new TestProcessManager(new EventBus())
 		{
@@ -38,7 +38,7 @@ public class TorManagerTests
 			InitTorControlAsyncResult = new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer) // (1)
 		};
 
-		await using (TorManager manager = new(settings, processManager))
+		await using (var manager = new TorManager(settings, processManager))
 		{
 			// No exception is expected here.
 			(CancellationToken ct1, TorControlClient? client1) = await manager.StartAsync(TestContext.Current.CancellationToken);
@@ -67,9 +67,9 @@ public class TorManagerTests
 	public async Task TorProcessStartedByDifferentUserAsync(int runningTorOsProcesses)
 	{
 		// Tor settings.
-		string dataDir = Path.Combine("temp", "tempDataDir");
-		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		var dataDir = Path.Combine("temp", "tempDataDir");
+		var distributionFolder = "tempDistributionDir";
+		var settings = new TorSettings(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		var processManager = new TestProcessManager(new EventBus())
 		{
@@ -80,9 +80,9 @@ public class TorManagerTests
 			InitTorControlAsyncException = new TorControlException("Cookie file does not exist.")
 		};
 
-		await using TorManager torManager = new(settings, processManager);
+		await using var torManager = new TorManager(settings, processManager);
 
-		NotSupportedException ex = await Assert.ThrowsAsync<NotSupportedException>(
+		var ex = await Assert.ThrowsAsync<NotSupportedException>(
 			async () => await torManager.StartAsync(TestContext.Current.CancellationToken).ConfigureAwait(false));
 		Assert.Equal(TorManager.TorProcessStartedByDifferentUser, ex.Message);
 	}
