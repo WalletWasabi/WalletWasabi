@@ -37,9 +37,9 @@
       },
       "NBitcoin": {
         "type": "Direct",
-        "requested": "[10.0.21, )",
-        "resolved": "10.0.21",
-        "contentHash": "yR6rrTGQMwp4xvwSia75IiyYXQQCdPLoF/3uz7aegQvho59+CusjDe1g4Qv8MKeWnomZoZDUtIOeBnC8peKHwA==",
+        "requested": "[10.0.23, )",
+        "resolved": "10.0.23",
+        "contentHash": "l6ACsWor078hbo6nl4jyKMRuwp28ice/SH5NgS0GjSOM26YbWQkKRwj8qEO+bPvgQTZrgiiHQp6Ky3v8gRMh7g==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.4"
         }

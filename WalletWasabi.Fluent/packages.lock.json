@@ -566,7 +566,7 @@
           "Microsoft.Data.Sqlite": "[11.0.0, )",
           "Microsoft.Extensions.Http": "[11.0.0, )",
           "Microsoft.Win32.SystemEvents": "[11.0.0, )",
-          "NBitcoin": "[10.0.21, )",
+          "NBitcoin": "[10.0.23, )",
           "NNostr.Client": "[0.0.55, )",
           "System.Linq.Async": "[7.0.1, )",
           "WabiSabi": "[1.3.1, )"
@@ -615,9 +615,9 @@
       },
       "NBitcoin": {
         "type": "CentralTransitive",
-        "requested": "[10.0.21, )",
-        "resolved": "10.0.21",
-        "contentHash": "yR6rrTGQMwp4xvwSia75IiyYXQQCdPLoF/3uz7aegQvho59+CusjDe1g4Qv8MKeWnomZoZDUtIOeBnC8peKHwA==",
+        "requested": "[10.0.23, )",
+        "resolved": "10.0.23",
+        "contentHash": "l6ACsWor078hbo6nl4jyKMRuwp28ice/SH5NgS0GjSOM26YbWQkKRwj8qEO+bPvgQTZrgiiHQp6Ky3v8gRMh7g==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.4"
         }
