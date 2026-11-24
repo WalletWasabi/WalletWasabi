@@ -1,14 +1,7 @@
-using NBitcoin;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
@@ -33,14 +26,17 @@ public class CpfpInfoProvider(MailboxProcessor<CpfpInfoMessage> cpfpUpdater)
 	public void ScheduleRequest(SmartTransaction tx) =>
 		cpfpUpdater.Post(new CpfpInfoMessage.PreFetchInfoForTransaction(tx));
 
-	public Task<Result<CpfpInfo,string>> GetCpfpInfoAsync(SmartTransaction tx, CancellationToken cancellationToken) =>
-		cpfpUpdater.PostAndReplyAsync<Result<CpfpInfo,string>>(chan => new CpfpInfoMessage.GetInfoForTransaction(tx, chan), cancellationToken);
+	public Task<Result<CpfpInfo, string>> GetCpfpInfoAsync(SmartTransaction tx, CancellationToken cancellationToken) =>
+		cpfpUpdater.PostAndReplyAsync<Result<CpfpInfo, string>>(chan => new CpfpInfoMessage.GetInfoForTransaction(tx, chan), cancellationToken);
 }
 
 public static class CpfpInfoUpdater
 {
-	private delegate Task<Result<CpfpInfo,string>> CpfpInfoGetter(SmartTransaction stx);
+	private delegate Task<Result<CpfpInfo, string>> CpfpInfoGetter(SmartTransaction stx);
 
+	/// <summary>
+	/// Dummy implementation for <see cref="Network.RegTest"/>.
+	/// </summary>
 	public static MessageHandler<CpfpInfoMessage, Unit> CreateForRegTest()
 	{
 		return (msg, _, _) =>
@@ -71,11 +67,13 @@ public static class CpfpInfoUpdater
 		return (msg, _, cancellationToken) => ProcessMessagesAsync(msg, httpClientFactory, uri, tasks, cache, eventBus, cancellationToken);
 	}
 
+	/// <param name="uri">Mempool.space API URI to get cpfp information.</param>
+	/// <seealso href="https://mempool.space/docs/api/rest#get-cpfp"/>
 	private static async Task<Unit> ProcessMessagesAsync(CpfpInfoMessage msg, IHttpClientFactory httpClientFactory, Uri uri, List<Task> tasks, Dictionary<uint256, CachedCpfpInfo> cache, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		switch (msg)
 		{
-			case CpfpInfoMessage.UpdateMessage _ :
+			case CpfpInfoMessage.UpdateMessage _:
 				await ProcessFinishedFetchingTasksAsync(tasks, cancellationToken).ConfigureAwait(false);
 				CleanCache(cache);
 				var rescheduledFetchingTasks = RescheduleAll(cache, GetCpfpInfo, cancellationToken);
@@ -136,7 +134,7 @@ public static class CpfpInfoUpdater
 		}
 	}
 
-	private	static async Task ScheduleTaskAsync(SmartTransaction transaction, CpfpInfoGetter cpfpGetter, CancellationToken cancellationToken)
+	private static async Task ScheduleTaskAsync(SmartTransaction transaction, CpfpInfoGetter cpfpGetter, CancellationToken cancellationToken)
 	{
 		if (!transaction.CanBeSpeedUpUsingCpfp())
 		{
@@ -182,6 +180,10 @@ public static class CpfpInfoUpdater
 		}
 	}
 
+	/// <summary>
+	/// Gets CPFP info for the given <paramref name="tx"/> from Mempool.space API.
+	/// </summary>
+	/// <seealso href="https://mempool.space/docs/api/rest#get-cpfp"/>
 	private static async Task<CpfpInfo> GetCpfpInfoAsync(uint256 txid, IHttpClientFactory httpClientFactory, Uri uri, CancellationToken cancellationToken)
 	{
 		using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
