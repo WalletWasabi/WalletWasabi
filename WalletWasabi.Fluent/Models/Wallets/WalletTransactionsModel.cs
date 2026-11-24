@@ -125,7 +125,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		var speedUp = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 		var boostingTransaction = speedUp.BoostingTransaction;
 
-		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
+		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction.Transaction, boostingTransaction.Fee));
 
 		var originalForeignAmounts = targetTransaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
@@ -164,17 +164,16 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return transactionModels;
 	}
 
-	private Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
+	private static Money GetFeeDifference(SmartTransaction transactionToSpeedUp, SmartTransaction boostingTransaction, Money boostingTransactionFee)
 	{
-		var isCpfp = boostingTransaction.Transaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == transactionToSpeedUp.GetHash());
-		var boostingTransactionFee = boostingTransaction.Fee;
+		var isCpfp = boostingTransaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == transactionToSpeedUp.GetHash());
 
 		if (isCpfp)
 		{
 			return boostingTransactionFee;
 		}
 
-		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
+		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum();
 		return boostingTransactionFee - originalFee;
 	}
 
