@@ -287,10 +287,10 @@ public static class TransactionModifierWalletExtensions
 			v => v,
 			e => throw new InvalidOperationException(e));
 
-		var effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+		var originalEffectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 
 		// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
-		if (effectiveFeeRate > bestFeeRate)
+		if (originalEffectiveFeeRate > bestFeeRate)
 		{
 			throw new InvalidOperationException(
 				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} sat/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
@@ -327,7 +327,7 @@ public static class TransactionModifierWalletExtensions
 
 		var newEffectiveFeeRate = new FeeRate((feePaidByAncestorsAndTx + cpfp.Fee.Satoshi) / (ancestorsSizeVBytes + txSizeVBytes + cpfp.Transaction.Transaction.GetVirtualSize()));
 
-		return new SpeedUpTransactionResult(transactionToCpfp, cpfp, effectiveFeeRate, newEffectiveFeeRate);
+		return new SpeedUpTransactionResult(transactionToCpfp, cpfp, originalEffectiveFeeRate, newEffectiveFeeRate);
 	}
 
 	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)

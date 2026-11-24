@@ -98,9 +98,9 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new RecoverWalletViewModel(UiContext, options), navigationMode);
 	}
 
-	public void SpeedUpTransactionDialog(IWalletModel wallet, SpeedUpTransactionResult speedupTransactionResult, bool areWePayingTheFee, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void SpeedUpTransactionDialog(IWalletModel wallet, SpeedUpTransactionResult speedUpTransactionResult, bool areWePayingTheFee, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new SpeedUpTransactionDialogViewModel(UiContext, wallet, speedupTransactionResult, areWePayingTheFee), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new SpeedUpTransactionDialogViewModel(UiContext, wallet, speedUpTransactionResult, areWePayingTheFee), navigationMode);
 	}
 
 	public void NavBarItem(INavBarItem item, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
