@@ -35,7 +35,7 @@ public class KeyChain : IKeyChain
 	{
 		if (psbt.Inputs.Count == 0)
 		{
-			throw new ArgumentException("No inputs to sign.", nameof(psbt));
+			throw new InvalidOperationException("No inputs to sign.");
 		}
 
 		var masterKey = _keyManager.GetMasterExtKey(_password);

@@ -102,7 +102,8 @@ public record SigningState : MultipartyTransactionState
 	public PSBT CreateUnsignedPsbt()
 	{
 		var tx = CreateUnsignedTransaction();
-		var psbt = PSBT.FromTransaction(tx, Parameters.Network);
+		var psbt = PSBT.FromTransaction(tx, Parameters.Network, PSBTVersion.PSBTv2);
+		psbt.Settings.SigningOptions.TaprootSigHash = TaprootSigHash.All;
 
 		for (var i = 0; i < psbt.Inputs.Count; i++)
 		{
