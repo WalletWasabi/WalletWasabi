@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -27,11 +28,17 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 
 		Fee = speedupTransaction.Fee;
 		AreWePayingTheFee = speedupTransaction.AreWePayingTheFee;
+		OriginalFeeRate = speedupTransaction.OriginalFeeRate;
+		NewFeeRate = speedupTransaction.NewFeeRate;
 	}
 
 	public Amount Fee { get; }
 
 	public bool AreWePayingTheFee { get; }
+
+	public FeeRate OriginalFeeRate { get; }
+
+	public FeeRate NewFeeRate { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
