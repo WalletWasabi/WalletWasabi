@@ -151,10 +151,6 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
 	}
 
-	public Task SendAsync(SpeedupTransaction speedupTransaction) => SendAsync(speedupTransaction.BoostingTransaction);
-
-	public Task SendAsync(CancellingTransaction cancellingTransaction) => SendAsync(cancellingTransaction.CancelTransaction);
-
 	public async Task SendAsync(BuildTransactionResult transaction)
 	{
 		await _services.SendTransactionAsync(transaction.Transaction);

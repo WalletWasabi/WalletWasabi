@@ -63,7 +63,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 			var isAuthorized = await AuthorizeForPasswordAsync();
 			if (isAuthorized)
 			{
-				await _wallet.Transactions.SendAsync(speedupTransaction);
+				await _wallet.Transactions.SendAsync(speedupTransaction.BoostingTransaction);
 				var (title, caption) = ("Success", "Your transaction has been successfully accelerated.");
 
 				UiContext.Navigate().To().SendSuccess(speedupTransaction.BoostingTransaction.Transaction, title, caption, NavigationTarget.CompactDialogScreen);
