@@ -122,8 +122,8 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var speedUp = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
-		var boostingTransaction = speedUp.BoostingTransaction;
+		var speedUpResult = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
+		var boostingTransaction = speedUpResult.BoostingTransaction;
 
 		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction.Transaction, boostingTransaction.Fee));
 
@@ -136,7 +136,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
 		var areWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 
-		return new SpeedupTransaction(targetTransaction, boostingTransaction, areWePayingTheFee, fee, speedUp.OriginalFeeRate, speedUp.NewFeeRate);
+		return new SpeedupTransaction(targetTransaction, boostingTransaction, areWePayingTheFee, fee, speedUpResult.OriginalFeeRate, speedUpResult.NewFeeRate);
 	}
 
 	public CancellingTransaction CreateCancellingTransaction(RegularTransactionModel transaction)
@@ -151,10 +151,10 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
 	}
 
-	public async Task SendAsync(BuildTransactionResult transaction)
+	public async Task SendAsync(BuildTransactionResult buildTransactionResult)
 	{
-		await _services.SendTransactionAsync(transaction.Transaction);
-		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
+		await _services.SendTransactionAsync(buildTransactionResult.Transaction);
+		_wallet.UpdateUsedHdPubKeysLabels(buildTransactionResult.HdPubKeysWithNewLabels);
 	}
 
 	private async Task<IEnumerable<TransactionModel>> BuildSummaryAsync(CancellationToken cancellationToken)
