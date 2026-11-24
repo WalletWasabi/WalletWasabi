@@ -2,6 +2,7 @@ using System.Net.Http;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -226,10 +227,26 @@ public static class TransactionModifierWalletExtensions
 		return new SpeedUpTransactionResult(transactionToSpeedUp, rbf, originalFeeRate, new FeeRate(rbf.Fee, rbf.Transaction.Transaction.GetVirtualSize()));
 	}
 
+	/// <summary>
+	/// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
+	/// </summary>
+	/// <remarks>The HTTP request has its own 120-second timeout, so we don't impose an additional timeout here.</remarks>
+	private static async Task<CpfpInfo> GetCpfpInfoAsync(CpfpInfoProvider cpfpInfoProvider, SmartTransaction transactionToSpeedUp, CancellationToken cancellationToken)
+	{
+		var cpfpInfoResult = await cpfpInfoProvider.GetCpfpInfoAsync(transactionToSpeedUp, cancellationToken).ConfigureAwait(false);
+
+		var cpfpInfo = cpfpInfoResult.Match(
+			value => value,
+			error => throw new InvalidOperationException(error));
+
+		return cpfpInfo;
+	}	
+
 	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
-		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
+		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ??
+			throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
 		List<SmartCoin> allowedInputs = new()
 		{
 			ownOutput
@@ -278,14 +295,7 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
-		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
-		// The HTTP request has its own 120-second timeout, so we don't impose an additional timeout here.
-		// The caller can cancel via the cancellationToken parameter if needed.
-		var cpfpInfoResult = await wallet.CpfpInfoProvider.GetCpfpInfoAsync(transactionToCpfp, cancellationToken).ConfigureAwait(false);
-
-		var cpfpInfo = cpfpInfoResult.Match(
-			v => v,
-			e => throw new InvalidOperationException(e));
+		var cpfpInfo = await GetCpfpInfoAsync(wallet.CpfpInfoProvider, transactionToCpfp, cancellationToken).ConfigureAwait(false);
 
 		var originalEffectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 
