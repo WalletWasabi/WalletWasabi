@@ -33,6 +33,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 		NewFeeRate = result.NewFeeRate;
 	}
 
+	/// <summary>Difference between the new transaction fee and the original transaction fee.</summary>
 	public Amount FeeDifference { get; }
 
 	public bool AreWePayingTheFee { get; }
