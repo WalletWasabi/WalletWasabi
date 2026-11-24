@@ -31,6 +31,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.TransactionBuilding;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -97,9 +98,9 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new RecoverWalletViewModel(UiContext, options), navigationMode);
 	}
 
-	public void SpeedUpTransactionDialog(IWalletModel wallet, SpeedupTransaction speedupTransaction, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void SpeedUpTransactionDialog(IWalletModel wallet, SpeedUpTransactionResult speedupTransactionResult, bool areWePayingTheFee, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new SpeedUpTransactionDialogViewModel(UiContext, wallet, speedupTransaction), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new SpeedUpTransactionDialogViewModel(UiContext, wallet, speedupTransactionResult, areWePayingTheFee), navigationMode);
 	}
 
 	public void NavBarItem(INavBarItem item, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
