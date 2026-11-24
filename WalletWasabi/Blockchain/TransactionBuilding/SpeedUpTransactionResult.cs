@@ -1,3 +1,8 @@
+using WalletWasabi.Blockchain.Transactions;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
-public record SpeedUpTransactionResult(BuildTransactionResult BoostingTransaction, FeeRate OriginalFeeRate, FeeRate NewFeeRate);
+/// <summary>
+/// <paramref name="OriginalTransaction"/> was requested to speed up.
+/// </summary>
+public record SpeedUpTransactionResult(SmartTransaction OriginalTransaction, BuildTransactionResult BoostingTransaction, FeeRate OriginalFeeRate, FeeRate NewFeeRate);

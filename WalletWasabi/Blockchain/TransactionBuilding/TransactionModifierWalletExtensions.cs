@@ -234,7 +234,7 @@ public static class TransactionModifierWalletExtensions
 
 		rbf.Transaction.SetSpeedup();
 
-		return new SpeedUpTransactionResult(rbf, originalFeeRate, new FeeRate(rbf.Fee, rbf.Transaction.Transaction.GetVirtualSize()));
+		return new SpeedUpTransactionResult(transactionToSpeedUp, rbf, originalFeeRate, new FeeRate(rbf.Fee, rbf.Transaction.Transaction.GetVirtualSize()));
 	}
 
 	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
@@ -338,7 +338,7 @@ public static class TransactionModifierWalletExtensions
 
 		var newEffectiveFeeRate = new FeeRate((feePaidByAncestorsAndTx + cpfp.Fee.Satoshi) / (ancestorsSizeVBytes + txSizeVBytes + cpfp.Transaction.Transaction.GetVirtualSize()));
 
-		return new SpeedUpTransactionResult(cpfp, effectiveFeeRate, newEffectiveFeeRate);
+		return new SpeedUpTransactionResult(transactionToCpfp, cpfp, effectiveFeeRate, newEffectiveFeeRate);
 	}
 
 	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)
