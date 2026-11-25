@@ -1,3 +1,6 @@
+using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -5,9 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto.Randomness;
@@ -315,14 +315,7 @@ public partial class Arena : PeriodicRunner
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
 					Logger.LogWarning(FormatLog($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.", round));
-					if (round.FastSigningPhase)
-					{
-						await FailFastTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
-					}
+					await FailTransactionSigningPhaseAsync(round, cancellationToken);
 				}
 			}
 			catch (RPCException ex)
@@ -359,61 +352,37 @@ public partial class Arena : PeriodicRunner
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
 		var state = round.Assert<SigningState>();
-
 		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
-
-		var alicesWhoDidNotSign = round.Alices
+		var offenderAlices = round.Alices
 			.Where(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint))
 			.ToHashSet();
 
-		if (ReasonableOffendersCount(alicesWhoDidNotSign.Count, round.Parameters.MinInputCountByRound))
+		if (ReasonableOffendersCount(offenderAlices.Count, round.Parameters.MinInputCountByRound))
 		{
-			foreach (var alice in alicesWhoDidNotSign)
+			foreach (var alice in offenderAlices)
 			{
-				_prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				// Intentionally lighter penalty for those who also missed ready-to-sign (e.g. hardware wallets).
+				if (round.FastSigningPhase && !alice.ReadyToSign)
+				{
+					_prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				}
+				else
+				{
+					_prison.FailedToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
+				}
 			}
 		}
 		else
 		{
-			Logger.LogWarning($"{round.Id}: Tried to ban {alicesWhoDidNotSign.Count} inputs for FailedToConfirm - ban was skipped.");
-			foreach (var alice in alicesWhoDidNotSign)
+			Logger.LogWarning(FormatLog($"Tried to ban {offenderAlices.Count} inputs - ban was skipped.", round));
+			foreach (var alice in offenderAlices)
 			{
 				_prison.CoordinatorStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
 			}
 		}
 
-		var cnt = round.Alices.RemoveAll(alice => unsignedOutpoints.Contains(alice.Coin.Outpoint));
-
-		Logger.LogInfo(FormatLog($"Removed {cnt} alices, because they didn't sign. Remaining: {round.InputCount}", round));
-
-		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
-	}
-
-	private async Task FailFastTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
-	{
-		var alicesToRemove = round.Alices.Where(alice => !alice.ReadyToSign).ToHashSet();
-
-		if (ReasonableOffendersCount(alicesToRemove.Count, round.Parameters.MinInputCountByRound))
-		{
-			foreach (var alice in alicesToRemove)
-			{
-				// Intentionally, do not ban Alices who have not signed, as clients using hardware wallets may not be able to sign in time.
-				_prison.FailedToSignalReadyToSign(alice.Coin.Outpoint, alice.Coin.Amount, round.Id);
-			}
-		}
-		else
-		{
-			Logger.LogWarning(FormatLog($"Tried to ban {alicesToRemove.Count} inputs for FailedToConfirm - ban was skipped.", round));
-			foreach (var alice in alicesToRemove)
-			{
-				_prison.CoordinatorStabilitySafetyBan(alice.Coin.Outpoint, round.Id);
-			}
-		}
-
-		var removedAlices = round.Alices.RemoveAll(alice => alicesToRemove.Contains(alice));
-
-		Logger.LogInfo(FormatLog($"Removed {removedAlices} alices, because they weren't ready. Remaining: {round.InputCount}", round));
-
+		var removed = round.Alices.RemoveAll(offenderAlices.Contains);
+		Logger.LogInfo(FormatLog($"Removed {removed} alices, because they didn't sign. Remaining: {round.InputCount}", round));
 		await EndRoundAndTryCreateBlameRoundAsync(round, cancellationToken).ConfigureAwait(false);
 	}
 
