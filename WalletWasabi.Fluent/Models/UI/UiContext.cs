@@ -21,7 +21,6 @@ public class UiContext
 		UiClipboard clipboard,
 		WalletRepository walletRepository,
 		CoinjoinModel coinJoinModel,
-		HardwareWalletInterface hardwareWalletInterface,
 		FileSystemModel fileSystem,
 		ClientConfigModel config,
 		ApplicationSettings applicationSettings,
@@ -39,7 +38,6 @@ public class UiContext
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 		WalletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
 		CoinjoinModel = coinJoinModel ?? throw new ArgumentNullException(nameof(coinJoinModel));
-		HardwareWalletInterface = hardwareWalletInterface ?? throw new ArgumentNullException(nameof(hardwareWalletInterface));
 		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
@@ -58,7 +56,6 @@ public class UiContext
 	public WalletRepository WalletRepository { get; }
 	public CoinjoinModel CoinjoinModel { get; }
 	public QrCodeReader QrCodeReader { get; }
-	public HardwareWalletInterface HardwareWalletInterface { get; }
 	public FileSystemModel FileSystem { get; }
 	public ClientConfigModel Config { get; }
 	public ApplicationSettings ApplicationSettings { get; }

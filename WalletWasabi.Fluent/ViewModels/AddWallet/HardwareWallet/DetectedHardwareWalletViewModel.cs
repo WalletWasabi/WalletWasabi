@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Threading;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -13,9 +14,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
+	[AutoNotify] private bool _enableCoinjoin;
+	[AutoNotify] private bool _isBridgeUnavailable;
+	[AutoNotify] private string? _addressToConfirm;
+
 	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
-		var (walletName, device) = options;
+		var (walletName, device, _, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);
@@ -26,13 +31,21 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		TypeName = device.Model.FriendlyName();
 
+		SupportsCoinjoin = HardwareWalletService.CanSignCoinJoins(device);
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with
+		{
+			EnableCoinjoin = EnableCoinjoin,
+			AddressToConfirm = address => Dispatcher.UIThread.Post(() => AddressToConfirm = address.ToString())
+		}));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
+
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.OpenBrowserAsync(HardwareWalletService.BridgeDownloadUrl));
 
 		EnableAutoBusyOn(NextCommand);
 	}
@@ -45,7 +58,11 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 	public string TypeName { get; }
 
+	public bool SupportsCoinjoin { get; }
+
 	public ICommand NoCommand { get; }
+
+	public ICommand OpenBridgeDownloadCommand { get; }
 
 	private async Task OnNextAsync(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
@@ -81,5 +98,21 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			CancelCts?.Dispose();
 			CancelCts = null;
 		}));
+
+		// Warn before the box is checked rather than with an error after confirming.
+		if (SupportsCoinjoin)
+		{
+			Task.Run(async () =>
+			{
+				try
+				{
+					IsBridgeUnavailable = !await UiContext.Services.HardwareWallets.IsCoinJoinTransportAvailableAsync(CancellationToken.None);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+			});
+		}
 	}
 }

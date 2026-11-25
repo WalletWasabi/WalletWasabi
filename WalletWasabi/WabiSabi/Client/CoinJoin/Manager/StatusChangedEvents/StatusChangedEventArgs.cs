@@ -28,7 +28,11 @@ public enum CoinjoinError
 	MiningFeeRateTooHigh,
 	MinInputCountTooLow,
 	CoordinatorLiedAboutInputs,
-	NotEnoughConfirmedUnprivateBalance
+	NotEnoughConfirmedUnprivateBalance,
+	AwaitingDeviceConfirmation,
+	DeviceTransportNotFound,
+	DeviceNotFound,
+	DeviceAuthorizationFailed
 }
 
 public class StatusChangedEventArgs : EventArgs

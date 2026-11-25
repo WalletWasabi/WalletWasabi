@@ -109,6 +109,8 @@ public class Global
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(_p2pConnectionManager, fileSystemBlockRepository);
 
+		HardwareWallets = new HardwareWalletService(Config.Network, () => WalletCoinJoiningOnDevice());
+
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
 			FilterManager,
@@ -118,7 +120,8 @@ public class Global
 			Config.ServiceConfiguration,
 			blockProvider,
 			EventBus,
-			cpfpProvider);
+			cpfpProvider,
+			HardwareWallets);
 
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
@@ -157,6 +160,13 @@ public class Global
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
+	public HardwareWalletService HardwareWallets { get; }
+
+	/// <summary>The wallet whose coinjoin is using its device right now, if any.</summary>
+	private string? WalletCoinJoiningOnDevice() =>
+		HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager
+			? WalletManager.GetWallets().FirstOrDefault(w => w.KeyManager.HasCoinJoinAccount && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle)?.WalletName
+			: null;
 	public TransactionBroadcaster TransactionBroadcaster { get; }
 	public HostedServices HostedServices { get; }
 	public Network Network => Config.Network;
@@ -859,6 +869,9 @@ public class Global
 
 					Logger.LogInfo("TorManager is stopped.");
 				}
+
+				// Hands back any device transport we own, so a bridge we started does not outlive the process.
+				HardwareWallets.Dispose();
 
 				_disposables.Dispose();
 				await _asyncDisposables.DisposeAsync().ConfigureAwait(false);
