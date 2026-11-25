@@ -3,7 +3,6 @@ using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -21,12 +20,15 @@ public class KeyChainTests
 		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
 		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
 
-		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
-
-		Assert.Throws<ArgumentException>(() => keyChain.Sign(new TransactionWithPrecomputedData(transaction, transaction.PrecomputeTransactionData()), coin));
-
+		var transaction = Transaction.Create(Network.Main);
 		transaction.Inputs.Add(coin.Outpoint);
-		var signedTx = keyChain.Sign(new TransactionWithPrecomputedData(transaction, transaction.PrecomputeTransactionData([coin])), coin);
+		var psbt = PSBT.FromTransaction(transaction, Network.Main);
+		psbt.Inputs[0].WitnessUtxo = coin.TxOut;
+
+		keyChain.Sign(psbt);
+		psbt.Finalize();
+
+		var signedTx = psbt.ExtractTransaction();
 		Assert.True(signedTx.HasWitness);
 	}
 }

@@ -109,16 +109,16 @@ public class ArenaClientTests
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
 		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
 
-		// No inputs in the coinjoin.
-		await Assert.ThrowsAsync<ArgumentException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, finalizedEmptyState.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
+		// No inputs in the coinjoin - PSBT.FromTransaction throws InvalidOperationException for empty transactions.
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, finalizedEmptyState.CreateUnsignedPsbt(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).Finalize();
 		round.CoinjoinState = oneInput;
 
 		// Trying to sign coins those are not in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, oneInput.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
+				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, oneInput.CreateUnsignedPsbt(), CancellationToken.None));
 
 		var twoInputs = emptyState
 			.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData)
@@ -127,15 +127,15 @@ public class ArenaClientTests
 		round.CoinjoinState = twoInputs;
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
-		var unsigned = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+		var unsignedPsbt = round.Assert<SigningState>().CreateUnsignedPsbt();
 
-		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, unsignedPsbt, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice1.Coin.Outpoint));
 		Assert.False(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.False(round.Assert<SigningState>().IsFullySigned);
 
-		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, unsigned, CancellationToken.None);
+		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, unsignedPsbt, CancellationToken.None);
 		Assert.True(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
 		Assert.True(round.Assert<SigningState>().IsFullySigned);

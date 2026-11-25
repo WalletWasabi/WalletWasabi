@@ -188,9 +188,9 @@ public class AliceClient
 		Logger.LogInfo(FormatLog("Inputs removed.", this));
 	}
 
-	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
+	public async Task SignTransactionAsync(PSBT unsignedPsbt, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
-		await _arenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+		await _arenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, unsignedPsbt, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo(FormatLog("Posted a signature.", this));
 	}

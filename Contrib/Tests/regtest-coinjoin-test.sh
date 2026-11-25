@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -219,6 +219,7 @@ create_and_fund_wallet() {
   local request="{\"jsonrpc\":\"2.0\",\"id\":\"2\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\"]}"
   wasabi_rpc_call "$request"
 
+  sleep 25
   local i
   for (( i = 0; i < 4; i++ )); do
     echo -e "${YELLOW}Generating address #$i for $wallet_name in Wasabi client...${NC}"

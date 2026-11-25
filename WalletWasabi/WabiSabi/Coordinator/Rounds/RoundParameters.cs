@@ -102,7 +102,4 @@ public record RoundParameters
 			wabiSabiConfig.CoordinatorIdentifier,
 			wabiSabiConfig.DelayTransactionSigning);
 	}
-
-	public Transaction CreateTransaction()
-		=> Transaction.Create(Network);
 }

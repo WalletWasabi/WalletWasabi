@@ -641,7 +641,7 @@ public class CoinJoinClient
 	/// </summary>
 	private async Task<Result<NotAllAlicesSigned>> SignTransactionAsync(
 		ImmutableArray<AliceClient> aliceClients,
-		TransactionWithPrecomputedData unsignedCoinJoinTransaction,
+		PSBT unsignedPsbt,
 		DateTimeOffset signingStartTime,
 		DateTimeOffset signingEndTime,
 		CancellationToken cancellationToken)
@@ -662,7 +662,7 @@ public class CoinJoinClient
 				}
 				try
 				{
-					await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, _keyChain, cancellationToken).ConfigureAwait(false);
+					await aliceClient.SignTransactionAsync(unsignedPsbt, _keyChain, cancellationToken).ConfigureAwait(false);
 					return true;
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WitnessAlreadyProvided)
@@ -907,7 +907,7 @@ public class CoinJoinClient
 		var alicesInTransaction = registeredAliceClients
 			.Where(alice => inputsInRound.Contains(alice.SmartCoin.Outpoint))
 			.ToImmutableArray();
-		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
+		var unsignedPsbt = signingState.CreateUnsignedPsbt();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is
 		// lying (it lied us before when it responded with 200 OK to the OutputRegistration requests or it is lying us
@@ -928,7 +928,7 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog($"Transaction has {actualInputCount} inputs but minimum required is {_coinJoinConfiguration.AbsoluteMinInputCount}.", roundState));
 		}
 
-		bool allMyOutputsArePresent = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
+		bool allMyOutputsArePresent = SanityCheck(outputTxOuts, unsignedPsbt.GetGlobalTransaction().Outputs);
 
 		if (!allMyOutputsArePresent)
 		{
@@ -963,16 +963,17 @@ public class CoinJoinClient
 		// Once our last witness reaches the coordinator it can broadcast the transaction, whether or not
 		// we get to know it: the response can be lost, the round can be cancelled, the app can be closed.
 		// So the payments have to leave the in-progress state.
+		var unsignedTx = unsignedPsbt.GetGlobalTransaction();
 		if (mustSignAllInputs)
 		{
-			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash(), unsignedCoinJoin.Transaction.Inputs.Select(i => i.PrevOut).ToImmutableArray()));
+			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedTx.GetHash(), unsignedTx.Inputs.Select(i => i.PrevOut).ToImmutableArray()));
 		}
 
-		var signingResult = await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
+		var signingResult = await SignTransactionAsync(alicesToSign, unsignedPsbt, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		var alicesThatSigned = signingResult.Match(_ => alicesToSign, failure => failure.AliceClientsThatSigned);
 		Logger.LogInfo(FormatLog($"{alicesThatSigned.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
 
-		return (unsignedCoinJoin.Transaction, alicesThatSigned);
+		return (unsignedTx, alicesThatSigned);
 	}
 
 	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)

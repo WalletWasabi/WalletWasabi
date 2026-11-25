@@ -67,6 +67,7 @@ public record SigningState : MultipartyTransactionState
 
 		return this with { UnpublishedWitnesses = UnpublishedWitnesses.Add(index, witness) };
 	}
+
 	public SigningState PublishWitnesses()
 	{
 		return this with
@@ -78,19 +79,10 @@ public record SigningState : MultipartyTransactionState
 
 	public Transaction CreateUnsignedTransaction()
 	{
-		var tx = Parameters.CreateTransaction();
+		var tx = Transaction.Create(Parameters.Network);
 
-		foreach (var coin in SortedInputs)
-		{
-			// implied:
-			// nSequence = FINAL
-			tx.Inputs.Add(coin.Outpoint);
-		}
-
-		foreach (var txout in SortedOutputs)
-		{
-			tx.Outputs.Add(txout);
-		}
+		tx.Inputs.AddRange(SortedInputs.Select(x => new TxIn(x.Outpoint)));
+		tx.Outputs.AddRange(SortedOutputs);
 
 		return tx;
 	}
@@ -107,14 +99,17 @@ public record SigningState : MultipartyTransactionState
 		return tx;
 	}
 
-	public TransactionWithPrecomputedData CreateUnsignedTransactionWithPrecomputedData()
+	public PSBT CreateUnsignedPsbt()
 	{
 		var tx = CreateUnsignedTransaction();
-		var precomputeTransactionData = tx.PrecomputeTransactionData(Inputs.ToArray());
-		return new TransactionWithPrecomputedData(tx, precomputeTransactionData);
+		var psbt = PSBT.FromTransaction(tx, Parameters.Network, PSBTVersion.PSBTv2);
+		psbt.Settings.SigningOptions.TaprootSigHash = TaprootSigHash.All;
+
+		for (var i = 0; i < psbt.Inputs.Count; i++)
+		{
+			psbt.Inputs[i].WitnessUtxo = SortedInputs[i].TxOut;
+		}
+
+		return psbt;
 	}
 }
-
-public record TransactionWithPrecomputedData(
-	Transaction Transaction,
-	PrecomputedTransactionData PrecomputedTransactionData);

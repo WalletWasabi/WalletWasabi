@@ -186,18 +186,20 @@ public class ArenaClient
 	public async Task SignTransactionAsync(
 		uint256 roundId,
 		Coin coin,
-		IKeyChain keyChain, // unused now
-		TransactionWithPrecomputedData unsignedCoinJoin,
+		IKeyChain keyChain,
+		PSBT unsignedPsbt,
 		CancellationToken cancellationToken)
 	{
-		var signedCoinJoin = keyChain.Sign(unsignedCoinJoin, coin);
-		var txInput = signedCoinJoin.Inputs.AsIndexedInputs().First(input => input.PrevOut == coin.Outpoint);
-		if (!txInput.VerifyScript(coin, ScriptVerify.Standard, unsignedCoinJoin.PrecomputedTransactionData, out var error))
-		{
-			throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
-		}
+		var psbt = keyChain.Sign(unsignedPsbt.Clone());
+		var psbtInput = psbt.Inputs.FindIndexedInput(coin.Outpoint)
+		                ?? throw new InvalidOperationException("Missing input.");
 
-		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+		psbtInput.FinalizeInput();
+
+		var witScript = psbtInput.FinalScriptWitness
+			?? throw new InvalidOperationException("Witness is missing after signing.");
+
+		await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, psbtInput.Index, witScript), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
