@@ -171,7 +171,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 					var coin = pocket.Coins.First();
 					var coinModel = availableCoins.GetCoinModel(coin);
 
-					return (CoinListItem)new CoinViewModel(UiContext, pocket.Labels, coinModel, _ignorePrivacyMode, _allowCoinjoiningCoinSelection);
+					return (CoinListItem)new CoinViewModel(UiContext, pocket.Labels, coinModel, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
 				}
 
 				return new PocketViewModel(UiContext, pocket, availableCoins, _allowCoinjoiningCoinSelection, _ignorePrivacyMode);
