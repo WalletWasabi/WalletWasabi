@@ -1,3 +1,7 @@
+using NBitcoin;
+using WalletWasabi.Crypto;
+using WalletWasabi.Extensions;
+
 namespace WalletWasabi.WabiSabi.Coordinator.Models;
 
 public class Alice

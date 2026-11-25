@@ -307,22 +307,12 @@ public static class WabiSabiFactory
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
-		var (keyChain, coins) = CreateCoinKeyPairs(2, keyManager);
-		return (keyChain, coins[0], coins[1]);
-	}
-
-	public static (IKeyChain, SmartCoin[]) CreateCoinKeyPairs(int number, KeyManager? keyManager = null)
-	{
 		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
 		var keyChain = new KeyChain(km, "");
 
-		var result = new SmartCoin[number];
-		for (int i = 0; i < result.Length; i++)
-		{
-			result[i] = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(i + 1));
-		}
-
-		return (keyChain, result);
+		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
+		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
+		return (keyChain, smartCoin1, smartCoin2);
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(

@@ -1,3 +1,5 @@
+using WalletWasabi.Extensions;
+
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public enum RoundDisruptionMethod
@@ -49,9 +51,9 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 						yield return disruptedRoundId.ToString();
 					}
 					break;
-				case CoordinatorStabilitySafety coordinatorStabilitySafety:
+				case CoordinatorStabilitySafety backendStabilitySafety:
 					yield return nameof(CoordinatorStabilitySafety);
-					yield return coordinatorStabilitySafety.RoundId.ToString();
+					yield return backendStabilitySafety.RoundId.ToString();
 					break;
 				case FailedToVerify fv:
 					yield return nameof(FailedToVerify);
