@@ -78,7 +78,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 
 		// If this tx had been CPFPd, then the way to speed it up is to speed up its child.
-		if (transactionToSpeedUp.TryGetLargestCPFP(wallet.KeyManager, out var largestCpfp))
+		if (transactionToSpeedUp.TryGetLargestCPFP(keyManager, out var largestCpfp))
 		{
 			transactionToSpeedUp = largestCpfp;
 		}
@@ -87,7 +87,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			try
 			{
-				return await wallet.RbfTransactionAsync(transactionToSpeedUp, preferredFeeRate, cancellationToken).ConfigureAwait(false);
+				return await RbfTransactionAsync(wallet, transactionToSpeedUp, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception rbfEx)
 			{
@@ -112,7 +112,7 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	private static async Task<SpeedUpTransactionResult> RbfTransactionAsync(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	private static async Task<SpeedUpTransactionResult> RbfTransactionAsync(Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -276,7 +276,7 @@ public static class TransactionModifierWalletExtensions
 
 		try
 		{
-			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
+			return await CpfpTransactionAsync(wallet, transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not HttpRequestException)
 		{
@@ -294,14 +294,14 @@ public static class TransactionModifierWalletExtensions
 
 				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, RandomnessProviders.Secure)!);
 
-				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
+				return await CpfpTransactionAsync(wallet, transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}
 
 			throw;
 		}
 	}
 
-	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	private static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		if (transactionToCpfp.Confirmed)
 		{
