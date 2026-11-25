@@ -229,9 +229,18 @@ public class TransactionFactory
 		else
 		{
 			IEnumerable<Key> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
-			builder = builder.AddKeys(signingKeys.ToArray());
+			var signingKeysArray = signingKeys.ToArray();
+			builder.AddKeys(signingKeysArray);
 
-			psbt = builder.SolveSilentPayment(psbt);
+			// Resolve silent payment outputs using BIP-375 PSBT info
+			// this is temporary, the signing device are responsible fo resolving the real payment output.
+			if (psbt.HasSilentPaymentOutputs())
+			{
+				psbt = psbt.ResolveSilentPaymentOutputs(spk => signingKeysArray.FirstOrDefault(k =>
+					k.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk ||
+					k.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk));
+			}
+
 			builder.SignPSBT(psbt);
 
 			psbt.Finalize();
@@ -291,38 +300,47 @@ public class TransactionFactory
 
 public class TransactionBuilderWithSilentPaymentSupport
 {
-	private readonly Network _network;
 	private readonly TransactionBuilder _builder;
-	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
+	private readonly List<SilentPaymentAddress> _silentPaymentOutputs = [];
 
 	public TransactionBuilderWithSilentPaymentSupport(Network network)
 	{
-		_network = network;
 		_builder = network.CreateTransactionBuilder();
 		_builder.SetVersion(2);
 		_builder.StandardTransactionPolicy.MinRelayTxFee = Constants.MinRelayFeeRate;
 	}
-	private Key[]? _keys;
 
 	public Func<OutPoint, ICoin>? CoinFinder
 	{
 		set => _builder.CoinFinder = value;
 	}
 
-	public void SetCoinSelector(ICoinSelector coinSelector)
-	{
+	public void SetCoinSelector(ICoinSelector coinSelector) =>
 		_builder.SetCoinSelector(coinSelector);
-	}
 
-	public void AddCoins(IEnumerable<Coin> coins)
-	{
+	public void AddCoins(IEnumerable<Coin> coins) =>
 		_builder.AddCoins(coins);
-	}
 
-	public void SetLockTime(LockTime lockTime)
-	{
+	public void SetLockTime(LockTime lockTime) =>
 		_builder.SetLockTime(lockTime);
-	}
+
+	public void SubtractFees() =>
+		_builder.SubtractFees();
+
+	public void SendEstimatedFees(FeeRate feeRate) =>
+		_builder.SendEstimatedFees(feeRate);
+
+	public void AddKeys(Key[] keys) =>
+		_builder.AddKeys(keys);
+
+	public void SignPSBT(PSBT psbt) =>
+		_builder.SignPSBT(psbt);
+
+	public TransactionPolicyError[] Check(Transaction tx) =>
+		_builder.Check(tx);
+
+	public int EstimateSize(Transaction tx, bool virtualSize) =>
+		_builder.EstimateSize(tx, virtualSize);
 
 	public void Send(Destination destination, Money amount)
 	{
@@ -333,17 +351,10 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				{
-					_builder.Send(s.FakeScriptPubKey, amount);
-					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-					break;
-				}
+				_builder.Send(Destination.SilentPaymentPlaceholderScript, amount);
+				_silentPaymentOutputs.Add(s.Address);
+				break;
 		}
-	}
-
-	public void SubtractFees()
-	{
-		_builder.SubtractFees();
 	}
 
 	public void SetChange(Destination destination)
@@ -355,11 +366,9 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				{
-					_builder.SetChange(s.FakeScriptPubKey);
-					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-					break;
-				}
+				_builder.SetChange(Destination.SilentPaymentPlaceholderScript);
+				_silentPaymentOutputs.Add(s.Address);
+				break;
 		}
 	}
 
@@ -372,100 +381,30 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				{
-					_builder.SendAllRemaining(s.FakeScriptPubKey);
-					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-					break;
-				}
+				_builder.SendAllRemaining(Destination.SilentPaymentPlaceholderScript);
+				_silentPaymentOutputs.Add(s.Address);
+				break;
 		}
 	}
-
-	public void SendEstimatedFees(FeeRate feeRate)
-	{
-		_builder.SendEstimatedFees(feeRate);
-	}
-
 
 	public PSBT BuildPSBT(bool sign)
 	{
-		return _builder.BuildPSBT(sign);
-	}
+		var psbt = _builder.BuildPSBT(sign, PSBTVersion.PSBTv2);
 
-	public int EstimateSize(Transaction tx, bool virtualSize)
-	{
-		return _builder.EstimateSize(tx, virtualSize);
-	}
-
-	public TransactionBuilderWithSilentPaymentSupport AddKeys(Key[] keys)
-	{
-		_keys = keys;
-		_builder.AddKeys(keys);
-		return this;
-	}
-
-	public void SignPSBT(PSBT psbt)
-	{
-		_builder.SignPSBT(psbt);
-	}
-
-	public TransactionPolicyError[] Check(Transaction tx)
-	{
-		return _builder.Check(tx);
-	}
-
-	public PSBT SolveSilentPayment(PSBT psbt)
-	{
-		if (_silentPayments.Count == 0)
+		var spIndex = 0;
+		foreach (var output in psbt.Outputs)
 		{
-			return psbt;
-		}
-
-		var keys = _keys ?? [];
-
-		Key GetKeyForScriptPubKey(Script spk)
-		{
-			foreach (var key in keys)
+			if (output.ScriptPubKey == Destination.SilentPaymentPlaceholderScript)
 			{
-				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk)
+				if (spIndex >= _silentPaymentOutputs.Count)
 				{
-					return key.Tweak();
+					throw new InvalidOperationException("Mismatch between placeholder outputs and tracked silent payment addresses.");
 				}
-				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
-				{
-					return key;
-				}
-			}
-
-			throw new InvalidOperationException("Key not found for script pub key");
-		}
-
-		var spentCoins = psbt.Inputs
-			.Select(x => x.GetCoin())
-			.DropNulls()
-			.Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey))
-			.ToArray();
-		var paymentAddresses = _silentPayments.Select(x => x.Value);
-		var scriptPubKeys = SilentPayment
-			.GetPubKeys(paymentAddresses, spentCoins)
-			.Select(x => (SilentPaymentAddress: x.Key, SilentPaymentPubKey: x.Value.First()))
-			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.SilentPaymentPubKey.ToBytes())))
-			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
-
-		var tx = psbt.GetGlobalTransaction();
-		foreach (var output in tx.Outputs)
-		{
-			if (_silentPayments.TryGetValue(output.ScriptPubKey, out var silentPaymentAddress))
-			{
-				output.ScriptPubKey = scriptPubKeys[silentPaymentAddress];
+				output.SetSilentPaymentInfo(_silentPaymentOutputs[spIndex]);
+				spIndex++;
 			}
 		}
 
-		var newPsbt = tx.CreatePSBT(_network);
-
-		foreach (var (newInput, oldInput) in newPsbt.Inputs.Zip(psbt.Inputs))
-		{
-			newInput.UpdateFrom(oldInput);
-		}
-		return newPsbt;
+		return psbt;
 	}
 }

@@ -1,3 +1,5 @@
+using WalletWasabi.Wallets.SilentPayment;
+
 namespace WalletWasabi.WabiSabi.Client;
 
 public class KeyChain : IKeyChain
@@ -28,7 +30,7 @@ public class KeyChain : IKeyChain
 		Key masterKey = GetMasterKey();
 		BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), destination.ScriptPubKey);
 
-		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
+		return Extensions.NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
 	}
 
 	public PSBT Sign(PSBT psbt)
@@ -39,6 +41,21 @@ public class KeyChain : IKeyChain
 		}
 
 		var masterKey = _keyManager.GetMasterExtKey(_password);
+
+		// Resolve silent payment outputs if present (BIP-375)
+		if (psbt.HasSilentPaymentOutputs())
+		{
+			psbt = psbt.ResolveSilentPaymentOutputs(scriptPubKey =>
+			{
+				if (_keyManager.TryGetKeyForScriptPubKey(scriptPubKey, out var hdPubKey))
+				{
+					return masterKey.Derive(hdPubKey.FullKeyPath).PrivateKey;
+				}
+				return null;
+			});
+		}
+
+		// Sign inputs
 		foreach (var input in psbt.Inputs)
 		{
 			if (input.GetTxOut() is { } utxo && _keyManager.TryGetKeyForScriptPubKey(utxo.ScriptPubKey, out var hdPubKey))
