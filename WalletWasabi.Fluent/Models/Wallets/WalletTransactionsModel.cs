@@ -109,7 +109,9 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return estimate;
 	}
 
-	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(RegularTransactionModel transaction, CancellationToken cancellationToken)
+	public async Task<(SpeedUpTransactionResult Result, bool AreWePayingTheFee)> CreateSpeedUpTransactionAsync(
+		RegularTransactionModel transaction,
+		CancellationToken cancellationToken)
 	{
 		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -122,10 +124,10 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		{
 			targetTransaction = largestCpfp;
 		}
-		var boostingTransaction = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 
-		var fee = _walletModel.AmountProvider.Create(GetFeeDifference(targetTransaction, boostingTransaction));
+		var speedUpResult = await _wallet.SpeedUpTransactionAsync(targetTransaction, null, cancellationToken);
 
+		var boostingTransaction = speedUpResult.BoostingTransaction;
 		var originalForeignAmounts = targetTransaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 		var boostedForeignAmounts = boostingTransaction.Transaction.ForeignOutputs.Select(x => x.TxOut.Value).OrderBy(x => x).ToArray();
 
@@ -135,7 +137,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		// If the foreign outputs are unchanged or we have an output, then we are paying the fee.
 		var areWePayingTheFee = areForeignAmountsUnchanged || boostingTransaction.Transaction.GetWalletOutputs(_wallet.KeyManager).Any();
 
-		return new SpeedupTransaction(targetTransaction, boostingTransaction, areWePayingTheFee, fee);
+		return (speedUpResult, areWePayingTheFee);
 	}
 
 	public CancellingTransaction CreateCancellingTransaction(RegularTransactionModel transaction)
@@ -150,14 +152,10 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return new CancellingTransaction(transaction, cancellingTransaction, _walletModel.AmountProvider.Create(cancellingTransaction.Fee));
 	}
 
-	public Task SendAsync(SpeedupTransaction speedupTransaction) => SendAsync(speedupTransaction.BoostingTransaction);
-
-	public Task SendAsync(CancellingTransaction cancellingTransaction) => SendAsync(cancellingTransaction.CancelTransaction);
-
-	public async Task SendAsync(BuildTransactionResult transaction)
+	public async Task SendAsync(BuildTransactionResult buildTransactionResult)
 	{
-		await _services.SendTransactionAsync(transaction.Transaction);
-		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
+		await _services.SendTransactionAsync(buildTransactionResult.Transaction);
+		_wallet.UpdateUsedHdPubKeysLabels(buildTransactionResult.HdPubKeysWithNewLabels);
 	}
 
 	private async Task<IEnumerable<TransactionModel>> BuildSummaryAsync(CancellationToken cancellationToken)
@@ -165,20 +163,6 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		var orderedRawHistoryList = await _wallet.BuildHistorySummaryAsync(sortForUi: true, cancellationToken: cancellationToken);
 		var transactionModels = await _treeBuilder.BuildAsync(orderedRawHistoryList, cancellationToken);
 		return transactionModels;
-	}
-
-	private Money GetFeeDifference(SmartTransaction transactionToSpeedUp, BuildTransactionResult boostingTransaction)
-	{
-		var isCpfp = boostingTransaction.Transaction.Transaction.Inputs.Any(x => x.PrevOut.Hash == transactionToSpeedUp.GetHash());
-		var boostingTransactionFee = boostingTransaction.Fee;
-
-		if (isCpfp)
-		{
-			return boostingTransactionFee;
-		}
-
-		var originalFee = transactionToSpeedUp.WalletInputs.Sum(x => x.Amount) - transactionToSpeedUp.OutputValues.Sum(x => x);
-		return boostingTransactionFee - originalFee;
 	}
 
 	public IEnumerable<BitcoinAddress> GetDestinationAddresses(uint256 id)

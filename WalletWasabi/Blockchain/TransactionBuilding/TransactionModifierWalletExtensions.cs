@@ -1,18 +1,8 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
 
@@ -79,7 +69,7 @@ public static class TransactionModifierWalletExtensions
 		return cancelTransaction;
 	}
 
-	public static async Task<BuildTransactionResult> SpeedUpTransactionAsync(
+	public static async Task<SpeedUpTransactionResult> SpeedUpTransactionAsync(
 		this Wallet wallet,
 		SmartTransaction transactionToSpeedUp,
 		FeeRate? preferredFeeRate,
@@ -88,7 +78,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 
 		// If this tx had been CPFPd, then the way to speed it up is to speed up its child.
-		if (transactionToSpeedUp.TryGetLargestCPFP(wallet.KeyManager, out var largestCpfp))
+		if (transactionToSpeedUp.TryGetLargestCPFP(keyManager, out var largestCpfp))
 		{
 			transactionToSpeedUp = largestCpfp;
 		}
@@ -97,7 +87,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			try
 			{
-				return wallet.RbfTransaction(transactionToSpeedUp, preferredFeeRate);
+				return await RbfTransactionAsync(wallet, transactionToSpeedUp, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception rbfEx)
 			{
@@ -122,7 +112,7 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null)
+	private static async Task<SpeedUpTransactionResult> RbfTransactionAsync(Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -214,13 +204,25 @@ public static class TransactionModifierWalletExtensions
 			rbf.Transaction.SetCancellation();
 		}
 
+		FeeRate originalEffectiveFeeRate;
+		FeeRate newEffectiveFeeRate;
+
 		if (transactionToSpeedUp.IsCPFP)
 		{
 			// If we're RBF-ing a CPFP which has a parent with multiple own outputs and only spends one of them, then the maxFee could be higher.
 			AssertMaxCpfpFee(transactionToSpeedUp, rbf, keyManager);
+
+			// Compute correctly new effective fee rate.
+			var cpfpInfo = await GetCpfpInfoAsync(wallet.CpfpInfoProvider, transactionToSpeedUp, cancellationToken).ConfigureAwait(false);
+			(_, var ancestorsVSize, var ancestorsFee, originalEffectiveFeeRate) = DeconstructCpfpInfo(cpfpInfo);
+
+			newEffectiveFeeRate = new FeeRate((ancestorsFee + rbf.Fee.Satoshi) / (ancestorsVSize + rbf.Transaction.Transaction.GetVirtualSize()));
 		}
 		else
 		{
+			originalEffectiveFeeRate = new FeeRate(originalFee, txSizeBytes);
+			newEffectiveFeeRate = new FeeRate(rbf.Fee, rbf.Transaction.Transaction.GetVirtualSize());
+
 			// We want to ensure that the RBF's fee is not too high.
 			var rbfFee = rbf.Fee.Satoshi;
 			var maxFee = rbf.Transaction.Transaction.Outputs.Sum(x => x.Value);
@@ -233,13 +235,40 @@ public static class TransactionModifierWalletExtensions
 
 		rbf.Transaction.SetSpeedup();
 
-		return rbf;
+		return new SpeedUpTransactionResult(transactionToSpeedUp, rbf, originalEffectiveFeeRate, newEffectiveFeeRate);
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	private static (decimal txSizeVBytes, decimal ancestorsVSize, decimal ancestorsFee, FeeRate originalEffectiveFeeRate) DeconstructCpfpInfo(CpfpInfo cpfpInfo)
+	{
+		// Mempool.space gives a more precise value for VSize in an effective fee rate context as it's adjusted with sigops.
+		var txSizeVBytes = cpfpInfo.AdjustedVSize;
+		var ancestorsVSize = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
+		var ancestorsFee = cpfpInfo.Ancestors.Sum(x => x.Fee);
+		var originalEffectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+
+		return (txSizeVBytes, ancestorsVSize, ancestorsFee, originalEffectiveFeeRate);
+	}
+
+	/// <summary>
+	/// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
+	/// </summary>
+	/// <remarks>The HTTP request has its own 120-second timeout, so we don't impose an additional timeout here.</remarks>
+	private static async Task<CpfpInfo> GetCpfpInfoAsync(CpfpInfoProvider cpfpInfoProvider, SmartTransaction transactionToSpeedUp, CancellationToken cancellationToken)
+	{
+		var cpfpInfoResult = await cpfpInfoProvider.GetCpfpInfoAsync(transactionToSpeedUp, cancellationToken).ConfigureAwait(false);
+
+		var cpfpInfo = cpfpInfoResult.Match(
+			value => value,
+			error => throw new InvalidOperationException(error));
+
+		return cpfpInfo;
+	}
+
+	public static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		var keyManager = wallet.KeyManager;
-		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ?? throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
+		var ownOutput = transactionToCpfp.GetWalletOutputs(keyManager).Where(x => !x.IsSpent()).OrderByDescending(x => x.Amount).FirstOrDefault() ??
+			throw new InvalidOperationException($"Can't CPFP: transaction has no unspent wallet output.");
 		List<SmartCoin> allowedInputs = new()
 		{
 			ownOutput
@@ -247,7 +276,7 @@ public static class TransactionModifierWalletExtensions
 
 		try
 		{
-			return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
+			return await CpfpTransactionAsync(wallet, transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not HttpRequestException)
 		{
@@ -265,14 +294,14 @@ public static class TransactionModifierWalletExtensions
 
 				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, RandomnessProviders.Secure)!);
 
-				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
+				return await CpfpTransactionAsync(wallet, transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}
 
 			throw;
 		}
 	}
 
-	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
+	private static async Task<SpeedUpTransactionResult> CpfpTransactionAsync(Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
 		if (transactionToCpfp.Confirmed)
 		{
@@ -288,26 +317,17 @@ public static class TransactionModifierWalletExtensions
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
 		Guard.NotNull(nameof(destination), destination);
 
-		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
-		// The HTTP request has its own 120-second timeout, so we don't impose an additional timeout here.
-		// The caller can cancel via the cancellationToken parameter if needed.
-		var cpfpInfoResult = await wallet.CpfpInfoProvider.GetCpfpInfoAsync(transactionToCpfp, cancellationToken).ConfigureAwait(false);
+		var cpfpInfo = await GetCpfpInfoAsync(wallet.CpfpInfoProvider, transactionToCpfp, cancellationToken).ConfigureAwait(false);
 
-		var cpfpInfo = cpfpInfoResult.Match(
-			v => v,
-			e => throw new InvalidOperationException(e));
+		(var txSizeVBytes, var ancestorsVSize, var ancestorsFee, var originalEffectiveFeeRate) = DeconstructCpfpInfo(cpfpInfo);
+		var feePaidByAncestorsAndTx = ancestorsFee + cpfpInfo.Fee;
 
 		// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
-		if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)
+		if (originalEffectiveFeeRate > bestFeeRate)
 		{
 			throw new InvalidOperationException(
 				$"{transactionToCpfp.GetHash()} has an effective fee rate of {cpfpInfo.EffectiveFeePerVSize} sat/vb, more than current priority fee of {bestFeeRate.SatoshiPerByte} s/vb. No need to CPFP.");
 		}
-
-		// mempool.space gives a more precise value for VSize in an effective fee rate context as it's adjusted with sigops.
-		var txSizeVBytes = cpfpInfo.AdjustedVSize;
-		var ancestorsSizeVBytes = cpfpInfo.Ancestors.Sum(x => x.Weight) / 4.0m;
-		var feePaidByAncestorsAndTx = cpfpInfo.Ancestors.Sum(x => x.Fee) + cpfpInfo.Fee;
 
 		// Let's build a CPFP with best fee rate temporarily.
 		var tempTx = wallet.BuildChangelessTransaction(
@@ -318,7 +338,7 @@ public static class TransactionModifierWalletExtensions
 			tryToSign: true);
 		var tempTxSizeVBytes = tempTx.Transaction.Transaction.GetVirtualSize();
 
-		var totalSizeOfTheChain = ancestorsSizeVBytes + txSizeVBytes + tempTxSizeVBytes;
+		var totalSizeOfTheChain = ancestorsVSize + txSizeVBytes + tempTxSizeVBytes;
 		var missingFeeForBestFeeRate = (totalSizeOfTheChain * bestFeeRate.SatoshiPerByte) - feePaidByAncestorsAndTx;
 		var cpfpFeeRate = new FeeRate(missingFeeForBestFeeRate / tempTxSizeVBytes);
 
@@ -333,7 +353,9 @@ public static class TransactionModifierWalletExtensions
 
 		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);
 
-		return cpfp;
+		var newEffectiveFeeRate = new FeeRate((feePaidByAncestorsAndTx + cpfp.Fee.Satoshi) / (ancestorsVSize + txSizeVBytes + cpfp.Transaction.Transaction.GetVirtualSize()));
+
+		return new SpeedUpTransactionResult(transactionToCpfp, cpfp, originalEffectiveFeeRate, newEffectiveFeeRate);
 	}
 
 	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)

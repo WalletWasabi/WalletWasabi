@@ -52,7 +52,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 			var isAuthorized = await AuthorizeForPasswordAsync();
 			if (isAuthorized)
 			{
-				await _wallet.Transactions.SendAsync(cancellingTransaction);
+				await _wallet.Transactions.SendAsync(cancellingTransaction.CancelTransaction);
 				var (title, caption) = ("Success", "Your transaction has been successfully cancelled.");
 
 				var mainViewModel = UiContext.MainViewModel

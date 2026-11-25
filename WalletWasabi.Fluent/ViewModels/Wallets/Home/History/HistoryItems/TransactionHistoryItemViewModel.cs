@@ -32,8 +32,8 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 	{
 		try
 		{
-			var speedupTransaction = await _wallet.Transactions.CreateSpeedUpTransactionAsync(transaction, cancellationToken);
-			UiContext.Navigate().To().SpeedUpTransactionDialog(_wallet, speedupTransaction);
+			var info = await _wallet.Transactions.CreateSpeedUpTransactionAsync(transaction, cancellationToken);
+			UiContext.Navigate().To().SpeedUpTransactionDialog(_wallet, info.Result, info.AreWePayingTheFee);
 		}
 		catch (Exception ex)
 		{

@@ -420,14 +420,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password);
 		var mempoolStore = Global.TransactionStore.MempoolStore;
-		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
+		if (!mempoolStore.TryGetTransaction(txId, out var transactionToSpeedUp))
 		{
 			throw new NotSupportedException($"Unknown transaction {txId}");
 		}
 
-		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
-		var speedUpSmartTransaction = speedUpResult.Transaction;
-		return speedUpSmartTransaction.Transaction.ToHex();
+		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(transactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
+		return speedUpResult.BoostingTransaction.Transaction.Transaction.ToHex();
 	}
 
 	[JsonRpcMethod("broadcast", initializable: false)]
