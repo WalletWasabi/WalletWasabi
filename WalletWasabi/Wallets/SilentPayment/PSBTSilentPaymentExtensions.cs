@@ -84,13 +84,14 @@ public static class PSBTSilentPaymentExtensions
 	/// <summary>
 	/// Resolves all silent payment outputs in the PSBT by computing the actual taproot scripts.
 	/// This should be called by signers that have access to the private keys for the inputs.
+	/// Modifies the PSBT in place and preserves PSBT version and settings.
 	/// </summary>
 	/// <param name="psbt">The PSBT containing silent payment outputs.</param>
 	/// <param name="getKeyForInput">
 	/// Function that returns the signing key for a given input's script pubkey.
-	/// Returns null if the key is not available.
+	/// Must return a key for all inputs; throws if any key is missing.
 	/// </param>
-	/// <returns>A new PSBT with silent payment outputs resolved to actual taproot scripts.</returns>
+	/// <returns>The same PSBT with silent payment outputs resolved to actual taproot scripts.</returns>
 	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "NBitcoin Key class is not IDisposable")]
 	public static PSBT ResolveSilentPaymentOutputs(this PSBT psbt, Func<Script, Key?> getKeyForInput)
 	{
@@ -104,17 +105,11 @@ public static class PSBTSilentPaymentExtensions
 		var utxos = new List<Utxo>();
 		foreach (var input in psbt.Inputs)
 		{
-			var txOut = input.GetTxOut();
-			if (txOut is null)
-			{
-				continue;
-			}
+			var txOut = input.GetTxOut()
+				?? throw new InvalidOperationException($"Input {input.PrevOut} has no UTXO information.");
 
-			var key = getKeyForInput(txOut.ScriptPubKey);
-			if (key is null)
-			{
-				continue;
-			}
+			var key = getKeyForInput(txOut.ScriptPubKey)
+				?? throw new InvalidOperationException($"No key for input {input.PrevOut}. Silent payment outputs require keys for all inputs.");
 
 			// Apply taproot tweak if needed (Key is not IDisposable, CA2000 is a false positive)
 			var signingKey = txOut.ScriptPubKey.IsScriptType(ScriptType.Taproot)
@@ -124,23 +119,14 @@ public static class PSBTSilentPaymentExtensions
 			utxos.Add(new Utxo(input.PrevOut, signingKey, txOut.ScriptPubKey));
 		}
 
-		if (utxos.Count == 0)
-		{
-			throw new InvalidOperationException("No signing keys available for silent payment ECDH computation.");
-		}
-
-		// Group SP outputs by address and compute derived scripts
-		var spAddresses = spOutputs.Select(x => x.Address).Distinct().ToArray();
+		var spAddresses = spOutputs.Select(x => x.Address).ToArray();
 		var derivedScripts = SilentPayment.GetPubKeys(spAddresses, utxos.ToArray());
 
 		// Track which derived key to use for each address (supports multiple outputs to same address)
-		var addressKeyIndex = spAddresses.ToDictionary(a => a, _ => 0);
+		var addressKeyIndex = spAddresses.Distinct().ToDictionary(a => a, _ => 0);
 
-		// Get the global transaction to modify
-		var tx = psbt.GetGlobalTransaction();
-
-		// Replace placeholder scripts with actual taproot scripts
-		foreach (var (index, _, address) in spOutputs)
+		// Modify PSBT outputs in place - preserves PSBT version and settings
+		foreach (var (_, output, address) in spOutputs)
 		{
 			var keys = derivedScripts[address];
 			var keyIndex = addressKeyIndex[address];
@@ -150,28 +136,11 @@ public static class PSBTSilentPaymentExtensions
 				throw new InvalidOperationException($"Not enough derived keys for silent payment address. Expected at least {keyIndex + 1}, got {keys.Length}.");
 			}
 
-			var taprootPubKey = new TaprootPubKey(keys[keyIndex].ToBytes());
-			tx.Outputs[index].ScriptPubKey = taprootPubKey.ScriptPubKey;
-
+			output.ScriptPubKey = new TaprootPubKey(keys[keyIndex].ToBytes()).ScriptPubKey;
+			output.ClearSilentPaymentInfo();
 			addressKeyIndex[address] = keyIndex + 1;
 		}
 
-		// Create a new PSBT with the updated transaction
-		var newPsbt = tx.CreatePSBT(psbt.Network);
-
-		// Copy input data from original PSBT
-		foreach (var (newInput, oldInput) in newPsbt.Inputs.Zip(psbt.Inputs))
-		{
-			newInput.UpdateFrom(oldInput);
-		}
-
-		// Copy output data, but clear SP info since scripts are now resolved
-		foreach (var (newOutput, oldOutput) in newPsbt.Outputs.Zip(psbt.Outputs))
-		{
-			newOutput.UpdateFrom(oldOutput);
-			newOutput.ClearSilentPaymentInfo();
-		}
-
-		return newPsbt;
+		return psbt;
 	}
 }

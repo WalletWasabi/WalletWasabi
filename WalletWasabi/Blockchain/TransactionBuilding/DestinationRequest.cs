@@ -6,12 +6,6 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public abstract record Destination
 {
-	// A constant placeholder script used for silent payment outputs during transaction building.
-	// Uses the NUMS point from BIP-341 (provably unspendable) as the internal key.
-	public static readonly Script SilentPaymentPlaceholderScript =
-		new TaprootPubKey(NBitcoin.DataEncoders.Encoders.Hex.DecodeData(
-			"50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0")).ScriptPubKey;
-
 	public static implicit operator Destination(BitcoinAddress address) => new Loudly(address.ScriptPubKey);
 	public static implicit operator Destination(Script scriptPubKey) => new Loudly(scriptPubKey);
 
@@ -27,13 +21,18 @@ public abstract record Destination
 		this switch
 		{
 			Loudly l => l.ScriptPubKey,
-			Silent => SilentPaymentPlaceholderScript,
+			Silent s => s.FakeScriptPubKey,
 			_ => throw new ArgumentException("Unknown destination type")
 		};
 
 	public record Loudly(Script ScriptPubKey) : Destination;
 
-	public record Silent(SilentPaymentAddress Address) : Destination;
+	public record Silent(SilentPaymentAddress Address) : Destination
+	{
+		public Script FakeScriptPubKey { get; } =
+			new PubKey(Address.ScanKey.AddTweak(Address.SpendKey.ToXOnlyPubKey().ToBytes()).ToBytes())
+				.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
+	}
 }
 
 public class DestinationRequest(Destination destination, MoneyRequest amount, LabelsArray? labels = null)

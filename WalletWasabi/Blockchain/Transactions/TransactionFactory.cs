@@ -301,7 +301,7 @@ public class TransactionFactory
 public class TransactionBuilderWithSilentPaymentSupport
 {
 	private readonly TransactionBuilder _builder;
-	private readonly List<SilentPaymentAddress> _silentPaymentOutputs = [];
+	private readonly Dictionary<Script, SilentPaymentAddress> _silentPaymentOutputs = [];
 
 	public TransactionBuilderWithSilentPaymentSupport(Network network)
 	{
@@ -351,8 +351,8 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.Send(Destination.SilentPaymentPlaceholderScript, amount);
-				_silentPaymentOutputs.Add(s.Address);
+				_builder.Send(s.FakeScriptPubKey, amount);
+				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
 				break;
 		}
 	}
@@ -366,8 +366,8 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.SetChange(Destination.SilentPaymentPlaceholderScript);
-				_silentPaymentOutputs.Add(s.Address);
+				_builder.SetChange(s.FakeScriptPubKey);
+				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
 				break;
 		}
 	}
@@ -381,27 +381,23 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.SendAllRemaining(Destination.SilentPaymentPlaceholderScript);
-				_silentPaymentOutputs.Add(s.Address);
+				_builder.SendAllRemaining(s.FakeScriptPubKey);
+				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
 				break;
 		}
 	}
 
 	public PSBT BuildPSBT(bool sign)
 	{
-		var psbt = _builder.BuildPSBT(sign, PSBTVersion.PSBTv2);
+		// Use PSBTv2 only when silent payments are present (for BIP-375 metadata)
+		var version = _silentPaymentOutputs.Count > 0 ? PSBTVersion.PSBTv2 : PSBTVersion.PSBTv0;
+		var psbt = _builder.BuildPSBT(sign, version);
 
-		var spIndex = 0;
 		foreach (var output in psbt.Outputs)
 		{
-			if (output.ScriptPubKey == Destination.SilentPaymentPlaceholderScript)
+			if (_silentPaymentOutputs.TryGetValue(output.ScriptPubKey, out var address))
 			{
-				if (spIndex >= _silentPaymentOutputs.Count)
-				{
-					throw new InvalidOperationException("Mismatch between placeholder outputs and tracked silent payment addresses.");
-				}
-				output.SetSilentPaymentInfo(_silentPaymentOutputs[spIndex]);
-				spIndex++;
+				output.SetSilentPaymentInfo(address);
 			}
 		}
 
