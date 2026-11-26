@@ -656,7 +656,6 @@ public class Global
 			try
 			{
 				await RpcServer.StartAsync(cancel).ConfigureAwait(false);
-				RpcServer.DisposeUsing(_disposables);
 			}
 			catch (HttpListenerException e)
 			{
