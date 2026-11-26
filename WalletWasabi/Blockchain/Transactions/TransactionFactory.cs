@@ -301,7 +301,7 @@ public class TransactionFactory
 public class TransactionBuilderWithSilentPaymentSupport
 {
 	private readonly TransactionBuilder _builder;
-	private readonly Dictionary<Script, SilentPaymentAddress> _silentPaymentOutputs = [];
+	private readonly List<(Script FakeScriptPubKey, SilentPaymentAddress Address)> _silentPaymentOutputs = [];
 
 	public TransactionBuilderWithSilentPaymentSupport(Network network)
 	{
@@ -351,8 +351,9 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.Send(s.FakeScriptPubKey, amount);
-				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
+				var placeholder = CreateUniquePlaceholder(s.Address);
+				_builder.Send(placeholder, amount);
+				_silentPaymentOutputs.Add((placeholder, s.Address));
 				break;
 		}
 	}
@@ -366,8 +367,9 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.SetChange(s.FakeScriptPubKey);
-				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
+				var placeholder = CreateUniquePlaceholder(s.Address);
+				_builder.SetChange(placeholder);
+				_silentPaymentOutputs.Add((placeholder, s.Address));
 				break;
 		}
 	}
@@ -381,10 +383,23 @@ public class TransactionBuilderWithSilentPaymentSupport
 				break;
 
 			case Destination.Silent s:
-				_builder.SendAllRemaining(s.FakeScriptPubKey);
-				_silentPaymentOutputs[s.FakeScriptPubKey] = s.Address;
+				var placeholder = CreateUniquePlaceholder(s.Address);
+				_builder.SendAllRemaining(placeholder);
+				_silentPaymentOutputs.Add((placeholder, s.Address));
 				break;
 		}
+	}
+
+	private Script CreateUniquePlaceholder(SilentPaymentAddress address)
+	{
+		// Create index bytes for tweaking (use current count as unique index)
+		var indexBytes = BitConverter.GetBytes(_silentPaymentOutputs.Count);
+
+		// Tweak the scan key with index to create a unique placeholder per output
+		var tweakedKey = address.ScanKey.AddTweak(address.SpendKey.ToXOnlyPubKey().ToBytes());
+		var finalKey = tweakedKey.AddTweak(indexBytes.Concat(new byte[32 - indexBytes.Length]).ToArray());
+
+		return new PubKey(finalKey.ToBytes()).GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
 	}
 
 	public PSBT BuildPSBT(bool sign)
@@ -393,9 +408,10 @@ public class TransactionBuilderWithSilentPaymentSupport
 		var version = _silentPaymentOutputs.Count > 0 ? PSBTVersion.PSBTv2 : PSBTVersion.PSBTv0;
 		var psbt = _builder.BuildPSBT(sign, version);
 
+		var placeholderMap = _silentPaymentOutputs.ToDictionary(x => x.FakeScriptPubKey, x => x.Address);
 		foreach (var output in psbt.Outputs)
 		{
-			if (_silentPaymentOutputs.TryGetValue(output.ScriptPubKey, out var address))
+			if (placeholderMap.TryGetValue(output.ScriptPubKey, out var address))
 			{
 				output.SetSilentPaymentInfo(address);
 			}
