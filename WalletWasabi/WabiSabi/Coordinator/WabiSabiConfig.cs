@@ -67,7 +67,17 @@ public record WabiSabiConfig
 
 	public TimeSpan FailFastTransactionSigningTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
+	/// <summary>Base expiration time interval after which a round in <see cref="Phase.Ended"/> is removed from memory.</summary>
 	public TimeSpan RoundExpiryTimeout { get; init; } = TimeSpan.FromMinutes(5);
+
+	/// <summary>Effective expiration time interval which a round in <see cref="Phase.Ended"/> is removed from memory.</summary>
+	/// <remarks>
+	/// When <see cref="RoundParallelizationOffset"/> is negative, then a round is kept in memory for specified time period to
+	/// avoid starting a new round too soon.
+	/// </remarks>
+	public TimeSpan EffectiveRoundExpiryTimeout => RoundParallelizationOffset >= TimeSpan.Zero
+		? RoundExpiryTimeout
+		: TimeSpan.FromTicks(Math.Max(RoundExpiryTimeout.Ticks, -RoundParallelizationOffset.Ticks)) + TimeSpan.FromMinutes(1); // +1 minute as a cushion.
 
 	public int MaxInputCountByRound { get; init; } = 100;
 
@@ -85,7 +95,19 @@ public record WabiSabiConfig
 
 	public int CoordinatorExtPubKeyCurrentDepth { get; set; } = 1;
 
+	/// <summary>Number of rounds that can take place in parallel.</summary>
+	/// <remarks><see cref="BlameRound"/> are exempted.</remarks>
 	public int RoundParallelization { get; init; } = 1;
+
+	/// <summary>
+	/// Controls when a new round can be started in parallel (<see cref="RoundParallelization"/>), relative to the end of the previous round's input registration phase.
+	/// </summary>
+	/// <remarks>
+	/// Positive values mean: The new round starts this long <b>before</b> the previous input registration ends (rounds overlap).
+	/// Zero means: The new round starts when the previous input registration ends.
+	/// Negative values mean: The new round starts this long <b>after</b> the previous input registration ended (rounds are spread out).
+	/// </remarks>
+	public TimeSpan RoundParallelizationOffset { get; init; } = TimeSpan.FromMinutes(1);
 
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 

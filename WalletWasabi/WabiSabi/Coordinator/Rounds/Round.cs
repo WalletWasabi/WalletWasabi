@@ -1,9 +1,6 @@
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Crypto;
-using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.Logging.LoggerTools;
 using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
@@ -63,6 +60,7 @@ public class Round
 
 	public Phase Phase { get; private set; } = Phase.InputRegistration;
 	public TimeFrame InputRegistrationTimeFrame { get; internal set; }
+	public DateTimeOffset? InputRegistrationEnd { get; private set; }
 	public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }
 	public TimeFrame OutputRegistrationTimeFrame { get; set; }
 	public TimeFrame TransactionSigningTimeFrame { get; set; }
@@ -87,12 +85,13 @@ public class Round
 
 	public void SetPhase(Phase phase)
 	{
-		if (!Enum.IsDefined(phase))
+		Logger.LogInfo(FormatLog($"Phase changed: {Phase} -> {phase}", this));
+
+		if (Phase == Phase.InputRegistration && phase != Phase.InputRegistration)
 		{
-			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
+			InputRegistrationEnd = DateTimeOffset.UtcNow;
 		}
 
-		Logger.LogInfo(FormatLog($"Phase changed: {Phase} -> {phase}", this));
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)
