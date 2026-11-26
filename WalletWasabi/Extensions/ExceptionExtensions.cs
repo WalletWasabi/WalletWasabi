@@ -1,4 +1,3 @@
-using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;
 
