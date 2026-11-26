@@ -30,6 +30,8 @@
 		<PackageReference Include="NBitcoin" />
 		<PackageReference Include="System.Linq.Async" />
 		<PackageReference Include="WabiSabi" />
+
+		<InternalsVisibleTo Include="WalletWasabi.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
