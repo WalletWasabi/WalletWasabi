@@ -14,8 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionInfo _info;
 	private BuildTransactionResult? _transaction;
+	[AutoNotify] private string? _transactionHex;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _isCustomFeeUsed;
@@ -35,7 +35,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		Parent = parent;
 		_wallet = wallet;
-		_info = info;
 		IsPreview = isPreview;
 		IsPayToMany = info.IsPayToMany;
 		AddressText = info.Destination.ToString(_wallet.Network);
@@ -49,6 +48,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
 	{
 		_transaction = transactionResult;
+		_transactionHex = _transaction.Transaction.Transaction.ToHex();
 
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 

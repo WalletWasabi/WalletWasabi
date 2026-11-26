@@ -170,6 +170,14 @@
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, Mode=OneWay, Converter={x:Static converters:FeeRateConverters.FeeRateConverter}}" />
         </PreviewItem>
+
+        <!-- Transaction Hex -->
+        <Separator />
+        <PreviewItem Icon="{StaticResource binary_file}"
+                     Label="Transaction Hex"
+                     CopyableContent="{Binding TransactionHex}">
+          <TextBlock Text="Copy" />
+        </PreviewItem>
       </StackPanel>
     </DockPanel>
   </StackPanel>
