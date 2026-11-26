@@ -20,10 +20,10 @@ public class InvalidTxExceptionTests
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 		TransactionPolicyError[] crazyInvalidTxErrors =
-			{
-					new NotEnoughFundsPolicyError("Fees different than expected"),
-					new OutputPolicyError("Output value should not be less than zero", -10),
-				};
+		{
+			new NotEnoughFundsPolicyError("Fees different than expected"),
+			new OutputPolicyError("Output value should not be less than zero", -10),
+		};
 
 		var ex = new InvalidTxException(crazyInvalidTx.Transaction, crazyInvalidTxErrors);
 		Assert.Contains(crazyInvalidTxErrors[0].ToString(), ex.Message);

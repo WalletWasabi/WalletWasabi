@@ -186,7 +186,7 @@ public static class TransactionModifierWalletExtensions
 			}
 		}
 
-		var allowedInputs = transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint);
+		var allowedInputs = transactionToSpeedUp.WalletInputs.Select(coin => coin.Outpoint).ToArray();
 
 		BuildTransactionResult rbf = wallet.BuildTransaction(
 			password: wallet.Password,

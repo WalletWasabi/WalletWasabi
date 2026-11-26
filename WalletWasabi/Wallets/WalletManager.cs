@@ -114,9 +114,9 @@ public class WalletManager
 		return null;
 	}
 
-	public Task<IEnumerable<Wallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<Wallet>>(GetWallets());
+	public Task<IReadOnlyList<Wallet>> GetWalletsAsync() => Task.FromResult<IReadOnlyList<Wallet>>(GetWallets());
 
-	public IEnumerable<Wallet> GetWallets()
+	public IReadOnlyList<Wallet> GetWallets()
 	{
 		lock (_lock)
 		{

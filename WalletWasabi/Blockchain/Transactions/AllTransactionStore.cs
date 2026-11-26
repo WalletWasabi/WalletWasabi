@@ -135,7 +135,7 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 	}
 
 	/// <returns>Transactions ordered by blockchain.</returns>
-	public IEnumerable<SmartTransaction> GetTransactions()
+	public IReadOnlyList<SmartTransaction> GetTransactions()
 	{
 		lock (_lock)
 		{
@@ -143,7 +143,7 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 		}
 	}
 
-	internal IEnumerable<uint256> GetTransactionHashes()
+	internal IReadOnlyList<uint256> GetTransactionHashes()
 	{
 		lock (_lock)
 		{
@@ -168,7 +168,7 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 		}
 	}
 
-	public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
+	public IReadOnlyList<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 	{
 		lock (_lock)
 		{

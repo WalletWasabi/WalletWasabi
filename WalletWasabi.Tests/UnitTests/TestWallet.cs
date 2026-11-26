@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -117,7 +116,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return psbt;
 	}
 
-	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
 	{
 		// Test wallet doesn't care
 	}

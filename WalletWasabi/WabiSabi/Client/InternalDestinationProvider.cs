@@ -32,7 +32,7 @@ public class InternalDestinationProvider : IDestinationProvider
 		return destinations.Select(x => x.GetAddress(_keyManager.GetNetwork()));
 	}
 
-	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
 	{
 		foreach (var hdPubKey in _keyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{

@@ -12,7 +12,7 @@ public class TransactionParametersBuilder
 		FeeRate? feeRate = null,
 		bool allowUnconfirmed = false,
 		bool allowDoubleSpend = false,
-		IEnumerable<OutPoint>? allowedInputs = null,
+		IReadOnlyList<OutPoint>? allowedInputs = null,
 		bool tryToSign = true,
 		bool overrideFeeProtection = false)
 	{
@@ -29,7 +29,7 @@ public class TransactionParametersBuilder
 	private FeeRate? FeeRate { get; set; }
 	private bool AllowUnconfirmed { get; set; }
 	private bool AllowDoubleSpend { get; set; }
-	private IEnumerable<OutPoint>? AllowedInputs { get; set; }
+	private IReadOnlyList<OutPoint>? AllowedInputs { get; set; }
 	private bool TryToSign { get; set; }
 	private bool OverrideFeeProtection { get; set; }
 
@@ -57,7 +57,7 @@ public class TransactionParametersBuilder
 		return this;
 	}
 
-	public TransactionParametersBuilder SetAllowedInputs(IEnumerable<OutPoint>? inputs)
+	public TransactionParametersBuilder SetAllowedInputs(IReadOnlyList<OutPoint>? inputs)
 	{
 		AllowedInputs = inputs;
 		return this;

@@ -91,7 +91,7 @@ public static class TransactionHelpers
 				transactionInfo.FeeRate,
 				AllowUnconfirmed: true,
 				AllowDoubleSpend: false,
-				AllowedInputs: allowedCoins.Select(x => x.Outpoint),
+				AllowedInputs: allowedCoins.Select(x => x.Outpoint).ToArray(),
 				TryToSign: false,
 				OverrideFeeOverpaymentProtection: false);
 

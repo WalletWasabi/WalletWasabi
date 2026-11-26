@@ -135,7 +135,7 @@ public class Wallet : BackgroundService
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.
 	/// </summary>
-	public IEnumerable<SmartTransaction> GetTransactions()
+	public IReadOnlyList<SmartTransaction> GetTransactions()
 	{
 		var walletTransactions = new HashSet<SmartTransaction>();
 

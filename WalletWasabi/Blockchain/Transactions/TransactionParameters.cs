@@ -1,5 +1,3 @@
-using NBitcoin;
-using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionBuilding;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -16,6 +14,6 @@ public record TransactionParameters(
 	FeeRate FeeRate,
 	bool AllowUnconfirmed,
 	bool AllowDoubleSpend,
-	IEnumerable<OutPoint>? AllowedInputs,
+	IReadOnlyList<OutPoint>? AllowedInputs,
 	bool TryToSign,
 	bool OverrideFeeOverpaymentProtection);

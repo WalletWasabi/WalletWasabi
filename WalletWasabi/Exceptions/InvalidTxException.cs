@@ -8,14 +8,14 @@ namespace WalletWasabi.Exceptions;
 
 public class InvalidTxException : Exception
 {
-	public InvalidTxException(Transaction invalidTx, IEnumerable<TransactionPolicyError> errors)
+	public InvalidTxException(Transaction invalidTx, IReadOnlyList<TransactionPolicyError> errors)
 	{
 		Transaction = invalidTx;
 		Errors = errors;
 	}
 
 	public Transaction Transaction { get; }
-	public IEnumerable<TransactionPolicyError> Errors { get; }
+	public IReadOnlyList<TransactionPolicyError> Errors { get; }
 
 	public override string Message
 	{

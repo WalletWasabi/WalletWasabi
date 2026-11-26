@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class LabelHelpers
 {
-	public static IEnumerable<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent, IServices services)
+	public static IReadOnlyList<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent, IServices services)
 	{
 		var labelPool = new Dictionary<string, int>(); // int: score.
 

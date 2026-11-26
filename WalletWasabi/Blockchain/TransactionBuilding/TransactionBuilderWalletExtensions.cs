@@ -33,12 +33,12 @@ public static class TransactionBuilderWalletExtensions
 			throw new NotSupportedException(feeStrategy.Type.ToString());
 		}
 
-		TransactionParameters parameters = new (
+		TransactionParameters parameters = new(
 			payments,
 			FeeRate: feeRate,
 			AllowUnconfirmed: allowUnconfirmed,
 			AllowDoubleSpend: allowDoubleSpend,
-			AllowedInputs: allowedInputs,
+			AllowedInputs: allowedInputs?.ToArray(),
 			TryToSign: tryToSign,
 			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 

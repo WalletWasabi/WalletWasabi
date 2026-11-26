@@ -13,7 +13,7 @@ using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
-public delegate Task<IEnumerable<Wallet>> WalletProvider();
+public delegate Task<IReadOnlyList<Wallet>> WalletProvider();
 
 public class CoinJoinManager : BackgroundService
 {

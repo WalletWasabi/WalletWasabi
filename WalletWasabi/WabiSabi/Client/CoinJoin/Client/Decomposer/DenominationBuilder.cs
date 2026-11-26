@@ -7,8 +7,8 @@ public static class DenominationBuilder
 		IEnumerable<decimal> Times(int times, IEnumerable<decimal> values) =>
 			values
 				.Select(value => times * value)
-				.SkipWhile(denom => denom < minAllowedOutputAmount.Satoshi)
-				.TakeWhile(denom => denom <= maxAllowedOutputAmount.Satoshi);
+				.SkipWhile(denomination => denomination < minAllowedOutputAmount.Satoshi)
+				.TakeWhile(denomination => denomination <= maxAllowedOutputAmount.Satoshi);
 
 		IEnumerable<decimal> PowersOf(double baseValue) =>
 			Enumerable.Range(0, short.MaxValue)
@@ -21,7 +21,7 @@ public static class DenominationBuilder
 			.Concat(Times(2, PowersOf(10)))
 			.Concat(Times(5, PowersOf(10)))
 			.ToHashSet()
-			.Select(denom => Money.Satoshis((ulong)denom))
+			.Select(denomination => Money.Satoshis((ulong)denomination))
 			.ToArray();
 	}
 }
