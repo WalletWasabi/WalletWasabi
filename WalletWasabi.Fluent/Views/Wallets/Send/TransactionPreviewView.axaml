@@ -109,7 +109,7 @@
       </Carousel.PageTransition>
       <Carousel.ItemTemplate>
         <DataTemplate>
-          <send:TransactionSummary />
+          <send:TransactionPreviewSummary />
         </DataTemplate>
       </Carousel.ItemTemplate>
     </Carousel>
