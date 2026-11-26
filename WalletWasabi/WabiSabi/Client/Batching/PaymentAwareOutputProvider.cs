@@ -91,7 +91,7 @@ public class PaymentAwareOutputProvider(
 			Random);
 
 		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues, bestPaymentSet.TotalAmount > Money.Zero).ToArray();
-		var decomposedOutputs = GetTxOuts(outputValues, DestinationProvider);
+		var decomposedOutputs = GetTxOuts(outputValues);
 		foreach (var txOut in decomposedOutputs)
 		{
 			yield return txOut;

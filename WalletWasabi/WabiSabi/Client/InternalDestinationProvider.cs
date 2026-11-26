@@ -12,24 +12,28 @@ public class InternalDestinationProvider : IDestinationProvider
 
 	private readonly KeyManager _keyManager;
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot)
+	// Keys stay locked until a coinjoin is broadcast, and several coinjoin clients can send their outputs to this
+	// wallet at the same time (the wallet itself and the wallets that coinjoin into it). So that they do not all
+	// get the same keys, a key that was handed out is held until its holder releases it.
+	private readonly List<(HdPubKey Key, object Holder)> _heldKeys = [];
+	private readonly Lock _lock = new();
+
+	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot, object holder)
 	{
-		// Get all locked internal keys we have and assert we have enough.
-		_keyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
+		lock (_lock)
+		{
+			var keys = _keyManager.GetNextCoinJoinKeys(count, preferTaproot, heldKeys: _heldKeys.Select(x => x.Key));
+			_heldKeys.AddRange(keys.Select(key => (key, holder)));
+			return keys.Select(x => x.GetAddress(_keyManager.GetNetwork()));
+		}
+	}
 
-		var allKeys = _keyManager.GetNextCoinJoinKeys().ToList();
-		var taprootKeys = allKeys
-			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86)
-			.ToList();
-
-		var segwitKeys = allKeys
-			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit)
-			.ToList();
-
-		var destinations = preferTaproot && taprootKeys.Count >= count
-			? taprootKeys
-			: segwitKeys;
-		return destinations.Select(x => x.GetAddress(_keyManager.GetNetwork()));
+	public void ReleaseDestinations(object holder)
+	{
+		lock (_lock)
+		{
+			_heldKeys.RemoveAll(x => x.Holder == holder);
+		}
 	}
 
 	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)

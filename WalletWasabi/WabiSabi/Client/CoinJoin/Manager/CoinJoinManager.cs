@@ -495,7 +495,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
-		var destinationProvider = finishedCoinJoin.OutputWallet.OutputProvider.DestinationProvider;
+		var destinationProvider = finishedCoinJoin.OutputProvider.DestinationProvider;
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;
@@ -581,6 +581,9 @@ public class CoinJoinManager : BackgroundService
 		finally
 		{
 			batchedPayments.MovePaymentsToPending();
+
+			// The destinations of a broadcast coinjoin are marked as used above. The rest can be taken by the next coinjoin.
+			finishedCoinJoin.OutputProvider.ReleaseDestinations();
 		}
 
 		// If any coins were marked for banning, store them to file

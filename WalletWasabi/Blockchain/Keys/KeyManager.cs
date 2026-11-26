@@ -392,11 +392,6 @@ public class KeyManager
 			MatchesChangeScriptPubKeyType(x))
 			.First();
 
-	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
-		GetKeys(x =>
-				x.KeyState == KeyState.Locked &&
-				x.IsInternal == true);
-
 	private bool MatchesChangeScriptPubKeyType(HdPubKey hd) =>
 		ChangeScriptPubKeyType switch
 		{
@@ -584,47 +579,46 @@ public class KeyManager
 	}
 
 	/// <summary>
-	/// Make sure there's always locked internal keys generated and indexed.
+	/// Gets locked internal keys for the outputs of a coinjoin, leaving out <paramref name="heldKeys"/>.
+	/// Clean keys are locked and persisted when there are not enough locked ones.
 	/// </summary>
-	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
+	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys(int howMany, bool preferTaproot, IEnumerable<HdPubKey> heldKeys)
 	{
 		lock (_criticalStateLock)
 		{
-			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
+			var hdPubKeyGenerator = (_taprootInternalKeyGenerator, preferTaproot) switch
+			{
+				({ }, true) => _taprootInternalKeyGenerator,
+				_ => _segwitInternalKeyGenerator
+			};
+
+			Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, hdPubKeyGenerator.MinGapLimit);
+
+			HdPubKeyPathView GetInternalView() => _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+			IEnumerable<HdPubKey> GetFreeLockedKeys() => GetInternalView().LockedKeys.Except(heldKeys);
+
+			var missingLockedKeys = Math.Max(howMany - GetFreeLockedKeys().Count(), 0);
+
+			_hdPubKeyCache.AddRangeKeys(hdPubKeyGenerator.AssertCleanKeysIndexed(GetInternalView()).Select(CreateHdPubKey));
+
+			var availableCandidates = GetInternalView()
+				.CleanKeys
+				.Where(x => x.Labels.IsEmpty)
+				.Take(missingLockedKeys)
+				.ToList();
+
+			foreach (var hdPubKeys in availableCandidates)
+			{
+				SetKeyState(KeyState.Locked, hdPubKeys);
+			}
+
+			if (availableCandidates.Count > 0)
 			{
 				ToFileNoLock();
 			}
+
+			return [.. GetFreeLockedKeys().OrderBy(x => x.Index).Take(howMany)];
 		}
-	}
-
-	private bool AssertLockedInternalKeysIndexedNoLock(int howMany, bool preferTaproot)
-	{
-		var hdPubKeyGenerator = (_taprootInternalKeyGenerator, preferTaproot) switch
-		{
-			({ }, true) => _taprootInternalKeyGenerator,
-			_ => _segwitInternalKeyGenerator
-		};
-
-		Guard.InRangeAndNotNull(nameof(howMany), howMany, 0, hdPubKeyGenerator.MinGapLimit);
-		var internalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
-		var lockedKeyCount = internalView.LockedKeys.Count();
-		var missingLockedKeys = Math.Max(howMany - lockedKeyCount, 0);
-
-		_hdPubKeyCache.AddRangeKeys(hdPubKeyGenerator.AssertCleanKeysIndexed(internalView).Select(CreateHdPubKey));
-
-		var availableCandidates = _hdPubKeyCache
-			.GetView(hdPubKeyGenerator.KeyPath)
-			.CleanKeys
-			.Where(x => x.Labels.IsEmpty)
-			.Take(missingLockedKeys)
-			.ToList();
-
-		foreach (var hdPubKeys in availableCandidates)
-		{
-			SetKeyState(KeyState.Locked, hdPubKeys);
-		}
-
-		return availableCandidates.Count > 0;
 	}
 
 	public void ToFile()

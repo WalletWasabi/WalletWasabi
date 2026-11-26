@@ -48,10 +48,11 @@ public class CoinJoinTrackerFactory
 			CoinSelectors.PrivatePaymentCoinSelector(wallet.BatchedPayments, minAnonScoreForPayments, coinJoinCoinSelector.SemiPrivateThreshold),
 			coinJoinCoinSelector.SelectCoinsForRound]);
 
+		var outputProvider = GetOrCreateOutputProvider(wallet: wallet, outputWallet: outputWallet);
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			GetOrCreateOutputProvider(wallet: wallet, outputWallet: outputWallet),
+			outputProvider,
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
@@ -60,7 +61,7 @@ public class CoinJoinTrackerFactory
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
 			minAnonScoreForPayments: minAnonScoreForPayments);
 
-		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, outputProvider, _cancellationToken);
 	}
 
 	internal static OutputProvider GetOrCreateOutputProvider(Wallet wallet, Wallet outputWallet)

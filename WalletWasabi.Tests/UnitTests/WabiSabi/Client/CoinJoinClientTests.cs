@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
@@ -242,7 +243,7 @@ public class CoinJoinClientTests
 		var km = ServiceFactory.CreateKeyManager(password, true);
 		var destinationProvider = new InternalDestinationProvider(km);
 
-		var txOuts = OutputProvider.GetTxOuts(outputs, destinationProvider);
+		var txOuts = new OutputProvider(destinationProvider, RandomnessProviders.Insecure).GetTxOuts(outputs);
 
 		// All the outputs were generated.
 		Assert.Equal(txOuts.Count(), outputs.Length);
@@ -259,6 +260,47 @@ public class CoinJoinClientTests
 		}
 
 		Assert.Empty(toCheck);
+	}
+
+	[Fact]
+	public void ClientsWithTheSameOutputWalletGetDifferentScripts()
+	{
+		FeeRate feeRate = new(10m);
+
+		var outputs = new[]
+		{
+			Output.FromDenomination(Money.Coins(1m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(2m), ScriptType.P2WPKH, feeRate),
+			Output.FromDenomination(Money.Coins(3m), ScriptType.Taproot, feeRate),
+			Output.FromDenomination(Money.Coins(4m), ScriptType.Taproot, feeRate),
+		};
+
+		var km = ServiceFactory.CreateKeyManager("satoshi", true);
+		var destinationProvider = new InternalDestinationProvider(km);
+
+		// Four wallets coinjoin into the same wallet, which also coinjoins.
+		OutputProvider CreateClient() => new(destinationProvider, RandomnessProviders.Insecure);
+		Script[] GetScripts(OutputProvider client) => client.GetTxOuts(outputs).Select(x => x.ScriptPubKey).ToArray();
+
+		var clients = Enumerable.Range(0, 5).Select(_ => CreateClient()).ToArray();
+		var scriptsByClient = clients.Select(GetScripts).ToArray();
+		var allScripts = scriptsByClient.SelectMany(x => x).ToArray();
+		Assert.Equal(clients.Length * outputs.Length, allScripts.Length);
+		Assert.Distinct(allScripts);
+
+		// The first client's round fails and it goes to the blame round, where it gets its own scripts again and nobody else's.
+		Assert.Equal(scriptsByClient[0].ToHashSet(), GetScripts(clients[0]).ToHashSet());
+
+		// The second client's coinjoin is broadcast. Its scripts are never handed out again.
+		destinationProvider.TrySetScriptStates(KeyState.Used, scriptsByClient[1]);
+		clients[1].ReleaseDestinations();
+
+		// The third client's coinjoin fails. Its scripts go to the next client, and only those.
+		clients[2].ReleaseDestinations();
+		Assert.Equal(scriptsByClient[2].ToHashSet(), GetScripts(CreateClient()).ToHashSet());
+
+		// The scripts that are used or still held are not handed out.
+		Assert.Empty(GetScripts(CreateClient()).Intersect(allScripts));
 	}
 
 	private static AliceClient CreateAliceClient(

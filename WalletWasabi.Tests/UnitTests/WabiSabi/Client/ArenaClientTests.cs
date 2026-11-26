@@ -76,7 +76,7 @@ public class ArenaClientTests
 		var keyChain = new KeyChain(km, password);
 		var destinationProvider = new InternalDestinationProvider(km);
 
-		var coins = destinationProvider.GetNextDestinations(2, false)
+		var coins = destinationProvider.GetNextDestinations(2, false, holder: new object())
 			.Select(destination => (
 				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), destination)),
 				OwnershipProof: keyChain.GetOwnershipProof(destination, WabiSabiFactory.CreateCommitmentData(round.Id))))

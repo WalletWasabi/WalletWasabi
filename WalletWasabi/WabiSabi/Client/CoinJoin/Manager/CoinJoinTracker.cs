@@ -14,6 +14,7 @@ public class CoinJoinTracker : IDisposable
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		Wallet outputWallet,
+		OutputProvider outputProvider,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
@@ -23,6 +24,7 @@ public class CoinJoinTracker : IDisposable
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		OutputWallet = outputWallet;
+		OutputProvider = outputProvider;
 		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, _cancellationTokenSource.Token);
 	}
@@ -38,6 +40,7 @@ public class CoinJoinTracker : IDisposable
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
 	public Wallet OutputWallet { get; }
+	public OutputProvider OutputProvider { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }

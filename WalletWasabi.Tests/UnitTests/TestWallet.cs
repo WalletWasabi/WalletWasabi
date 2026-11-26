@@ -122,8 +122,13 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		// Test wallet doesn't care
 	}
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
+	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot, object holder) =>
 		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
+
+	public void ReleaseDestinations(object holder)
+	{
+		// Test wallet never gives out the same address twice.
+	}
 
 	public ImmutableHashSet<ScriptType> SupportedScriptTypes { get; } = [ScriptType.P2WPKH];
 
