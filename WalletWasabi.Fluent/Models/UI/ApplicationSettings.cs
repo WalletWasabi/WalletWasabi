@@ -258,6 +258,8 @@ public partial class ApplicationSettings : ReactiveObject
 			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed
 		};
 
+		newUiConfig.ToFile();
+
 		ApplyConfigs(newPersistentConfig, newUiConfig);
 	}
 
