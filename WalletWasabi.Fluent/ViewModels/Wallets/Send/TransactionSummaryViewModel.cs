@@ -16,7 +16,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	private readonly IWalletModel _wallet;
 	private readonly TransactionInfo _info;
 	private BuildTransactionResult? _transaction;
-	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _isCustomFeeUsed;
@@ -43,11 +42,8 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	}
 
 	public TransactionPreviewViewModel Parent { get; }
-
 	public bool IsPreview { get; }
-
 	public string AddressText { get; }
-
 	public bool IsPayToMany { get; }
 
 	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)

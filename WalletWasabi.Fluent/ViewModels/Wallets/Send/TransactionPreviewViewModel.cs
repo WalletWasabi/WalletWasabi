@@ -99,24 +99,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
-
 	public TransactionSummaryViewModel PreviewTransactionSummary { get; }
-
 	public List<TransactionSummaryViewModel> TransactionSummaries { get; }
-
 	public PrivacySuggestionsFlyoutViewModel PrivacySuggestions { get; }
-
 	public bool PreferPsbtWorkflow => _walletModel.Settings.PreferPsbtWorkflow;
-
 	public ICommand AdjustFeeCommand { get; }
-
 	public ICommand ChangeCoinsCommand { get; }
-
 	public ICommand UndoCommand { get; }
 
 	private async Task OnExportPsbtAsync()
 	{
-		if (Transaction is { })
+		if (Transaction is not null)
 		{
 			bool saved = false;
 			try
@@ -215,7 +208,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		var newTransaction = await BuildTransactionAsync();
 
-		if (newTransaction is { })
+		if (newTransaction is not null)
 		{
 			UpdateTransaction(CurrentTransactionSummary, newTransaction);
 		}
@@ -227,7 +220,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		var selectedCoins = await Navigate().To().SelectCoinsDialog(_walletModel, currentCoins, _sendFlow).GetResultAsync();
 
-		if (selectedCoins is { })
+		if (selectedCoins is not null)
 		{
 			if (currentCoins.GetSmartCoins().ToHashSet().SetEquals(selectedCoins))
 			{
@@ -239,7 +232,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task<bool> InitialiseTransactionAsync()
+	private async Task<bool> InitializeTransactionAsync()
 	{
 		if (_info.FeeRate == FeeRate.Zero)
 		{
@@ -274,7 +267,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task<BuildTransactionResult?> BuildTransactionAsync()
 	{
-		if (!await InitialiseTransactionAsync())
+		bool isInitialized = await InitializeTransactionAsync();
+
+		if (!isInitialized)
 		{
 			return null;
 		}
@@ -343,7 +338,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task InitialiseViewModelAsync()
+	private async Task InitializeViewModelAsync()
 	{
 		if (await BuildTransactionAsync() is { } initialTransaction)
 		{
@@ -411,7 +406,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!isInHistory)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
+			RxApp.MainThreadScheduler.Schedule(async () => await InitializeViewModelAsync());
 		}
 	}
 
@@ -449,10 +444,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(
-				"Transaction",
-				ex.ToUserFriendlyString(),
-				"Wasabi was unable to send your transaction.");
+			await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
 		}
 		finally
 		{
