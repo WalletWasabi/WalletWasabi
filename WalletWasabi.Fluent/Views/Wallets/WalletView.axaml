@@ -104,6 +104,32 @@
             </SubActionButton>
 
 
+            <!-- Coinjoin button -->
+            <SubActionButton Content="Coinjoin"
+                             Command="{Binding CoinJoinCommand}"
+                             IsVisible="{Binding IsCoinJoinButtonVisible}"
+                             Icon="{StaticResource shield_regular}">
+              <SubActionButton.SubCommands>
+                <UICommandCollection>
+                  <UICommand Name="Coinjoin settings" Command="{Binding CoinJoinSettingsCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource settings_general_regular}" Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Coordinator settings" Command="{Binding NavigateToCoordinatorSettingsCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource coordinator}" Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                  <UICommand Name="Exclude coins" Command="{Binding NavigateToExcludedCoinsCommand}">
+                    <UICommand.Icon>
+                      <PathIcon Data="{StaticResource exclude_coins}" Classes="Icon" />
+                    </UICommand.Icon>
+                  </UICommand>
+                </UICommandCollection>
+              </SubActionButton.SubCommands>
+            </SubActionButton>
+
             <Panel>
               <Button Classes="function"
                       IsVisible="{Binding IsDonateButtonVisible}"

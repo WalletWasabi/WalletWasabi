@@ -91,13 +91,6 @@
               <Separator Classes="vertical" />
 
               <Button Classes="plain"
-                      IsVisible="{Binding CoinJoinStateViewModel.PlayVisible}"
-                      IsEnabled="{Binding CoinJoinStateViewModel.PlayEnabled}"
-                      Command="{Binding CoinJoinStateViewModel.PlayCommand}">
-                <PathIcon Data="{StaticResource play_regular}" />
-              </Button>
-
-              <Button Classes="plain"
                       IsVisible="{Binding CoinJoinStateViewModel.PauseVisible}"
                       Command="{Binding CoinJoinStateViewModel.StopPauseCommand}">
                 <PathIcon Data="{StaticResource pause_regular}" />
