@@ -96,6 +96,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				});
 
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
+		CopyTransactionHexCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionHexAsync);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -106,6 +107,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand AdjustFeeCommand { get; }
 	public ICommand ChangeCoinsCommand { get; }
 	public ICommand UndoCommand { get; }
+	public ICommand CopyTransactionHexCommand { get; }
 
 	private async Task OnExportPsbtAsync()
 	{
@@ -200,17 +202,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			feeRate != _info.FeeRate) // Prevent rebuild if the selected fee did not change.
 		{
 			_info.FeeRate = feeRate;
-			await BuildAndUpdateAsync();
+			await BuildUnsignedAndUpdateAsync();
 		}
 	}
 
-	private async Task BuildAndUpdateAsync()
+	private async Task BuildUnsignedAndUpdateAsync()
 	{
-		var newTransaction = await BuildTransactionAsync();
+		var newUnsignedTransaction = await BuildUnsignedTransactionAsync();
 
-		if (newTransaction is not null)
+		if (newUnsignedTransaction is not null)
 		{
-			UpdateTransaction(CurrentTransactionSummary, newTransaction);
+			UpdateTransaction(CurrentTransactionSummary, newUnsignedTransaction);
 		}
 	}
 
@@ -228,7 +230,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			_info.Coins = selectedCoins;
-			await BuildAndUpdateAsync();
+			await BuildUnsignedAndUpdateAsync();
 		}
 	}
 
@@ -265,7 +267,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		return true;
 	}
 
-	private async Task<BuildTransactionResult?> BuildTransactionAsync()
+	private async Task<BuildTransactionResult?> BuildUnsignedTransactionAsync()
 	{
 		bool isInitialized = await InitializeTransactionAsync();
 
@@ -284,7 +286,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(UiContext, _wallet, _info))
 			{
-				return await BuildTransactionAsync();
+				return await BuildUnsignedTransactionAsync();
 			}
 
 			await ShowErrorAsync(
@@ -306,12 +308,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				if (selectPocketsDialog.Result is { } newCoins)
 				{
 					_info.Coins = newCoins;
-					return await BuildTransactionAsync();
+					return await BuildUnsignedTransactionAsync();
 				}
 			}
 			else if (await TransactionFeeHelper.TrySetMaxFeeRateAsync(UiContext, _wallet, _info))
 			{
-				return await BuildTransactionAsync();
+				return await BuildUnsignedTransactionAsync();
 			}
 
 			await ShowErrorAsync(
@@ -340,7 +342,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task InitializeViewModelAsync()
 	{
-		if (await BuildTransactionAsync() is { } initialTransaction)
+		var initialTransaction = await BuildUnsignedTransactionAsync();
+
+		if (initialTransaction is not null)
 		{
 			UpdateTransaction(CurrentTransactionSummary, initialTransaction);
 		}
@@ -427,18 +431,17 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		try
 		{
-			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
-			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
+			var txAuthInfo = await GetTxAuthInfoAsync();
+			var authResult = await AuthorizeAsync(txAuthInfo);
 			if (authResult)
 			{
 				IsBusy = true;
 
-				var finalTransaction = transactionAuthorizationInfo.Transaction;
-				await SendTransactionAsync(finalTransaction);
-				_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
+				var signedTransaction = txAuthInfo.Transaction;
+				await SendTransactionAsync(signedTransaction);
+				_wallet.UpdateUsedHdPubKeysLabels(txAuthInfo.BuildTransactionResult.HdPubKeysWithNewLabels);
 				_cancellationTokenSource.Cancel();
-				Navigate().To().SendSuccess(finalTransaction);
+				Navigate().To().SendSuccess(signedTransaction);
 			}
 		}
 		catch (Exception ex)
@@ -450,6 +453,31 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			IsBusy = false;
 		}
+	}
+
+	private async Task OnCopyTransactionHexAsync()
+	{
+		try
+		{
+			var txAuthInfo = await GetTxAuthInfoAsync();
+			bool isAuthorized = await AuthorizeAsync(txAuthInfo);
+
+			if (isAuthorized)
+			{
+				await UiContext.Clipboard.SetTextAsync(txAuthInfo.Transaction.Transaction.ToHex());
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex);
+			await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to copy the transaction hex.");
+		}
+	}
+
+	private async Task<TransactionAuthorizationInfo> GetTxAuthInfoAsync()
+	{
+		var signedTxResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info, tryToSign: true)).ConfigureAwait(false);
+		return new TransactionAuthorizationInfo(signedTxResult);
 	}
 
 	private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
@@ -509,7 +537,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 					if (selectPocketsDialog.Kind == DialogResultKind.Normal && selectPocketsDialog.Result is { })
 					{
 						_info.Coins = selectPocketsDialog.Result;
-						await BuildAndUpdateAsync();
+						await BuildUnsignedAndUpdateAsync();
 					}
 
 					break;

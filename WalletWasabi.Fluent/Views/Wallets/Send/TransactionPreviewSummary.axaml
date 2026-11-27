@@ -140,17 +140,17 @@
 
         <!-- Confirmation time -->
         <PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="Expected confirmation time"
-                       IsVisible="{Binding !IsCustomFeeUsed}"
-                       Classes.Dimmed="{Binding IsPreview}"
-                       ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+                     Label="Expected confirmation time"
+                     IsVisible="{Binding !IsCustomFeeUsed}"
+                     Classes.Dimmed="{Binding IsPreview}"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static converters:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </PreviewItem>
 
         <!-- Fee -->
         <PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="Fee"
-                       CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+                     Label="Fee"
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
           <StackPanel Orientation="Horizontal">
             <AmountControl Classes="WithFiat" Amount="{Binding Fee}" />
             <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
@@ -173,10 +173,8 @@
 
         <!-- Transaction Hex -->
         <Separator />
-        <PreviewItem Icon="{StaticResource binary_file}"
-                     Label="Transaction Hex"
-                     CopyableContent="{Binding TransactionHex}">
-          <TextBlock Text="Copy" />
+        <PreviewItem Icon="{StaticResource binary_file}" Label="Transaction Hex">
+          <Button Classes="activeHyperLink" Content="Copy" Command="{Binding Parent.CopyTransactionHexCommand}" />
         </PreviewItem>
       </StackPanel>
     </DockPanel>
