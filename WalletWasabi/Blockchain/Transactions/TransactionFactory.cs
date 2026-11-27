@@ -158,12 +158,14 @@ public class TransactionFactory
 
 		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.Outpoint == txin.PrevOut)).ToArray();
 
-		var realToSend = payments.Requests
-			.Select(t =>
-				(label: t.Labels,
-					destination: t.Destination,
-					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.GetScriptPubKey())?.Value))
-			.Where(x => x.amount is not null);
+		var loudScripts = payments.Requests
+			.Select(x => x.Destination)
+			.OfType<Destination.Loudly>()
+			.Select(x => x.ScriptPubKey)
+			.ToHashSet();
+		var realToSend = psbt.Outputs
+			.Where(o => o.HasSilentPaymentInfo() || loudScripts.Contains(o.ScriptPubKey))
+			.ToArray();
 
 		if (!psbt.TryGetFee(out var fee))
 		{
@@ -176,7 +178,7 @@ public class TransactionFactory
 		}
 
 		// Do some checks
-		Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
+		Money totalSendAmountNoFee = realToSend.Sum(x => x.Value);
 		if (totalSendAmountNoFee == Money.Zero)
 		{
 			throw new InvalidOperationException("The amount after subtracting the fee is too small to be sent.");
@@ -189,7 +191,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.GetScriptPubKey())).Sum(x => x.amount);
+			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.ScriptPubKey)).Sum(x => x.Value);
 		}
 
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
@@ -232,8 +234,6 @@ public class TransactionFactory
 			var signingKeysArray = signingKeys.ToArray();
 			builder.AddKeys(signingKeysArray);
 
-			// Resolve silent payment outputs using BIP-375 PSBT info
-			// this is temporary, the signing device are responsible fo resolving the real payment output.
 			if (psbt.HasSilentPaymentOutputs())
 			{
 				psbt = psbt.ResolveSilentPaymentOutputs(spk => signingKeysArray.FirstOrDefault(k =>

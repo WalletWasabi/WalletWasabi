@@ -972,6 +972,7 @@ public class TransactionFactoryTests
 		// 1. Paying to two DIFFERENT silent payment addresses creates two separate outputs
 		// 2. Paying twice to the SAME silent payment address also creates two separate outputs
 		//    (with different script pub keys due to k=0 vs k=1 derivation)
+		// 3. Fee percentage is calculated against ALL silent payment outputs, not just the first
 		// This was a bug when using a shared placeholder script - NBitcoin's MergeOutputs would collapse them.
 
 		var mnemonic =
@@ -1004,6 +1005,7 @@ public class TransactionFactoryTests
 		// Build a transaction with:
 		// - Two outputs to address1 (0.5 BTC and 0.6 BTC) - tests same-address non-merging
 		// - One output to address2 (0.7 BTC) - tests different-address non-merging
+		// Total sent: 1.8 BTC
 		var payment = new PaymentIntent([
 			new DestinationRequest(silentPaymentAddress1, MoneyRequest.Create(Money.Coins(0.5m))),
 			new DestinationRequest(silentPaymentAddress1, MoneyRequest.Create(Money.Coins(0.6m))),
@@ -1030,6 +1032,14 @@ public class TransactionFactoryTests
 		Assert.True(output1a.ScriptPubKey.IsScriptType(ScriptType.Taproot));
 		Assert.True(output1b.ScriptPubKey.IsScriptType(ScriptType.Taproot));
 		Assert.True(output2.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+
+		// Verify fee percentage is calculated against ALL outputs (1.8 BTC total), not just the first (0.5 BTC).
+		// Before the fix, fee would be divided by 0.5 BTC only, giving ~3.6x higher percentage.
+		// With a ~2000 sat fee and 1.8 BTC sent, fee percentage should be tiny (< 0.01%).
+		var totalSent = Money.Coins(0.5m + 0.6m + 0.7m);
+		var expectedFeePercent = 100m * result.Fee.ToDecimal(MoneyUnit.BTC) / totalSent.ToDecimal(MoneyUnit.BTC);
+		Assert.Equal(expectedFeePercent, result.FeePercentOfSent, precision: 4);
+		Assert.True(result.FeePercentOfSent < 0.01m, $"Fee percentage {result.FeePercentOfSent}% is too high - suggests not all outputs were counted");
 	}
 
 	[Fact]
