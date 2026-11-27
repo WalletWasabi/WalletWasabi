@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Net;
 using System.Text.Json.Nodes;
-using NBitcoin;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Coordinator;
@@ -60,6 +58,7 @@ public static partial class Encode
 			("CoordinatorExtPubKey", ExtPubKey(cfg.CoordinatorExtPubKey) ),
 			("CoordinatorExtPubKeyCurrentDepth", Int(cfg.CoordinatorExtPubKeyCurrentDepth) ),
 			("RoundParallelization", Int(cfg.RoundParallelization) ),
+			("RoundParallelizationOffset", TimeSpan(cfg.RoundParallelizationOffset)),
 			("CoordinatorIdentifier", String(cfg.CoordinatorIdentifier) ),
 			("AllowP2wpkhInputs", Bool(cfg.AllowP2wpkhInputs) ),
 			("AllowP2trInputs", Bool(cfg.AllowP2trInputs)),
@@ -139,6 +138,7 @@ public static partial class Decode
 			CoordinatorExtPubKey = get.Required("CoordinatorExtPubKey", ExtPubKey),
 			CoordinatorExtPubKeyCurrentDepth = get.Required("CoordinatorExtPubKeyCurrentDepth", Int),
 			RoundParallelization = get.Required("RoundParallelization", Int),
+			RoundParallelizationOffset = get.Optional("RoundParallelizationOffset", TimeSpan, System.TimeSpan.FromMinutes(1)),
 			CoordinatorIdentifier = get.Required("CoordinatorIdentifier", String),
 			AllowP2wpkhInputs = get.Required("AllowP2wpkhInputs", Bool),
 			AllowP2trInputs = get.Required("AllowP2trInputs", Bool),

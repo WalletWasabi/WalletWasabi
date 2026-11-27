@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
@@ -20,6 +20,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+		
+		<InternalsVisibleTo Include="WalletWasabi.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

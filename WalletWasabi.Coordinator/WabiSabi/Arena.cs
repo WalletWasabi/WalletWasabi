@@ -412,9 +412,12 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		// Add more rounds if not enough.
-		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
-		int roundsToCreate = _config.RoundParallelization - registrableRoundCount;
+		// Compute the number of rounds that counts as "occupying parallelization slots".
+		var roundCount = Rounds.Count(round => OccupiesParallelizationSlot(round, _config.RoundParallelizationOffset));
+
+		// Add more rounds, if not enough.
+		int roundsToCreate = Math.Max(0, _config.RoundParallelization - roundCount);
+
 		for (int i = 0; i < roundsToCreate; i++)
 		{
 			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
@@ -426,12 +429,50 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
+	internal static bool OccupiesParallelizationSlot(Round round, TimeSpan offset)
+	{
+		if (round is BlameRound)
+		{
+			return false;
+		}
+
+		if (offset >= TimeSpan.Zero)
+		{
+			return round.Phase switch
+			{
+				// If it remains more than `offset` time from the input-registration phase time frame, the parallelization slot is still occupied.
+				Phase.InputRegistration => round.InputRegistrationTimeFrame.Remaining > offset,
+				_ => false,
+			};
+		}
+		else
+		{
+			offset = -offset;
+
+			// If `offset` time did not elapsed after the round's input-registration phase ended, the parallelization slot is still occupied.
+			if (round.Phase == Phase.InputRegistration || (round.InputRegistrationEnd is { } end && DateTimeOffset.UtcNow < end + offset))
+			{
+				// Exception: Arguably, it makes sense to give a new round a new chance sooner.
+				return round.EndRoundState is not EndRoundState.AbortedNotEnoughAlices;
+			}
+
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Remove rounds that expired.
+	/// </summary>
+	/// <remarks>Expiration is affected not only by the <see cref="WabiSabiConfig.RoundExpiryTimeout"/> parameter but also <see cref="WabiSabiConfig.RoundParallelizationOffset"/>.</remarks>
 	private void TimeoutRounds()
 	{
-		foreach (var expiredRound in Rounds.Where(
-			x =>
-			x.Phase == Phase.Ended
-			&& x.End + _config.RoundExpiryTimeout < DateTimeOffset.UtcNow).ToArray())
+		var expiredRounds = Rounds
+			.Where(round => round.Phase == Phase.Ended
+				&& round.End + _config.RoundExpiryTimeout < DateTimeOffset.UtcNow
+				&& !OccupiesParallelizationSlot(round, _config.RoundParallelizationOffset))
+			.ToArray();
+
+		foreach (var expiredRound in expiredRounds)
 		{
 			Rounds.Remove(expiredRound);
 		}

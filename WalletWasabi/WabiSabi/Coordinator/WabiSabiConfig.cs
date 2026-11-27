@@ -67,6 +67,7 @@ public record WabiSabiConfig
 
 	public TimeSpan FailFastTransactionSigningTimeout { get; init; } = TimeSpan.FromMinutes(1);
 
+	/// <summary>Base expiration time interval after which a round in <see cref="Phase.Ended"/> is removed from memory.</summary>
 	public TimeSpan RoundExpiryTimeout { get; init; } = TimeSpan.FromMinutes(5);
 
 	public int MaxInputCountByRound { get; init; } = 100;
@@ -85,7 +86,19 @@ public record WabiSabiConfig
 
 	public int CoordinatorExtPubKeyCurrentDepth { get; set; } = 1;
 
+	/// <summary>Number of rounds that can take place in parallel.</summary>
+	/// <remarks><see cref="BlameRound"/> are exempted.</remarks>
 	public int RoundParallelization { get; init; } = 1;
+
+	/// <summary>
+	/// Controls when a new round can be started in parallel (<see cref="RoundParallelization"/>), relative to the end of the previous round's input registration phase.
+	/// </summary>
+	/// <remarks>
+	/// Positive values mean: The new round starts this long <b>before</b> the previous input registration ends (rounds overlap).
+	/// Zero means: The new round starts when the previous input registration ends.
+	/// Negative values mean: The new round starts this long <b>after</b> the previous input registration ended (rounds are spread out).
+	/// </remarks>
+	public TimeSpan RoundParallelizationOffset { get; init; } = TimeSpan.FromMinutes(1);
 
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
@@ -177,7 +190,14 @@ public record WabiSabiConfig
 			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
 			var decoder = JsonDecoder.FromStream(Decode.WabiSabiConfig(filePath));
 			var decodingResult = decoder(cfgFile);
-			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
+			var config = decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
+
+			if (config.RoundParallelizationOffset >= config.StandardInputRegistrationTimeout)
+			{
+				throw new InvalidOperationException($"{nameof(RoundParallelizationOffset)} must be shorter than {nameof(StandardInputRegistrationTimeout)}.");
+			}
+
+			return config;
 		}
 		catch (Exception ex)
 		{
