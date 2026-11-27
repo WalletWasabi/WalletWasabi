@@ -488,7 +488,7 @@ public class AllTransactionStoreTests
 		// Reorgs most recent block.
 		Assert.NotNull(tipHash);
 		reorgedTxs = txStore.ReleaseToMempoolFromBlock(tipHash!);
-		Assert.Equal(3, reorgedTxs.Count);
+		Assert.Equal(3, reorgedTxs.Length);
 		Assert.All(reorgedTxs, tx => Assert.False(tx?.Confirmed));
 		Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
 

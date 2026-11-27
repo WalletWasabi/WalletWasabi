@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
@@ -245,7 +246,7 @@ public class CoinJoinClientTests
 		var txOuts = OutputProvider.GetTxOuts(outputs, destinationProvider);
 
 		// All the outputs were generated.
-		Assert.Equal(txOuts.Count(), outputs.Length);
+		Assert.Equal(txOuts.Count, outputs.Length);
 
 		// No address reuse.
 		Assert.Distinct(txOuts.Select(x => x.ScriptPubKey));
