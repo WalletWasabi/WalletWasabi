@@ -52,6 +52,10 @@ public class CoinJoinManager : BackgroundService
 	private readonly MailboxProcessor<CoinJoinCommand> _mailboxProcessor;
 	private readonly CancellationTokenSource _stopCts = new();
 
+	/// <summary>Wallets that wait for another coinjoin with the same output wallet, in the order in which they started to wait.</summary>
+	/// <remarks>Only the handlers of the coinjoin commands use it.</remarks>
+	private readonly List<WalletId> _walletsWaitingForOutputWallet = [];
+
 	public CoinJoinClientState HighestCoinJoinClientState => _state.CoinJoinClientStates.Values.Any()
 		? _state.CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
@@ -176,6 +180,29 @@ public class CoinJoinManager : BackgroundService
 			return;
 		}
 
+		// Coinjoins that send their outputs to the same wallet get the same scripts from it, so they run one at a time,
+		// in the order in which they started to wait.
+		var outputWalletId = startCommand.OutputWallet.WalletId;
+		var isOutputWalletBusy = _state.TrackedCoinJoins.Values.Any(x => x.OutputWallet.WalletId == outputWalletId);
+		var isAnotherWalletFirst = _walletsWaitingForOutputWallet
+			.TakeWhile(x => x != walletToStart.WalletId)
+			.Any(x => _state.TrackedAutoStarts.TryGetValue(x, out var autoStart) && autoStart.OutputWallet.WalletId == outputWalletId);
+
+		if (isOutputWalletBusy || isAnotherWalletFirst)
+		{
+			if (!_walletsWaitingForOutputWallet.Contains(walletToStart.WalletId))
+			{
+				_walletsWaitingForOutputWallet.Add(walletToStart.WalletId);
+			}
+
+			Logger.LogDebug(FormatLog($"Cannot start coinjoin, because another coinjoin into wallet '{startCommand.OutputWallet.WalletName}' goes first. Trying again later.", walletToStart));
+			ScheduleRestartAutomatically(walletToStart, _state.TrackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, startCommand.OutputWallet, _stopCts.Token);
+			NotifyCoinJoinStartError(walletToStart, CoinjoinError.OutputWalletBusy);
+			return;
+		}
+
+		_walletsWaitingForOutputWallet.Remove(walletToStart.WalletId);
+
 		IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
 		{
 			if (_state.WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
@@ -254,6 +281,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var walletToStop = stopCommand.Wallet;
 
+		_walletsWaitingForOutputWallet.Remove(walletToStop.WalletId);
 		var autoStartRemoved = TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStop);
 
 		if (_state.TrackedCoinJoins.TryGetValue(walletToStop.WalletId, out var coinJoinTrackerToStop))
