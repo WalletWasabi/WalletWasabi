@@ -29,10 +29,10 @@ public abstract record Destination
 
 	public record Silent(SilentPaymentAddress Address) : Destination
 	{
-		public Script FakeScriptPubKey =>
-			new PubKey(Address.ScanKey.AddTweak(Address.SpendKey.ToXOnlyPubKey().ToBytes()).ToBytes()).GetScriptPubKey(
-				ScriptPubKeyType.TaprootBIP86);
-	};
+		public Script FakeScriptPubKey { get; } =
+			new PubKey(Address.ScanKey.AddTweak(Address.SpendKey.ToXOnlyPubKey().ToBytes()).ToBytes())
+				.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86);
+	}
 }
 
 public class DestinationRequest(Destination destination, MoneyRequest amount, LabelsArray? labels = null)

@@ -966,6 +966,83 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
+	public void MultipleSilentPaymentOutputsAreNotMerged()
+	{
+		// Verify that:
+		// 1. Paying to two DIFFERENT silent payment addresses creates two separate outputs
+		// 2. Paying twice to the SAME silent payment address also creates two separate outputs
+		//    (with different script pub keys due to k=0 vs k=1 derivation)
+		// 3. Fee percentage is calculated against ALL silent payment outputs, not just the first
+		// This was a bug when using a shared placeholder script - NBitcoin's MergeOutputs would collapse them.
+
+		var mnemonic =
+			new Mnemonic("lizard include drift struggle blind impose meadow before tilt leopard abstract valid");
+		var keyManager = ServiceFactory.CreateKeyManager("password", mnemonic: mnemonic);
+
+		// Generates a pubkey to receive funds (3 BTC)
+		var pubkey = keyManager.GetNextReceiveKey(LabelsArray.Empty);
+		var creditingTx = CreateCreditingTransaction(pubkey.GetAssumedScriptPubKey(), Money.Coins(3));
+
+		// Configure a TransactionFactory to use the only UTXO available
+		var coinsView = new CoinsView([
+			new SmartCoin(creditingTx, 0, pubkey)
+		]);
+		using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, "password");
+
+		// Create two different silent payment addresses
+		using var scanKey1 = ECPrivKey.Create(Encoders.Hex.DecodeData("7e3a1d4b5f8e2c9a0f6b4d3e9a1f0c8b7e5d2a3c4f6e8b7a9d0c1f2e3a4b5d61"));
+		using var spendKey1 = ECPrivKey.Create(Encoders.Hex.DecodeData("3f9a7d2c6b8e1a4f5d0c2e7b9f3a6d4c1b0e8f7a9d5c2b4e7f6a3c9b0d1f8e22"));
+		var silentPaymentAddress1 = new SilentPaymentAddress(0, scanKey1.CreatePubKey(), spendKey1.CreatePubKey());
+
+		using var scanKey2 = ECPrivKey.Create(Encoders.Hex.DecodeData("1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"));
+		using var spendKey2 = ECPrivKey.Create(Encoders.Hex.DecodeData("2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c"));
+		var silentPaymentAddress2 = new SilentPaymentAddress(0, scanKey2.CreatePubKey(), spendKey2.CreatePubKey());
+
+		// Verify the addresses are different
+		Assert.NotEqual(silentPaymentAddress1, silentPaymentAddress2);
+
+		// Build a transaction with:
+		// - Two outputs to address1 (0.5 BTC and 0.6 BTC) - tests same-address non-merging
+		// - One output to address2 (0.7 BTC) - tests different-address non-merging
+		// Total sent: 1.8 BTC
+		var payment = new PaymentIntent([
+			new DestinationRequest(silentPaymentAddress1, MoneyRequest.Create(Money.Coins(0.5m))),
+			new DestinationRequest(silentPaymentAddress1, MoneyRequest.Create(Money.Coins(0.6m))),
+			new DestinationRequest(silentPaymentAddress2, MoneyRequest.Create(Money.Coins(0.7m)))
+		]);
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(12m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
+
+		// Verify we have THREE separate outer wallet outputs (not merged)
+		Assert.Equal(3, result.OuterWalletOutputs.Count());
+
+		var outputs = result.OuterWalletOutputs.ToArray();
+		var output1a = outputs.First(o => o.Amount == Money.Coins(0.5m));
+		var output1b = outputs.First(o => o.Amount == Money.Coins(0.6m));
+		var output2 = outputs.First(o => o.Amount == Money.Coins(0.7m));
+
+		// Verify ALL outputs have different script pub keys
+		// (even the two outputs to the same address should differ due to k=0 vs k=1)
+		Assert.NotEqual(output1a.ScriptPubKey, output1b.ScriptPubKey);
+		Assert.NotEqual(output1a.ScriptPubKey, output2.ScriptPubKey);
+		Assert.NotEqual(output1b.ScriptPubKey, output2.ScriptPubKey);
+
+		// Verify all are taproot outputs (silent payments produce taproot)
+		Assert.True(output1a.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+		Assert.True(output1b.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+		Assert.True(output2.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+
+		// Verify fee percentage is calculated against ALL outputs (1.8 BTC total), not just the first (0.5 BTC).
+		// Before the fix, fee would be divided by 0.5 BTC only, giving ~3.6x higher percentage.
+		// With a ~2000 sat fee and 1.8 BTC sent, fee percentage should be tiny (< 0.01%).
+		var totalSent = Money.Coins(0.5m + 0.6m + 0.7m);
+		var expectedFeePercent = 100m * result.Fee.ToDecimal(MoneyUnit.BTC) / totalSent.ToDecimal(MoneyUnit.BTC);
+		Assert.Equal(expectedFeePercent, result.FeePercentOfSent, precision: 4);
+		Assert.True(result.FeePercentOfSent < 0.01m, $"Fee percentage {result.FeePercentOfSent}% is too high - suggests not all outputs were counted");
+	}
+
+	[Fact]
 	public void RealMainNetTransaction()
 	{
 		var mnemonic = new Mnemonic("bargain pumpkin blouse crush invest control radar install alien same shield grain");
