@@ -4,8 +4,8 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   outputs = { self, nixpkgs }:
     let
-        pkgs = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.13-ecdsa-0.19.1"]; };
-        pkgsUnfree = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.13-ecdsa-0.19.1"]; config.allowUnfree = true; };
+        pkgs = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.14-ecdsa-0.19.2"]; };
+        pkgsUnfree = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.14-ecdsa-0.19.2"]; config.allowUnfree = true; };
         deployScript = pkgs.writeScriptBin "deploy" (builtins.readFile ./Contrib/deploy.sh);
         gitRev = if (builtins.hasAttr "rev" self) then self.rev else "dirty";
         buildWasabiModule = pkgs.buildDotnetModule {
@@ -13,8 +13,8 @@
           version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${gitRev}";
           nugetDeps = ./deps.json; # nix build .#packages.x86_64-linux.all.passthru.fetch-deps
           dotnetFlags = [ "-p:CommitHash=${gitRev}"];
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
-          dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_10_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_11_0;
+          dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_11_0;
 
           src = ./.;
         };
@@ -114,7 +114,7 @@
           nugetName = "dotnet-trace";
           version = "8.0.510501";
           nugetSha256 = "sha256-Kt5x8n5Q0T+BaTVufhsyjXbi/BlGKidb97DWSbI6Iq8=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_11_0;
         };
         # dotnet dump
         dotnet-dump = pkgs.buildDotnetGlobalTool {
@@ -122,7 +122,7 @@
           nugetName = "dotnet-dump";
           version = "8.0.510501";
           nugetSha256 = "sha256-H7Z4EA/9G3DvVuXbnQJF7IJMEB2SkzRjTAL3eZMqCpI=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_11_0;
         };
         # dotnet counters
         dotnet-counters = pkgs.buildDotnetGlobalTool {
@@ -130,7 +130,7 @@
           nugetName = "dotnet-counters";
           version = "8.0.510501";
           nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_11_0;
         };
         # dotnet gcdump
         dotnet-gcdump = pkgs.buildDotnetGlobalTool {
@@ -138,7 +138,7 @@
           nugetName = "dotnet-gcdump";
           version = "8.0.510501";
           nugetSha256 = "sha256-y10InQA1sAvFYrRe+7I2+txKOvu1qQ1ii/7DnXvipxM=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_11_0;
         };
 
         wasabi-shell =
@@ -152,13 +152,13 @@
               pkgs.zlib
               fontconfig.lib
             ];
-            skiaSharp=toString ./. + "/WalletWasabi.Fluent.Desktop/bin/Debug/net10.0/runtimes/linux-x64/native";
+            skiaSharp=toString ./. + "/WalletWasabi.Fluent.Desktop/bin/Debug/net11.0/runtimes/linux-x64/native";
           };
           pkgs.mkShell {
             name = "wasabi-shell";
             buildInputs = libs;
             packages = [
-              pkgs.dotnetCorePackages.sdk_10_0
+              pkgs.dotnetCorePackages.sdk_11_0
 
               # tools
               dotnet-trace
@@ -182,7 +182,7 @@
             DOTNET_CLI_TELEMETRY_OPTOUT = 1;
             AVALONIA_TELEMETRY_OPTOUT=1;
             DOTNET_NOLOGO = 1;
-            DOTNET_ROOT = "${pkgs.dotnetCorePackages.sdk_10_0}";
+            DOTNET_ROOT = "${pkgs.dotnetCorePackages.sdk_11_0}";
             DOTNET_GLOBAL_TOOLS_PATH = "${builtins.getEnv "HOME"}/.dotnet/tools";
             #DOTNET_ROLL_FORWARD = "latestPatch";
             LD_LIBRARY_PATH = "${skiaSharp};${pkgs.lib.makeLibraryPath libs}";

@@ -273,7 +273,7 @@ public class Global
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
 		IDnsResolver dnsResolver = torEndpoint is not null
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
-			: DnsResolver.Instance;
+			: NBitcoin.Protocol.DnsResolver.Instance;
 
 		var manager = new P2pConnectionManager(Network, EventBus, dnsResolver, connectionTimeout: TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 
