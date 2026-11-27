@@ -14,6 +14,6 @@ public record TransactionParameters(
 	FeeRate FeeRate,
 	bool AllowUnconfirmed,
 	bool AllowDoubleSpend,
-	IReadOnlyList<OutPoint>? AllowedInputs,
+	ImmutableArray<OutPoint>? AllowedInputs,
 	bool TryToSign,
 	bool OverrideFeeOverpaymentProtection);

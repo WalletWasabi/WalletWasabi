@@ -38,7 +38,7 @@ public static class TransactionBuilderWalletExtensions
 			FeeRate: feeRate,
 			AllowUnconfirmed: allowUnconfirmed,
 			AllowDoubleSpend: allowDoubleSpend,
-			AllowedInputs: allowedInputs?.ToArray(),
+			AllowedInputs: allowedInputs?.ToImmutableArray(),
 			TryToSign: tryToSign,
 			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 

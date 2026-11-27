@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -12,7 +13,7 @@ public class TransactionParametersBuilder
 		FeeRate? feeRate = null,
 		bool allowUnconfirmed = false,
 		bool allowDoubleSpend = false,
-		IReadOnlyList<OutPoint>? allowedInputs = null,
+		ImmutableArray<OutPoint>? allowedInputs = null,
 		bool tryToSign = true,
 		bool overrideFeeProtection = false)
 	{
@@ -29,7 +30,7 @@ public class TransactionParametersBuilder
 	private FeeRate? FeeRate { get; set; }
 	private bool AllowUnconfirmed { get; set; }
 	private bool AllowDoubleSpend { get; set; }
-	private IReadOnlyList<OutPoint>? AllowedInputs { get; set; }
+	private ImmutableArray<OutPoint>? AllowedInputs { get; set; }
 	private bool TryToSign { get; set; }
 	private bool OverrideFeeProtection { get; set; }
 
@@ -57,7 +58,7 @@ public class TransactionParametersBuilder
 		return this;
 	}
 
-	public TransactionParametersBuilder SetAllowedInputs(IReadOnlyList<OutPoint>? inputs)
+	public TransactionParametersBuilder SetAllowedInputs(ImmutableArray<OutPoint>? inputs)
 	{
 		AllowedInputs = inputs;
 		return this;

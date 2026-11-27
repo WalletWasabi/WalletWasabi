@@ -469,7 +469,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToArray())
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 		var result = transactionFactory.BuildTransaction(txParameters);
 
@@ -505,7 +505,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToArray())
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 		var result = transactionFactory.BuildTransaction(txParameters);
 
@@ -543,7 +543,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToArray())
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 
 		var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(txParameters));
@@ -575,7 +575,7 @@ public class TransactionFactoryTests
 		{
 			coins.Single(x => x.Amount == Money.Coins(0.08m)).Outpoint,
 			coins.Single(x => x.Amount == Money.Coins(0.02m)).Outpoint
-		}.ToArray();
+		}.ToImmutableArray();
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)

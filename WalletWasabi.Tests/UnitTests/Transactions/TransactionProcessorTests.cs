@@ -328,8 +328,8 @@ public class TransactionProcessorTests
 		// Transaction store assertions
 		Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
-		Assert.Single(mempool);
-		Assert.Equal(tx0, mempool.First());
+		var mempoolTx = Assert.Single(mempool);
+		Assert.Equal(tx0, mempoolTx);
 	}
 
 	[Fact]
