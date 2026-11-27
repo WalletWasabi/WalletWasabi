@@ -60,10 +60,10 @@ public class Round
 
 	public Phase Phase { get; private set; } = Phase.InputRegistration;
 	public TimeFrame InputRegistrationTimeFrame { get; internal set; }
-	public DateTimeOffset? InputRegistrationEnd { get; private set; }
 	public TimeFrame ConnectionConfirmationTimeFrame { get; private set; }
 	public TimeFrame OutputRegistrationTimeFrame { get; set; }
 	public TimeFrame TransactionSigningTimeFrame { get; set; }
+	public DateTimeOffset? InputRegistrationEnd { get; private set; }
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
 	public int RemainingInputVsizeAllocation => Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
