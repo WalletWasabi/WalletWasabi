@@ -170,20 +170,12 @@ public class CoinJoinClient
 
 			if (myCoins.IsEmpty)
 			{
-				excludeRound = currentRoundState.Id;
-				Logger.LogInfo(FormatLog("Skipping the round since none of the wallet's coins is suitable for it.", currentRoundState));
-
-				continue;
+				throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"None of the wallet's {coinCandidates.Length} coins ({Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC) is suitable for the round.");
 			}
 
 			break;
 		}
 		while (!cancellationToken.IsCancellationRequested);
-
-		if (myCoins.IsEmpty)
-		{
-			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"Stopped looking for a suitable round. No coin was selected from '{coinCandidates.Length}' number of coins, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
-		}
 
 		IRoundRestrictions roundRestrictions = UnrestrictedRound.Instance;
 
