@@ -37,7 +37,7 @@ public class OutputProvider
 		return GetTxOuts(outputValues, DestinationProvider);
 	}
 
-	internal static IEnumerable<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
+	internal static List<TxOut> GetTxOuts(IEnumerable<Output> outputValues, IDestinationProvider destinationProvider)
 	{
 		// Get as many destinations as outputs we need.
 		var taprootOutputCount = outputValues.Count(output => output.ScriptType is ScriptType.Taproot);

@@ -17,7 +17,7 @@ public class InternalDestinationProvider : IDestinationProvider
 		// Get all locked internal keys we have and assert we have enough.
 		_keyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
 
-		var allKeys = _keyManager.GetNextCoinJoinKeys().ToList();
+		var allKeys = _keyManager.GetNextCoinJoinKeys();
 		var taprootKeys = allKeys
 			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86)
 			.ToList();
@@ -32,7 +32,7 @@ public class InternalDestinationProvider : IDestinationProvider
 		return destinations.Select(x => x.GetAddress(_keyManager.GetNetwork()));
 	}
 
-	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableArray<Script> scripts)
 	{
 		foreach (var hdPubKey in _keyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{

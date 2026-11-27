@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -52,7 +51,7 @@ public class CoinJoinCoinSelector
 		if (filteredCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
-			return ImmutableList<SmartCoin>.Empty;
+			return [];
 		}
 
 		var privateCoins = filteredCoins
@@ -70,7 +69,7 @@ public class CoinJoinCoinSelector
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
-			return ImmutableList<SmartCoin>.Empty;
+			return [];
 		}
 
 		Logger.LogDebug($"Coin selection started:");
@@ -157,8 +156,8 @@ public class CoinJoinCoinSelector
 
 		if (groups.Count == 0)
 		{
-			Logger.LogDebug($"Couldn't create any combinations, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			Logger.LogDebug("Couldn't create any combinations, ending.");
+			return [];
 		}
 		Logger.LogDebug($"Created {groups.Count} combinations within {(int)sw1.Elapsed.TotalSeconds} seconds.");
 
@@ -183,8 +182,8 @@ public class CoinJoinCoinSelector
 		}
 		if (selectedNonPrivateCoin is null)
 		{
-			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			Logger.LogDebug("Couldn't select largest non-private coin, ending.");
+			return [];
 		}
 		Logger.LogDebug($"Randomly selected large non-private coin: {selectedNonPrivateCoin.Amount.ToString(false, true)}.");
 
@@ -193,8 +192,8 @@ public class CoinJoinCoinSelector
 			.RandomElement(Rnd);
 		if (finalCandidate is null)
 		{
-			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
-			return ImmutableList<SmartCoin>.Empty;
+			Logger.LogDebug("Couldn't select final selection candidate, ending.");
+			return [];
 		}
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 

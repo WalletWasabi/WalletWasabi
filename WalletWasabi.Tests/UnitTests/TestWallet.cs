@@ -116,7 +116,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return psbt;
 	}
 
-	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableArray<Script> scripts)
 	{
 		// Test wallet doesn't care
 	}

@@ -238,8 +238,8 @@ public class TransactionFactory
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
 
-			var checkResults = builder.Check(tx).ToList();
-			if (checkResults.Count > 0)
+			var checkResults = builder.Check(tx).ToImmutableArray();
+			if (checkResults.Length > 0)
 			{
 				Logger.LogDebug($"Found policy error(s)! First error: '{checkResults[0]}'.");
 				throw new InvalidTxException(tx, checkResults);
