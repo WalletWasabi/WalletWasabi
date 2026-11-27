@@ -146,7 +146,7 @@ public class TransactionProcessorTests
 		var tx3 = CreateSpendingTransaction(coinToSpend, BitcoinFactory.CreateScript(), keyManager: transactionProcessor.KeyManager);
 		var blockHeight2 = new Height.ChainHeight.ChainHeight(77552);
 		var tx4 = new SmartTransaction(tx3.Transaction, blockHeight2);
-		var results = transactionProcessor.Process(tx1, tx2, tx3, tx4).ToArray();
+		var results = transactionProcessor.Process([tx1, tx2, tx3, tx4]).ToArray();
 		var res1 = results[0];
 		var res2 = results[1];
 		var res3 = results[2];
@@ -292,7 +292,7 @@ public class TransactionProcessorTests
 
 		// Spend the same coin again (signed to pass signature check)
 		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey(), keyManager: transactionProcessor.KeyManager);
-		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
+		var relevant = transactionProcessor.Process([tx0, tx1, tx2]).Last();
 
 		Assert.True(relevant.IsNews);
 		Assert.Single(transactionProcessor.Coins, coin => !coin.IsSpent());
@@ -318,7 +318,7 @@ public class TransactionProcessorTests
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
 
 		// Spend the same coin again
-		var relevant = transactionProcessor.Process(tx0, tx0).ToArray();
+		var relevant = transactionProcessor.Process([tx0, tx0]).ToArray();
 
 		Assert.Equal(2, relevant.Length);
 		Assert.True(relevant[0].IsNews);
@@ -387,7 +387,7 @@ public class TransactionProcessorTests
 
 		// Spend the coin
 		var tx2 = CreateSpendingTransaction(createdCoin, keys[2].GetAssumedScriptPubKey(), height: 54321);
-		var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
+		var relevant = transactionProcessor.Process([tx0, tx1, tx2]).Last();
 		Assert.Equal(1, doubleSpendReceived);
 
 		Assert.True(relevant.IsNews);
@@ -451,7 +451,7 @@ public class TransactionProcessorTests
 		tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
 		tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
 		SignSmartTransaction(tx1, [createdCoin], transactionProcessor.KeyManager);
-		var relevant1 = transactionProcessor.Process(tx0, tx1).Last();
+		var relevant1 = transactionProcessor.Process([tx0, tx1]).Last();
 		Assert.True(relevant1.IsNews);
 		Assert.Equal(0, replaceTransactionReceivedCalled);
 
@@ -624,7 +624,7 @@ public class TransactionProcessorTests
 
 		// A confirmed segwit transaction for us
 		var tx1 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
-		var results = transactionProcessor.Process(tx1, tx1).ToArray();
+		var results = transactionProcessor.Process([tx1, tx1]).ToArray();
 		var res1 = results[0];
 		var res2a = results[1];
 
@@ -699,7 +699,7 @@ public class TransactionProcessorTests
 
 		// Another confirmed segwit transaction for us
 		var tx1 = CreateCreditingTransaction(NewScript("B"), Money.Coins(1.0m), height: 54321);
-		transactionProcessor.Process(tx0, tx1);
+		transactionProcessor.Process([tx0, tx1]);
 
 		var createdCoins = transactionProcessor.Coins.Select(x => x.Coin).ToArray(); // 2 coins of 1.0 btc each
 
@@ -713,7 +713,7 @@ public class TransactionProcessorTests
 		// Another confirmed segwit transaction for us
 		var tx3 = CreateCreditingTransaction(NewScript("C"), Money.Coins(1.0m), height: 54322);
 
-		var relevant1 = transactionProcessor.Process(tx2, tx3).First();
+		var relevant1 = transactionProcessor.Process([tx2, tx3]).First();
 		Assert.True(relevant1.IsNews);
 
 		// At this moment we have one 1.2btc and one 0.8btc replaceable coins and one 1.0btc final coin

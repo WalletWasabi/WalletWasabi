@@ -48,9 +48,6 @@ public class TransactionProcessor(
 		return results;
 	}
 
-	public IReadOnlyList<ProcessedResult> Process(params SmartTransaction[] txs)
-		=> Process(txs as IReadOnlyList<SmartTransaction>);
-
 	/// <summary>
 	/// Was the transaction already processed by the transaction processor?
 	/// </summary>
