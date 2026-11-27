@@ -12,27 +12,22 @@ public class InternalDestinationProvider : IDestinationProvider
 
 	private readonly KeyManager _keyManager;
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot)
+	public ImmutableArray<IDestination> GetNextDestinations(int count, bool preferTaproot)
 	{
 		// Get all locked internal keys we have and assert we have enough.
 		_keyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
 
 		var allKeys = _keyManager.GetNextCoinJoinKeys();
-		var taprootKeys = allKeys
-			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86)
-			.ToList();
+		var taprootKeys = allKeys.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86);
 
-		var segwitKeys = allKeys
-			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit)
-			.ToList();
-
-		var destinations = preferTaproot && taprootKeys.Count >= count
+		var destinations = preferTaproot && taprootKeys.Count() >= count
 			? taprootKeys
-			: segwitKeys;
-		return destinations.Select(x => x.GetAddress(_keyManager.GetNetwork()));
+			: allKeys.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit);
+
+		return destinations.Select(x => (IDestination)x.GetAddress(_keyManager.GetNetwork())).ToImmutableArray();
 	}
 
-	public void TrySetScriptStates(KeyState state, ImmutableArray<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
 	{
 		foreach (var hdPubKey in _keyManager.GetKeys(key => scripts.Any(key.ContainsScript)))
 		{
