@@ -152,7 +152,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				_keyManager.SetMaxBestHeight(newBestHeight);
 				_transactionProcessor.UndoBlock(invalidBlockHeight);
-				_transactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
+				_ = _transactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				_blockFilterIterator.RemoveNewerThan(newBestHeight);
 			}
 		}

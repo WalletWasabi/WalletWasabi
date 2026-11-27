@@ -168,11 +168,12 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 		}
 	}
 
-	public IReadOnlyList<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
+	public ImmutableArray<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 	{
 		lock (_lock)
 		{
-			List<SmartTransaction> reorgedTxs = new();
+			var reorgedTxs = ImmutableArray.CreateBuilder<SmartTransaction>();
+
 			foreach (var txHash in ConfirmedStore
 				.GetTransactions()
 				.Where(tx => tx.BlockHash == blockHash)
@@ -192,7 +193,8 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 					}
 				}
 			}
-			return reorgedTxs;
+
+			return reorgedTxs.ToImmutable();
 		}
 	}
 
