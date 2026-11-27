@@ -70,15 +70,6 @@ public record WabiSabiConfig
 	/// <summary>Base expiration time interval after which a round in <see cref="Phase.Ended"/> is removed from memory.</summary>
 	public TimeSpan RoundExpiryTimeout { get; init; } = TimeSpan.FromMinutes(5);
 
-	/// <summary>Effective expiration time interval which a round in <see cref="Phase.Ended"/> is removed from memory.</summary>
-	/// <remarks>
-	/// When <see cref="RoundParallelizationOffset"/> is negative, then a round is kept in memory for specified time period to
-	/// avoid starting a new round too soon.
-	/// </remarks>
-	public TimeSpan EffectiveRoundExpiryTimeout => RoundParallelizationOffset >= TimeSpan.Zero
-		? RoundExpiryTimeout
-		: TimeSpan.FromTicks(Math.Max(RoundExpiryTimeout.Ticks, -RoundParallelizationOffset.Ticks)) + TimeSpan.FromMinutes(1); // +1 minute as a cushion.
-
 	public int MaxInputCountByRound { get; init; } = 100;
 
 	public double MinInputCountByRoundMultiplier { get; init; } = 0.5;

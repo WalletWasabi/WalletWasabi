@@ -467,7 +467,9 @@ public partial class Arena : PeriodicRunner
 	private void TimeoutRounds()
 	{
 		var expiredRounds = Rounds
-			.Where(round => round.Phase == Phase.Ended && round.End + _config.EffectiveRoundExpiryTimeout < DateTimeOffset.UtcNow)
+			.Where(round => round.Phase == Phase.Ended
+				&& round.End + _config.RoundExpiryTimeout < DateTimeOffset.UtcNow
+				&& !OccupiesParallelizationSlot(round, _config.RoundParallelizationOffset))
 			.ToArray();
 
 		foreach (var expiredRound in expiredRounds)
