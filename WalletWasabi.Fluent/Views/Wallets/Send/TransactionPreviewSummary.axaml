@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="send:TransactionSummaryViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionSummary">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewSummary">
   <UserControl.Resources>
     <converters:DiffToBrushConverter x:Key="InvertedDiffConverter"
                                      PositiveBrush="{StaticResource UncertainBrush}"
@@ -122,7 +122,6 @@
 
     <Separator />
 
-    <!-- Fee and confirmation time -->
     <DockPanel>
       <Button Classes="plain"
               Command="{Binding Parent.AdjustFeeCommand}"
@@ -138,16 +137,20 @@
       </Button>
 
       <StackPanel Spacing="10">
+
+        <!-- Confirmation time -->
         <PreviewItem Icon="{StaticResource timer_regular}"
-                       Label="Expected confirmation time"
-                       IsVisible="{Binding !IsCustomFeeUsed}"
-                       Classes.Dimmed="{Binding IsPreview}"
-                       ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
+                     Label="Expected confirmation time"
+                     IsVisible="{Binding !IsCustomFeeUsed}"
+                     Classes.Dimmed="{Binding IsPreview}"
+                     ToolTip.Tip="This is just an estimation based on some data for transactions and blocks. The confirmation time might change.">
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static converters:TimeSpanConverter.ToEstimatedConfirmationTime}, FallbackValue=~20 minutes}" />
         </PreviewItem>
+
+        <!-- Fee -->
         <PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Label="Fee"
-                       CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
+                     Label="Fee"
+                     CopyableContent="{Binding Fee.Btc, Converter={x:Static converters:MoneyConverters.ToFeeWithoutUnit}}">
           <StackPanel Orientation="Horizontal">
             <AmountControl Classes="WithFiat" Amount="{Binding Fee}" />
             <TextBlock Margin="8 0" FontWeight="Bold" Foreground="{Binding FeeDiff, Converter={StaticResource InvertedDiffConverter}}" IsVisible="{Binding !!FeeDiff}" VerticalAlignment="Bottom" Text="{Binding FeeDiff, Converter={x:Static converters:MoneyConverters.PercentageDifferenceConverter}}" />
@@ -161,11 +164,17 @@
           </Classes.Dimmed>
         </PreviewItem>
 
-        <!-- Fee Rate-->
+        <!-- Fee Rate -->
         <PreviewItem Icon="{StaticResource paper_cash_regular}"
                      Label="Fee Rate"
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
          <TextBlock Text="{Binding FeeRate.SatoshiPerByte, Mode=OneWay, Converter={x:Static converters:FeeRateConverters.FeeRateConverter}}" />
+        </PreviewItem>
+
+        <!-- Transaction Hex -->
+        <Separator />
+        <PreviewItem Icon="{StaticResource binary_file}" Label="Transaction Hex">
+          <Button Classes="activeHyperLink" Content="Copy" Command="{Binding Parent.CopyTransactionHexCommand}" />
         </PreviewItem>
       </StackPanel>
     </DockPanel>

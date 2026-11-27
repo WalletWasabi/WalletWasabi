@@ -1,6 +1,6 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Extensions;
@@ -14,9 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionInfo _info;
 	private BuildTransactionResult? _transaction;
-	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string _feeText = "";
 	[AutoNotify] private bool _isCustomFeeUsed;
@@ -36,18 +34,14 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		Parent = parent;
 		_wallet = wallet;
-		_info = info;
 		IsPreview = isPreview;
 		IsPayToMany = info.IsPayToMany;
 		AddressText = info.Destination.ToString(_wallet.Network);
 	}
 
 	public TransactionPreviewViewModel Parent { get; }
-
 	public bool IsPreview { get; }
-
 	public string AddressText { get; }
-
 	public bool IsPayToMany { get; }
 
 	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
