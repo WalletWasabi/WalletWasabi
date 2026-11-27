@@ -18,13 +18,16 @@ public class InternalDestinationProvider : IDestinationProvider
 		_keyManager.AssertLockedInternalKeysIndexedAndPersist(count, preferTaproot);
 
 		var allKeys = _keyManager.GetNextCoinJoinKeys();
-		var taprootKeys = allKeys.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86);
+		var network = _keyManager.GetNetwork();
 
-		var destinations = preferTaproot && taprootKeys.Count() >= count
-			? taprootKeys
-			: allKeys.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit);
+		var scriptType = preferTaproot && allKeys.Count(k => k.IsTaproot()) >= count
+			? ScriptPubKeyType.TaprootBIP86
+			: ScriptPubKeyType.Segwit;
 
-		return destinations.Select(x => (IDestination)x.GetAddress(_keyManager.GetNetwork())).ToImmutableArray();
+		return allKeys
+			.Where(x => x.FullKeyPath.GetScriptTypeFromKeyPath() == scriptType)
+			.Select(x => (IDestination)x.GetAddress(network))
+			.ToImmutableArray();
 	}
 
 	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
