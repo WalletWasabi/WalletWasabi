@@ -135,19 +135,19 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 	}
 
 	/// <returns>Transactions ordered by blockchain.</returns>
-	public IReadOnlyList<SmartTransaction> GetTransactions()
+	public ImmutableArray<SmartTransaction> GetTransactions()
 	{
 		lock (_lock)
 		{
-			return ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions()).OrderByBlockchain().ToList();
+			return ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions()).OrderByBlockchain().ToImmutableArray();
 		}
 	}
 
-	internal IReadOnlyList<uint256> GetTransactionHashes()
+	internal ImmutableArray<uint256> GetTransactionHashes()
 	{
 		lock (_lock)
 		{
-			return ConfirmedStore.GetTransactionHashes().Concat(MempoolStore.GetTransactionHashes()).ToList();
+			return ConfirmedStore.GetTransactionHashes().Concat(MempoolStore.GetTransactionHashes()).ToImmutableArray();
 		}
 	}
 

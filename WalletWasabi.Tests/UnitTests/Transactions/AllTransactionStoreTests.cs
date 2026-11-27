@@ -213,8 +213,8 @@ public class AllTransactionStoreTests
 		txStore.AddOrUpdate(cTx2);
 		txStore.AddOrUpdate(cTx3);
 
-		Assert.Equal(6, txStore.GetTransactions().Count);
-		Assert.Equal(6, txStore.GetTransactionHashes().Count);
+		Assert.Equal(6, txStore.GetTransactions().Length);
+		Assert.Equal(6, txStore.GetTransactionHashes().Length);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactions().Count);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactionHashes().Count);
 		Assert.Equal(3, txStore.ConfirmedStore.GetTransactions().Count);
@@ -263,8 +263,8 @@ public class AllTransactionStoreTests
 		txStore.AddOrUpdate(cTx3);
 		txStore.AddOrUpdate(cTx3); // Duplicate.
 
-		Assert.Equal(6, txStore.GetTransactions().Count);
-		Assert.Equal(6, txStore.GetTransactionHashes().Count);
+		Assert.Equal(6, txStore.GetTransactions().Length);
+		Assert.Equal(6, txStore.GetTransactionHashes().Length);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactions().Count);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactionHashes().Count);
 		Assert.Equal(3, txStore.ConfirmedStore.GetTransactions().Count);
@@ -475,8 +475,8 @@ public class AllTransactionStoreTests
 		}
 
 		var storedTxs = txStore.GetTransactions();
-		Assert.Equal(blocks * transactionsPerBlock, storedTxs.Count);
-		var newestConfirmedTx = storedTxs[storedTxs.Count - 1];
+		Assert.Equal(blocks * transactionsPerBlock, storedTxs.Length);
+		var newestConfirmedTx = storedTxs[^1];
 		var tipHeight = blocks;
 		var tipHash = newestConfirmedTx.BlockHash;
 		Assert.Equal(tipHeight, newestConfirmedTx.Height is Height.ChainHeight(var h) ? (int)h : 0);
