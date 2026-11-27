@@ -13,7 +13,7 @@ using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
-public delegate Task<IReadOnlyList<Wallet>> WalletProvider();
+public delegate ImmutableArray<Wallet> WalletProvider();
 
 public class CoinJoinManager : BackgroundService
 {
@@ -27,7 +27,7 @@ public class CoinJoinManager : BackgroundService
 		EventBus eventBus)
 	{
 		_state = new();
-		_getWalletsAsync = getWallets;
+		_getWallets = getWallets;
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
@@ -41,7 +41,7 @@ public class CoinJoinManager : BackgroundService
 
 	private readonly ManagerState _state;
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase => _state.CoinsInCriticalPhase;
-	private readonly WalletProvider _getWalletsAsync;
+	private readonly WalletProvider _getWallets;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinPrison _coinPrison;
@@ -438,7 +438,7 @@ public class CoinJoinManager : BackgroundService
 			}
 
 			// Updates coinjoin client states.
-			var wallets = await _getWalletsAsync().ConfigureAwait(false);
+			var wallets = _getWallets();
 
 			_state.CoinJoinClientStates = GetCoinJoinClientStates(wallets);
 			_state.CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
@@ -749,7 +749,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task SignalToStopCoinjoinsAsync()
 	{
-		foreach (var wallet in await _getWalletsAsync().ConfigureAwait(false))
+		foreach (var wallet in _getWallets())
 		{
 			if (_state.CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 			{
@@ -764,7 +764,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task RestartAbortedCoinjoinsAsync()
 	{
-		foreach (var wallet in await _getWalletsAsync().ConfigureAwait(false))
+		foreach (var wallet in _getWallets())
 		{
 			if (_state.WalletsBlockedByUi.TryRemove(wallet.WalletId, out var stateHolder) && stateHolder.NeedRestart)
 			{
