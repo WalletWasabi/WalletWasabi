@@ -18,9 +18,8 @@ namespace WalletWasabi.Rpc;
 /// </summary>
 public class JsonRpcRequest
 {
-	/// <summary>
-	/// Constructor used to deserialize the requests.
-	/// </summary>
+	private static readonly JsonSerializerSettings Settings = new() { FloatParseHandling = FloatParseHandling.Decimal };
+
 	[JsonConstructor]
 	public JsonRpcRequest(string jsonrpc, string id, string method, JToken parameters)
 	{
@@ -37,9 +36,7 @@ public class JsonRpcRequest
 	[MemberNotNullWhen(returnValue: false, nameof(Id))]
 	public bool IsNotification => Id is null;
 
-	/// <summary>
-	/// Gets the version of the JSON-RPC protocol. MUST be exactly "2.0".
-	/// </summary>
+	/// <summary>Gets the version of the JSON-RPC protocol. MUST be exactly "2.0".</summary>
 	[JsonProperty("jsonrpc", Required = Required.Default)]
 	public string JsonRPC { get; }
 
@@ -85,7 +82,7 @@ public class JsonRpcRequest
 		{
 			isBatch = rawJson.TrimStart().StartsWith('[');
 			rawJson = isBatch ? rawJson : $"[{rawJson}]";
-			requests = JsonConvert.DeserializeObject<JsonRpcRequest[]>(rawJson);
+			requests = JsonConvert.DeserializeObject<JsonRpcRequest[]>(rawJson, Settings);
 
 			return requests is not null;
 		}
