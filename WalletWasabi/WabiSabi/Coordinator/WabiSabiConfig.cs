@@ -190,7 +190,14 @@ public record WabiSabiConfig
 			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
 			var decoder = JsonDecoder.FromStream(Decode.WabiSabiConfig(filePath));
 			var decodingResult = decoder(cfgFile);
-			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
+			var config = decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
+
+			if (config.RoundParallelizationOffset >= config.StandardInputRegistrationTimeout)
+			{
+				throw new InvalidOperationException($"{nameof(RoundParallelizationOffset)} must be shorter than {nameof(StandardInputRegistrationTimeout)}.");
+			}
+
+			return config;
 		}
 		catch (Exception ex)
 		{
