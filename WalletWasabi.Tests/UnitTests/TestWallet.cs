@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -117,13 +116,13 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return psbt;
 	}
 
-	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
+	public void TrySetScriptStates(KeyState state, ImmutableList<Script> scripts)
 	{
 		// Test wallet doesn't care
 	}
 
-	public IEnumerable<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
-		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
+	public ImmutableArray<IDestination> GetNextDestinations(int count, bool preferTaproot) =>
+		Enumerable.Range(0, count).Select(_ => (IDestination)CreateNewAddress()).ToImmutableArray();
 
 	public ImmutableHashSet<ScriptType> SupportedScriptTypes { get; } = [ScriptType.P2WPKH];
 

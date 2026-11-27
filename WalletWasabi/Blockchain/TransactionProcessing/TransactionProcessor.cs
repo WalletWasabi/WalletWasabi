@@ -28,7 +28,7 @@ public class TransactionProcessor(
 	public CoinsRegistry Coins { get; } = new();
 	public Money DustThreshold { get; } = dustThreshold;
 
-	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
+	public IReadOnlyList<ProcessedResult> Process(IReadOnlyList<SmartTransaction> txs)
 	{
 		var results = new List<ProcessedResult>();
 
@@ -47,9 +47,6 @@ public class TransactionProcessor(
 
 		return results;
 	}
-
-	public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
-		=> Process(txs as IEnumerable<SmartTransaction>);
 
 	/// <summary>
 	/// Was the transaction already processed by the transaction processor?

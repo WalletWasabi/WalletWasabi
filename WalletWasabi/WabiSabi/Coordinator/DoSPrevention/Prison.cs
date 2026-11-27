@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public class Prison
 {
-	public Prison(IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
+	public Prison(IReadOnlyList<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
 		_offendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
 		_notificationChannelWriter = channelWriterWriter;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -66,7 +67,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	bool IsWatchOnlyWallet { get; }
 
-	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+	ImmutableArray<(string Label, int Score)> GetMostUsedLabels(Intent intent);
 
 	IWalletStatsModel GetWalletStats();
 
@@ -189,7 +190,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 
-	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
+	public ImmutableArray<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
 		return Wallet.GetLabelsWithRanking(intent, _services);
 	}

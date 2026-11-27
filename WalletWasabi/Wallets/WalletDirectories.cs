@@ -44,7 +44,7 @@ public class WalletDirectories
 		
 		if (!walletsDirExists)
 		{
-			return Enumerable.Empty<FileInfo>();
+			return [];
 		}
 
 		result = walletsDirInfo.EnumerateFiles(searchPattern, searchOption);

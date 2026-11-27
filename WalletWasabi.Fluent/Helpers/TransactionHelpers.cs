@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ public static class TransactionHelpers
 				transactionInfo.FeeRate,
 				AllowUnconfirmed: true,
 				AllowDoubleSpend: false,
-				AllowedInputs: allowedCoins.Select(x => x.Outpoint),
+				AllowedInputs: allowedCoins.Select(x => x.Outpoint).ToImmutableArray(),
 				TryToSign: false,
 				OverrideFeeOverpaymentProtection: false);
 

@@ -558,7 +558,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("listwallets", initializable: false)]
 	public async Task<JsonRpcResultList> ListWalletsAsync()
 	{
-		var wallets = await Global.WalletManager.GetWalletsAsync().ConfigureAwait(false);
+		var wallets = Global.WalletManager.GetWallets();
 		return wallets
 			.Select(x => new JsonRpcResult
 			{

@@ -213,8 +213,8 @@ public class AllTransactionStoreTests
 		txStore.AddOrUpdate(cTx2);
 		txStore.AddOrUpdate(cTx3);
 
-		Assert.Equal(6, txStore.GetTransactions().Count());
-		Assert.Equal(6, txStore.GetTransactionHashes().Count());
+		Assert.Equal(6, txStore.GetTransactions().Length);
+		Assert.Equal(6, txStore.GetTransactionHashes().Length);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactions().Count);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactionHashes().Count);
 		Assert.Equal(3, txStore.ConfirmedStore.GetTransactions().Count);
@@ -263,8 +263,8 @@ public class AllTransactionStoreTests
 		txStore.AddOrUpdate(cTx3);
 		txStore.AddOrUpdate(cTx3); // Duplicate.
 
-		Assert.Equal(6, txStore.GetTransactions().Count());
-		Assert.Equal(6, txStore.GetTransactionHashes().Count());
+		Assert.Equal(6, txStore.GetTransactions().Length);
+		Assert.Equal(6, txStore.GetTransactionHashes().Length);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactions().Count);
 		Assert.Equal(3, txStore.MempoolStore.GetTransactionHashes().Count);
 		Assert.Equal(3, txStore.ConfirmedStore.GetTransactions().Count);
@@ -475,8 +475,8 @@ public class AllTransactionStoreTests
 		}
 
 		var storedTxs = txStore.GetTransactions();
-		Assert.Equal(blocks * transactionsPerBlock, storedTxs.Count());
-		var newestConfirmedTx = storedTxs.Last();
+		Assert.Equal(blocks * transactionsPerBlock, storedTxs.Length);
+		var newestConfirmedTx = storedTxs[^1];
 		var tipHeight = blocks;
 		var tipHash = newestConfirmedTx.BlockHash;
 		Assert.Equal(tipHeight, newestConfirmedTx.Height is Height.ChainHeight(var h) ? (int)h : 0);
@@ -488,7 +488,7 @@ public class AllTransactionStoreTests
 		// Reorgs most recent block.
 		Assert.NotNull(tipHash);
 		reorgedTxs = txStore.ReleaseToMempoolFromBlock(tipHash!);
-		Assert.Equal(3, reorgedTxs.Count());
+		Assert.Equal(3, reorgedTxs.Length);
 		Assert.All(reorgedTxs, tx => Assert.False(tx?.Confirmed));
 		Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
 
@@ -502,7 +502,7 @@ public class AllTransactionStoreTests
 		Assert.DoesNotContain(tipHash, txStore.GetTransactionHashes());
 
 		// Reorgs deep block.
-		var oldestConfirmedTx = storedTxs.First();
+		var oldestConfirmedTx = storedTxs[0];
 		var firstBlockHash = oldestConfirmedTx.BlockHash;
 
 		// What to do here?

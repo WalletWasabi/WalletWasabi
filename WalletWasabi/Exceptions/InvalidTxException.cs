@@ -1,21 +1,17 @@
-using NBitcoin;
 using NBitcoin.Policy;
-using System.Collections.Generic;
-using System.Linq;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Exceptions;
 
 public class InvalidTxException : Exception
 {
-	public InvalidTxException(Transaction invalidTx, IEnumerable<TransactionPolicyError> errors)
+	public InvalidTxException(Transaction invalidTx, ImmutableArray<TransactionPolicyError> errors)
 	{
 		Transaction = invalidTx;
 		Errors = errors;
 	}
 
 	public Transaction Transaction { get; }
-	public IEnumerable<TransactionPolicyError> Errors { get; }
+	public ImmutableArray<TransactionPolicyError> Errors { get; }
 
 	public override string Message
 	{

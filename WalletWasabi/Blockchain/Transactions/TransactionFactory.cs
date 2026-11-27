@@ -63,15 +63,16 @@ public class TransactionFactory
 		List<SmartCoin> allowedSmartCoinInputs = parameters.AllowUnconfirmed // Inputs that can be used to build the transaction.
 			? availableCoinsView.ToList()
 			: availableCoinsView.Confirmed().ToList();
-		if (parameters.AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
+
+		if (parameters.AllowedInputs is { } allowedInputs) // If allowedInputs are specified then select the coins from them.
 		{
-			if (!parameters.AllowedInputs.Any())
+			if (!allowedInputs.Any())
 			{
 				throw new ArgumentException($"{nameof(parameters.AllowedInputs)} is not null, but empty.");
 			}
 
 			allowedSmartCoinInputs = allowedSmartCoinInputs
-				.Where(x => parameters.AllowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
+				.Where(x => allowedInputs.Any(y => y.Hash == x.TransactionId && y.N == x.Index))
 				.ToList();
 
 			// Add those that have the same script, because common ownership is already exposed.
@@ -246,8 +247,8 @@ public class TransactionFactory
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
 
-			var checkResults = builder.Check(tx).ToList();
-			if (checkResults.Count > 0)
+			var checkResults = builder.Check(tx).ToImmutableArray();
+			if (checkResults.Length > 0)
 			{
 				Logger.LogDebug($"Found policy error(s)! First error: '{checkResults[0]}'.");
 				throw new InvalidTxException(tx, checkResults);

@@ -157,8 +157,8 @@ public class DependencyGraphTaskScheduler
 			SmartRequestNode smartRequestNode = new(
 				amountCredsToPresentTasks,
 				vsizeCredsToPresentTasks,
-				Array.Empty<TaskCompletionSource<Credential>>(),
-				Array.Empty<TaskCompletionSource<Credential>>());
+				[],
+				[]);
 			return smartRequestNode;
 		});
 

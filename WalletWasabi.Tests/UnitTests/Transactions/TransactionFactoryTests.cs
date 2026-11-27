@@ -469,7 +469,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 		var result = transactionFactory.BuildTransaction(txParameters);
 
@@ -505,7 +505,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 		var result = transactionFactory.BuildTransaction(txParameters);
 
@@ -543,7 +543,7 @@ public class TransactionFactoryTests
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
-			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint))
+			.SetAllowedInputs(allowedCoins.Select(x => x.Outpoint).ToImmutableArray())
 			.Build();
 
 		var ex = Assert.Throws<InsufficientBalanceException>(() => transactionFactory.BuildTransaction(txParameters));
@@ -575,7 +575,7 @@ public class TransactionFactoryTests
 		{
 			coins.Single(x => x.Amount == Money.Coins(0.08m)).Outpoint,
 			coins.Single(x => x.Amount == Money.Coins(0.02m)).Outpoint
-		}.ToArray();
+		}.ToImmutableArray();
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
@@ -819,8 +819,8 @@ public class TransactionFactoryTests
 		// Fee rate: 7.75 sat/vb. There is only ONE output now!
 		{
 			BuildTransactionResult txResult = ComputeTxResult(7.75m);
-			Assert.Single(txResult.Transaction.Transaction.Outputs);
-			Assert.Equal(Money.Satoshis(10000m), txResult.Transaction.Transaction.Outputs[0].Value);
+			var output = Assert.Single(txResult.Transaction.Transaction.Outputs);
+			Assert.Equal(Money.Satoshis(10000m), output.Value);
 			Assert.Equal(14.09m, txResult.FeePercentOfSent);
 			Assert.Equal(Money.Satoshis(1409), txResult.Fee);
 		}

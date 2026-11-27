@@ -1,4 +1,3 @@
-using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.WabiSabi.Client;

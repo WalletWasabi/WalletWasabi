@@ -4,7 +4,6 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 

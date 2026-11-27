@@ -114,13 +114,11 @@ public class WalletManager
 		return null;
 	}
 
-	public Task<IEnumerable<Wallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<Wallet>>(GetWallets());
-
-	public IEnumerable<Wallet> GetWallets()
+	public ImmutableArray<Wallet> GetWallets()
 	{
 		lock (_lock)
 		{
-			return _wallets.ToList();
+			return _wallets.ToImmutableArray();
 		}
 	}
 

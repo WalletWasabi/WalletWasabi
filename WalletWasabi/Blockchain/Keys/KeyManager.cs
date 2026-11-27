@@ -814,14 +814,13 @@ public class KeyManager
 
 public static class KeyPathExtensions
 {
-	public static ScriptPubKeyType GetScriptTypeFromKeyPath(this KeyPath keyPath) =>
-		keyPath.ToBytes().First() switch
-		{
-			84 => ScriptPubKeyType.Segwit,
-			86 => ScriptPubKeyType.TaprootBIP86,
-			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
-										 // throw new NotSupportedException("Unknown script type.")
-		};
+	public static ScriptPubKeyType GetScriptTypeFromKeyPath(this KeyPath keyPath)
+	{
+		// Strip the hardened bit.
+		return keyPath.Length > 0 && (keyPath[0] & ~0x80000000u) == 86
+			? ScriptPubKeyType.TaprootBIP86
+			: ScriptPubKeyType.Segwit; // 84 and anything else the user specifies (like m/999'/999'/999').
+	}
 }
 
 public static class HdPubKeyExtensions
@@ -831,6 +830,9 @@ public static class HdPubKeyExtensions
 
 	public static Script GetAssumedScriptPubKey(this HdPubKey me) =>
 		me.PubKey.GetScriptPubKey(me.FullKeyPath.GetScriptTypeFromKeyPath());
+
+	public static bool IsTaproot(this HdPubKey key) =>
+		key.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86;
 }
 
 public abstract record KeyPurpose

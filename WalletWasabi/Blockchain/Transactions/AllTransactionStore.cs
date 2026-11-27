@@ -135,19 +135,19 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 	}
 
 	/// <returns>Transactions ordered by blockchain.</returns>
-	public IEnumerable<SmartTransaction> GetTransactions()
+	public ImmutableArray<SmartTransaction> GetTransactions()
 	{
 		lock (_lock)
 		{
-			return ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions()).OrderByBlockchain().ToList();
+			return ConfirmedStore.GetTransactions().Concat(MempoolStore.GetTransactions()).OrderByBlockchain().ToImmutableArray();
 		}
 	}
 
-	internal IEnumerable<uint256> GetTransactionHashes()
+	internal ImmutableArray<uint256> GetTransactionHashes()
 	{
 		lock (_lock)
 		{
-			return ConfirmedStore.GetTransactionHashes().Concat(MempoolStore.GetTransactionHashes()).ToList();
+			return ConfirmedStore.GetTransactionHashes().Concat(MempoolStore.GetTransactionHashes()).ToImmutableArray();
 		}
 	}
 
@@ -168,11 +168,12 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 		}
 	}
 
-	public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
+	public ImmutableArray<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
 	{
 		lock (_lock)
 		{
-			List<SmartTransaction> reorgedTxs = new();
+			var reorgedTxs = ImmutableArray.CreateBuilder<SmartTransaction>();
+
 			foreach (var txHash in ConfirmedStore
 				.GetTransactions()
 				.Where(tx => tx.BlockHash == blockHash)
@@ -192,7 +193,8 @@ public class AllTransactionStore : ITransactionStore, IDisposable
 					}
 				}
 			}
-			return reorgedTxs;
+
+			return reorgedTxs.ToImmutable();
 		}
 	}
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Wallets;
@@ -7,7 +8,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class LabelHelpers
 {
-	public static IEnumerable<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent, IServices services)
+	public static ImmutableArray<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent, IServices services)
 	{
 		var labelPool = new Dictionary<string, int>(); // int: score.
 
@@ -89,6 +90,6 @@ public static class LabelHelpers
 			.OrderByDescending(x => x.Score)
 			.ToList();
 
-		return mostUsedLabels.Select(x => (x.Label, x.Score)).ToList();
+		return mostUsedLabels.Select(x => (x.Label, x.Score)).ToImmutableArray();
 	}
 }
