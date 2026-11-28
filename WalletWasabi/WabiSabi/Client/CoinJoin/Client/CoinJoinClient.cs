@@ -660,6 +660,13 @@ public class CoinJoinClient
 				{
 					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 				}
+
+				if (aliceClient.SmartCoin.SpenderTransaction is { } spenderTransaction)
+				{
+					Logger.LogInfo(FormatLog($"Not signing, the coin was spent by {spenderTransaction.GetHash()}.", aliceClient));
+					return false;
+				}
+
 				try
 				{
 					await aliceClient.SignTransactionAsync(unsignedPsbt, _keyChain, cancellationToken).ConfigureAwait(false);
