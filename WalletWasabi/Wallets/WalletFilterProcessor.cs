@@ -113,7 +113,6 @@ public class WalletFilterProcessor : BackgroundService
 			if (matchFound)
 			{
 				// Wait until downloaded.
-				Logger.LogInfo($"Obtaining block {filter.Header.BlockHash}...");
 				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancellationToken).ConfigureAwait(false);
 				if (currentBlock is { })
 				{

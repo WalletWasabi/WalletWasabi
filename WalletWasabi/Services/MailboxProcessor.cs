@@ -117,6 +117,7 @@ public sealed class MailboxProcessor<TMsg>(
 		}
 
 		_isDisposed = true;
+		Workers.Forget(Name, this);
 		_mailbox.Complete();
 		_cts.Cancel();
 		_cts.Dispose();
@@ -175,6 +176,9 @@ public static class Workers
 		Processors[name] = processor;
 		return processor;
 	}
+
+	internal static void Forget(string name, object processor) =>
+		Processors.TryRemove(new KeyValuePair<string, object>(name, processor));
 
 	public static bool Tell<TMsg>(string name, TMsg msg)
 	{
