@@ -391,7 +391,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		this.WhenAnyValue(x => x.Transaction)
-			.WhereNotNull()
+			.ObserveInputChanges()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(
