@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Extensions;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Storages;
@@ -35,6 +36,59 @@ public static class FilterProviders
 
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
+
+	/// <summary>
+	/// Defers provider selection until a configured RPC node answers the filter capability check.
+	/// </summary>
+	public static FilterProvider CreateRecoveringFilterProvider(
+		IRPCClient? rpcClient,
+		ConcurrentChain blockHeaders,
+		Func<FilterProvider> createP2pProvider,
+		Func<bool> isRpcSynchronized)
+	{
+		FilterProvider? selectedProvider = null;
+		var usesRpc = false;
+
+		return async (fromHeight, fromHash, cancellationToken) =>
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			if (selectedProvider is null)
+			{
+				if (rpcClient is null)
+				{
+					selectedProvider = createP2pProvider();
+				}
+				else
+				{
+					var capability = await rpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
+					cancellationToken.ThrowIfCancellationRequested();
+
+					if (capability.IsOk)
+					{
+						selectedProvider = CreateBitcoinRpcFilterProvider(rpcClient, blockHeaders);
+						usesRpc = true;
+					}
+					else if (capability.Error)
+					{
+						selectedProvider = createP2pProvider();
+					}
+					else
+					{
+						Logger.LogWarning("Could not determine whether the configured Bitcoin RPC supports block filters. Retrying in 15 seconds.");
+						return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
+					}
+				}
+			}
+
+			if (usesRpc && !isRpcSynchronized())
+			{
+				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(7));
+			}
+
+			return await selectedProvider(fromHeight, fromHash, cancellationToken).ConfigureAwait(false);
+		};
+	}
 
 	/// <returns>Result with a best blockchain height along with block hashes to retrieve, or a failure indicating a reorg.</returns>
 	private static async Task<Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
